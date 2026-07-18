@@ -86,8 +86,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--ls8", required=True)
     ap.add_argument("--halfyear", required=True)
-    ap.add_argument("--out", required=True)
+    ap.add_argument("--out", help="output path (required unless --dry-run)")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="print differences only; write nothing")
     args = ap.parse_args()
+    if not args.dry_run and not args.out:
+        ap.error("--out is required unless --dry-run is given")
 
     src = openpyxl.load_workbook(args.ls8, data_only=True)
     ls8 = src[LS8_SHEET_2025]
@@ -158,6 +162,12 @@ def main():
                  "Occupancy % (Summary LYF 2025)", MONTHS[i])
         set_cell(summary, SUMMARY_ADR_ROW, HY_COL0 + i, actual_adr[i],
                  "ADR (Summary LYF 2025)", MONTHS[i])
+
+    if args.dry_run:
+        print(f"DRY RUN — {len(changes)} cell(s) differ from LS8; nothing written.")
+        for ch in changes:
+            print("  ", ch)
+        return
 
     # 5) Audit sheet
     if AUDIT_SHEET in wb.sheetnames:

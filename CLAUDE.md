@@ -5,11 +5,30 @@ portfolio hotels (SR9, AES, LYF, SP). The recurring task documented here is:
 **"Reconcile half year according to LS8"** — done here for the first time in
 July 2026 and expected to repeat.
 
+**Mae is a non-technical user.** Keep every reply short and plain — no jargon,
+no raw tracebacks (summarize problems in one sentence and say what you'll do
+about it). Thai hints are welcome. When she uploads files and asks to
+"reconcile", assume the `/reconcile-ls8` flow below.
+
+## Command suite (non-tech entry points)
+
+| Command | What it does |
+|---|---|
+| `/guide` | Plain-language menu of everything this workspace can do |
+| `/reconcile-ls8` | Full run: fix workbook to match LS8 + audit tab + visual report + commit/push |
+| `/check-ls8` | Compare only (`--dry-run`) — show differences, change nothing |
+| `/audit-report` | Rebuild + show the visual audit report from the latest reconciled file |
+
+Command definitions live in `.claude/commands/`. A SessionStart hook
+(`.claude/settings.json`) installs python deps in the background and points the
+user to `/guide`.
+
 ## Directory layout
 
 ```
+.claude/       Command suite (commands/*.md) + hooks (settings.json).
 data/source/   Uploaded input workbooks, renamed to clean names. Never edit in place.
-output/        Reconciled deliverable workbooks (with audit sheet).
+output/        Reconciled deliverable workbooks (with audit sheet) + HTML reports.
 scripts/       Reusable Python scripts (openpyxl). One script per recurring task.
 CLAUDE.md      This file — the anatomy of each recurring task.
 ```
@@ -77,9 +96,21 @@ python3 scripts/reconcile_ls8.py \
 The script asserts the layout (labels in col B) before writing, overwrites only
 hardcoded input cells that differ (never formulas), and appends an audit sheet
 `Recon LS8 (<year>)` listing every change old → new plus notes on what was
-deliberately left alone. Current version reconciles the **2025 block** (per
-Mae's instruction July 2026); extend `main()` with the 2026 mapping (rows in
-the module constants) when asked to reconcile the current year.
+deliberately left alone. Add `--dry-run` to print differences without writing
+anything (used by `/check-ls8`). Current version reconciles the **2025 block**
+(per Mae's instruction July 2026); extend `main()` with the 2026 mapping (rows
+in the module constants) when asked to reconcile the current year.
+
+After reconciling, build the non-tech audit presentation:
+
+```bash
+python3 scripts/audit_report.py output/<reconciled file>.xlsx
+```
+
+It reads the audit sheet and writes `<stem>_report.html` next to the workbook
+(bilingual EN/TH, light+dark theme). Deliver it with SendUserFile
+(`display: render`) and republish the artifact (same file path keeps the same
+URL within a session; pass the previous artifact URL from new sessions).
 
 ### Verification checklist (do all of these before delivering)
 
