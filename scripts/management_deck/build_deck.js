@@ -472,44 +472,50 @@ for (const key of ["SR9", "AES", "LYF", "SP"]) {
     fmtPct(top.ytd / segs.reduce((t, r) => t + r.ytd, 0), 0) + " of room nights).");
 }
 
-// nationality slides
+// nationality slides — room-night counts, 2026 and 2025
 for (const key of ["SR9", "AES", "LYF", "SP"]) {
   const p = data.perf[key];
-  const counts = data.nat_counts[key];
-  const shares = data.nat[key];
+  const n26 = data.nat_rn[key]["2026"];
+  const n25 = data.nat_rn[key]["2025"];
+  const by25 = {};
+  n25.forEach((e) => { by25[e.label] = e; });
   const s = pres.addSlide();
-  header(s, "Section 4 · Nationality", p.name + " (" + key + ") — guest nationality",
-    "Top 10 by room nights, YTD Jan–Apr 2026 vs 2025 (left) · monthly share of room nights (right)");
+  header(s, "Section 4 \u00b7 Nationality", p.name + " (" + key + ") \u2014 guest nationality (room nights)",
+    "Top 10 nationalities \u00b7 H1 room nights 2026 vs 2025 (left) \u00b7 monthly room nights by year (right)");
   s.addChart(pres.ChartType.bar, [
-    { name: "2025", labels: counts.map((c) => c.label), values: counts.map((c) => c.y2025) },
-    { name: "2026", labels: counts.map((c) => c.label), values: counts.map((c) => c.y2026) },
+    { name: "2025 H1", labels: n26.map((c) => c.label), values: n26.map((c) => (by25[c.label] ? by25[c.label].h1 : 0)) },
+    { name: "2026 H1", labels: n26.map((c) => c.label), values: n26.map((c) => c.h1) },
   ], Object.assign({}, axStyle, {
-    x: M, y: 1.9, w: 6.1, h: 4.85, barDir: "bar", chartColors: [SKY, NAVY],
+    x: M, y: 1.9, w: 5.9, h: 4.85, barDir: "bar", chartColors: [SKY, NAVY],
     showLegend: true, legendPos: "b", valAxisNumFmt: "#,##0",
     catAxisLabelFontSize: 9.5, barGapWidthPct: 40,
-    showTitle: true, title: "Room nights YTD (Jan–Apr)", titleFontSize: 13,
+    showTitle: true, title: "Room nights H1 (Jan\u2013Jun)", titleFontSize: 13,
     titleColor: NAVY, titleFontFace: F,
   }));
-  // monthly share table (top 6 by avg share)
-  const top6 = shares.filter((r) => r.avg != null).sort((a, b) => b.avg - a.avg).slice(0, 6);
-  const trows = [[
-    { text: "Share of RN", options: { bold: true, color: "FFFFFF", fill: { color: NAVY } } },
-    ...MONTHS.slice(0, 6).map((m) => ({ text: m, options: { bold: true, color: "FFFFFF", fill: { color: NAVY }, align: "center" } })),
-  ]];
-  top6.forEach((r, ri) => {
-    trows.push([
-      { text: r.label, options: { bold: true, color: INK, fill: { color: ri % 2 ? PANEL : "FFFFFF" } } },
-      ...r.m.map((v) => ({ text: v == null ? "—" : (v * 100).toFixed(0) + "%",
-        options: { color: INK, align: "center", fill: { color: ri % 2 ? PANEL : "FFFFFF" } } })),
-    ]);
-  });
-  s.addTable(trows, { x: 7.0, y: 2.15, w: 5.75, colW: [1.85, 0.65, 0.65, 0.65, 0.65, 0.65, 0.65],
-    fontFace: F, fontSize: 10, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
-    rowH: 0.34, valign: "middle" });
-  const winner = counts.slice().sort((a, b) => (b.y2026 - b.y2025) - (a.y2026 - a.y2025))[0];
-  const loser = counts.slice().sort((a, b) => (a.y2026 - a.y2025) - (b.y2026 - b.y2025))[0];
-  note(s, M, 6.85, 11.9, "Biggest YTD gain: " + winner.label + " (+" + (winner.y2026 - winner.y2025).toLocaleString("en-US") +
-    " RN) · biggest decline: " + loser.label + " (" + (loser.y2026 - loser.y2025).toLocaleString("en-US") + " RN).");
+  const natTable = (y, entries, yearLabel) => {
+    const zebra = (i) => ({ color: i % 2 ? PANEL : "FFFFFF" });
+    const hc = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: NAVY }, align: "center" } });
+    const rows = [[{ text: yearLabel, options: { bold: true, color: "FFFFFF", fill: { color: NAVY } } }]
+      .concat(MONTHS.slice(0, 6).map(hc), [hc("H1")])];
+    entries.slice(0, 6).forEach((e, i) => {
+      rows.push([{ text: e.label, options: { bold: true, color: INK, fill: zebra(i) } }].concat(
+        e.m.slice(0, 6).map((v) => ({ text: v == null ? "\u2014" : Math.round(v).toLocaleString("en-US"),
+          options: { color: INK, align: "right", fill: zebra(i) } })),
+        [{ text: e.h1.toLocaleString("en-US"), options: { bold: true, color: NAVY, align: "right", fill: zebra(i) } }]));
+    });
+    s.addTable(rows, { x: 6.85, y, w: 5.88,
+      colW: [1.43, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.85],
+      fontFace: F, fontSize: 8.5, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
+      rowH: 0.26, valign: "middle" });
+  };
+  natTable(1.95, n26, "2026");
+  natTable(4.35, n25, "2025");
+  const diffs = n26.map((c) => ({ label: c.label, d: c.h1 - (by25[c.label] ? by25[c.label].h1 : 0) }));
+  const winner = diffs.slice().sort((a, b) => b.d - a.d)[0];
+  const loser = diffs.slice().sort((a, b) => a.d - b.d)[0];
+  note(s, M, 6.9, 11.9, "Biggest H1 gain: " + winner.label + " (+" + winner.d.toLocaleString("en-US") +
+    " RN) \u00b7 biggest decline: " + loser.label + " (" + loser.d.toLocaleString("en-US") +
+    " RN). Each year shows its own top-10 list; a 2025 bar of 0 means that nationality was outside 2025\u2019s top-10. Tables show the top 6 of each year.");
 }
 
 // ============================================================
@@ -523,7 +529,7 @@ for (const key of ["SR9", "AES", "LYF", "SP"]) {
     { text: "Arrivals: Ministry of Tourism & Sports (MOTS) and AOT statistics, as compiled in the Segment Half-year workbook (tabs Arrival / Summary-1). 2026 data through May.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "STR / compset: Bangkok and Pattaya competitive-set Occ, ADR, RevPAR from the Compset tab (ADR excludes breakfast).", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "Property performance: Summary tab of the reconciled workbook (Segment_Half_year_version_1_ALL-reconciled.xlsx) — actuals, budget (BG rows) and 2025. Segment data reconciled to each property's source system, July 2026.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
-    { text: "Segmentation & nationality: property tabs (2026 Jan–Jun) and Summary-1 top-10 nationality tables (Jan–Apr).", options: { bullet: true, breakLine: true, paraSpaceAfter: 10 } },
+    { text: "Segmentation: property tabs (2026 Jan–Jun). Nationality: room nights by nationality from each property tab — H1 2026 and 2025 (each year's own top-10).", options: { bullet: true, breakLine: true, paraSpaceAfter: 10 } },
     { text: "Definitions & notes", options: { bold: true, color: NAVY, fontSize: 14, breakLine: true, paraSpaceAfter: 6 } },
     { text: "ADR = room revenue ÷ rooms sold; RevPAR = room revenue ÷ rooms available; Occ = rooms sold ÷ rooms available. YTD = Jan–Jun 2026 unless stated.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "Portfolio figures weight the four properties by room inventory (SR9 464 · AES 403 · SP 333 · LYF 206 = 1,406 keys).", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },

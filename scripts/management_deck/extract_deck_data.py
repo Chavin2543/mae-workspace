@@ -177,6 +177,29 @@ for key, r0 in BLOCKS.items():
     s1nat[key] = entries
 data["nat_counts"] = s1nat
 
+# nationality RN counts from hidden columns on each property tab:
+# cols AG..AR (33..44) = Jan..Dec, AS (45) = H1 total. Two blocks per tab:
+# first "Top 10 Nationality" header = 2026, second = 2025.
+nat_rn = {}
+for key in PROPS:
+    ws = wb[key]
+    hdrs = [r for r in range(1, 100)
+            if isinstance(ws.cell(r, 2).value, str)
+            and "Top 10 Nationality" in ws.cell(r, 2).value]
+    assert len(hdrs) >= 2, f"{key}: nationality headers found = {hdrs}"
+    blocks = {}
+    for year, hdr in (("2026", hdrs[0]), ("2025", hdrs[1])):
+        entries = []
+        nm = 6 if year == "2026" else 12
+        for r in range(hdr + 1, hdr + 11):
+            label = ws.cell(r, 2).value
+            vals = row(ws, r, 33, nm)
+            h1 = sum(v for v in vals[:6] if isinstance(v, (int, float)))
+            entries.append({"label": str(label), "m": vals, "h1": round(h1)})
+        blocks[year] = entries
+    nat_rn[key] = blocks
+data["nat_rn"] = nat_rn
+
 out = "/tmp/claude-0/-home-user-mae-workspace/1ca9b4aa-1acb-530b-bc1a-fb243eb675fd/scratchpad/deck_data.json"
 with open(out, "w") as f:
     json.dump(data, f, indent=1)
