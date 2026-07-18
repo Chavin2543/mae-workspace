@@ -7,6 +7,13 @@ language.
 
 ---
 
+## 2026-07-18 — Deleted unverified AES Jul-Dec 2025 numbers
+Mae's instruction: the AES tab's Jul-Dec 2025 block (overview + RN/revenue
+by segment, 108 cells) had no source file to verify against, so it was
+blanked in the ALL-reconciled deliverable. Old values are preserved in new
+audit sheet "Recon AES clear (2025 Jul-Dec)"; formulas/Jan-Jun untouched.
+New reusable `scripts/clear_cells.py`; report rebuilt.
+
 ## 2026-07-18 — Mae's rule: never touch the Summary tab (all properties)
 Reverted every Summary-sheet edit and rebuilt both deliverables from the
 original workbook; Summary is now byte-identical to Mae's upload. Both

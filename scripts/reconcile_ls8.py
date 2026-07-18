@@ -234,13 +234,15 @@ def _num_repr(v):
 
 
 def _patch_sheet_xml(xml, cell_changes, sheet_name):
-    """Replace <v> contents of existing plain numeric cells; assert on anything else."""
+    """Replace <v> contents of existing plain numeric cells (new=None blanks
+    the cell, keeping its style); assert on anything else."""
     for ref, new in cell_changes:
         pat = re.compile(r'(<c r="%s"(?![0-9])[^>]*>)(<v>[^<]*</v>)(</c>)' % re.escape(ref))
         m = pat.search(xml)
         assert m, (f"{sheet_name}!{ref}: expected an existing plain numeric cell "
                    f"in the sheet XML; refusing to patch blindly")
-        xml = xml[:m.start()] + m.group(1) + f"<v>{_num_repr(new)}</v>" + m.group(3) + xml[m.end():]
+        val = "" if new is None else f"<v>{_num_repr(new)}</v>"
+        xml = xml[:m.start()] + m.group(1) + val + m.group(3) + xml[m.end():]
     return xml
 
 

@@ -89,15 +89,19 @@ def main():
         chs.sort(key=lambda c: (c["item"], MONTH_ORDER.get(c["month"], 99)))
 
     n_rev = sum(1 for c in changes if group_of(c["item"])[0] == "Revenue")
+    def numeric(c):
+        return (isinstance(c["old"], (int, float))
+                and isinstance(c["new"], (int, float)))
+
     rev_delta = sum((c["new"] - c["old"]) for c in changes
-                    if group_of(c["item"])[0] == "Revenue"
-                    and isinstance(c["old"], (int, float)))
+                    if group_of(c["item"])[0] == "Revenue" and numeric(c))
     months_hit = sorted({c["month"] for c in changes}, key=lambda m: MONTH_ORDER.get(m, 99))
-    biggest = max((c for c in changes if group_of(c["item"])[0] == "Revenue"),
+    biggest = max((c for c in changes
+                   if group_of(c["item"])[0] == "Revenue" and numeric(c)),
                   key=lambda c: abs(c["new"] - c["old"]), default=None)
 
     def delta_cell(c):
-        if not isinstance(c["old"], (int, float)):
+        if not numeric(c):
             return "<td class='num'>—</td>"
         d = c["new"] - c["old"]
         k = kind_of(c["item"])
