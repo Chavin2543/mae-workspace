@@ -154,9 +154,11 @@ URL within a session; pass the previous artifact URL from new sessions).
    Excel recalculates everything (incl. check row 66) on open. If you need a
    LibreOffice recalc for QA, do it on a throwaway copy after freezing the
    at-risk cells (`external_links_at_risk()` in the xlsx skill's recalc.py)
-   with cached values from the original. Note: full recalc of this workbook
-   took LibreOffice >10 min in one session — budget for that or rely on the
-   Python re-check.
+   with cached values from the original. Note: in the July 2026 session
+   LibreOffice failed to finish recalculating this workbook even after 50
+   minutes — do NOT attempt it; the Python re-check (step 2) is the
+   verification method for this workbook. Excel recalculates the simple
+   SUM/mix/check formulas normally on open.
 
 ### Known open items (July 2026 run)
 
