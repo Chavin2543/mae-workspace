@@ -7,6 +7,16 @@ language.
 
 ---
 
+## 2026-07-18 — Reconciled SR9 / AES / SP tabs (H1) from property sources
+New sources in `data/source/`: SR9 Market Segment (2025+YTD2026), AES & SP
+2025 Market Mix "as Jun25" (H1 only). New `scripts/reconcile_segments.py`
+(surgical patch, same engine as LS8): SR9 2025 H1 + 2026 H1, AES 2025 H1,
+SP 2025 H1 — 148 cells fixed on top of the LS8 file → cumulative deliverable
+`output/Segment_Half_year_version_1_ALL-reconciled.xlsx` + combined report.
+Mae's call: SP January untouched (keeps "Corporate Group with Banque" 672 RN
+treatment absent from the source). AES/SP 2026: no source provided yet.
+`audit_report.py` generalized to render all "Recon …" audit sheets.
+
 ## 2026-07-18 — Simple HTML summary of 2026 diffs vs LS8
 Recomputed the 2026 H1 (Jan–Jun) differences fresh from the files: 8 cells
 differ — RN Online Feb/Mar, Wholesale Feb, overview Mar (±1 each) and revenue

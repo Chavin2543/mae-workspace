@@ -1,0 +1,373 @@
+<title>Reconciliation Report — Segment Half-year</title>
+<style>
+:root {
+  --paper:#FAF9F6; --card:#FFFFFF; --ink:#1F2A2E; --muted:#66757A;
+  --accent:#0F6B66; --down:#B4552D; --line:#E3E1D9; --chip:#EFEDE6;
+  --note:#8A6D1E; --notebg:#F7F2E2;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --paper:#14191B; --card:#1C2326; --ink:#E7E4DC; --muted:#93A0A3;
+  --accent:#57B3AC; --down:#DE8A61; --line:#2C3538; --chip:#232C2F;
+  --note:#D9BE72; --notebg:#25231A;
+} }
+:root[data-theme="dark"] {
+  --paper:#14191B; --card:#1C2326; --ink:#E7E4DC; --muted:#93A0A3;
+  --accent:#57B3AC; --down:#DE8A61; --line:#2C3538; --chip:#232C2F;
+  --note:#D9BE72; --notebg:#25231A;
+}
+:root[data-theme="light"] {
+  --paper:#FAF9F6; --card:#FFFFFF; --ink:#1F2A2E; --muted:#66757A;
+  --accent:#0F6B66; --down:#B4552D; --line:#E3E1D9; --chip:#EFEDE6;
+  --note:#8A6D1E; --notebg:#F7F2E2;
+}
+body { background:var(--paper); color:var(--ink);
+  font:16px/1.55 -apple-system,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;
+  margin:0; padding:2.5rem 1.25rem 4rem; }
+main { max-width:880px; margin:0 auto; display:flex; flex-direction:column; gap:2.2rem; }
+h1,h2 { font-family:"Iowan Old Style",Georgia,"Times New Roman",serif;
+  line-height:1.2; text-wrap:balance; margin:0; }
+h1 { font-size:2rem; }
+h2 { font-size:1.3rem; border-bottom:2px solid var(--accent);
+  padding-bottom:.35rem; }
+.thai { font-family:-apple-system,"Segoe UI","Noto Sans Thai",sans-serif;
+  font-size:.85em; color:var(--muted); font-weight:400; margin-left:.4rem; }
+header p.sub { color:var(--muted); margin:.5rem 0 1rem; max-width:65ch; }
+.chips { display:flex; flex-wrap:wrap; gap:.5rem; }
+.chip { background:var(--chip); border:1px solid var(--line); border-radius:999px;
+  padding:.2rem .75rem; font-size:.8rem; color:var(--muted); }
+.chip b { color:var(--ink); font-weight:600; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:10px;
+  padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.3rem; }
+.card .label { font-size:.72rem; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--muted); }
+.card .value { font-size:1.45rem; font-weight:650;
+  font-variant-numeric:tabular-nums; }
+.card .value.accent { color:var(--accent); }
+.section-note { color:var(--muted); margin:.6rem 0 1rem; max-width:65ch; }
+.tablewrap { overflow-x:auto; border:1px solid var(--line); border-radius:10px;
+  background:var(--card); }
+table { border-collapse:collapse; width:100%; font-size:.9rem; }
+th { text-align:left; font-size:.72rem; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--muted); padding:.6rem .9rem; border-bottom:1px solid var(--line); }
+td { padding:.5rem .9rem; border-bottom:1px solid var(--line); }
+tbody tr:last-child td { border-bottom:none; }
+td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+td.up { color:var(--accent); font-weight:600; }
+td.down { color:var(--down); font-weight:600; }
+.notes { background:var(--notebg); border:1px solid var(--line); border-left:4px solid var(--note);
+  border-radius:10px; padding:1rem 1.3rem; }
+.notes h2 { border:none; padding:0; font-size:1.1rem; }
+.notes ul { margin:.6rem 0 0; padding-left:1.1rem; display:flex;
+  flex-direction:column; gap:.45rem; font-size:.9rem; }
+footer { color:var(--muted); font-size:.8rem; border-top:1px solid var(--line);
+  padding-top:1rem; }
+</style>
+<main>
+<header>
+  <h1>Reconciliation Report <span class="thai">รายงานการกระทบยอด</span></h1>
+  <p class="sub">Each hotel tab in the half-year workbook was checked against
+  that property's official source workbook and corrected where the numbers
+  differed. Every change is listed below.</p>
+  <div class="chips">
+    <span class="chip">Last run <b>2026-07-18</b></span>
+    <span class="chip">Workbook <b>Segment_Half_year_version_1_ALL-reconciled.xlsx</b></span>
+    <span class="chip">✓ <b>Recon LS8 (2025)</b></span><span class="chip">✓ <b>Recon SR9 AES SP (H1)</b></span>
+  </div>
+</header>
+<div class="cards">
+  <div class="card"><span class="label">Numbers corrected</span>
+    <span class="value accent">256</span></div>
+  <div class="card"><span class="label">Months affected</span>
+    <span class="value">12</span></div>
+  <div class="card"><span class="label">Net revenue correction</span>
+    <span class="value">+136,569 ฿</span></div>
+  <div class="card"><span class="label">Largest revenue fix</span>
+    <span class="value" style="font-size:.95rem">SP · Corporate Group 2025 · Apr (-137,723.43 THB)</span></div>
+</div>
+
+<section>
+  <h2>Room Nights <span class="thai">จำนวนคืนที่ขายได้</span></h2>
+  <p class="section-note">How many room nights each segment sold per month. <strong>53 corrections.</strong></p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Item</th><th>Month</th><th>Before</th><th>After (LS8)</th><th>Change</th></tr></thead>
+    <tbody><tr><td>LYF · ASR RN</td><td>Jan</td><td class='num'>695</td><td class='num'>697</td><td class='num up'>+2</td></tr>
+<tr><td>LYF · ASR RN</td><td>Feb</td><td class='num'>783</td><td class='num'>787</td><td class='num up'>+4</td></tr>
+<tr><td>LYF · ASR RN</td><td>Mar</td><td class='num'>753</td><td class='num'>759</td><td class='num up'>+6</td></tr>
+<tr><td>LYF · ASR RN</td><td>Apr</td><td class='num'>704</td><td class='num'>711</td><td class='num up'>+7</td></tr>
+<tr><td>LYF · Corporate Long Stay RN</td><td>May</td><td class='num'>0</td><td class='num'>4</td><td class='num up'>+4</td></tr>
+<tr><td>LYF · Corporate Short Stay RN</td><td>Jan</td><td class='num'>182</td><td class='num'>180</td><td class='num down'>-2</td></tr>
+<tr><td>LYF · Corporate Short Stay RN</td><td>Mar</td><td class='num'>139</td><td class='num'>135</td><td class='num down'>-4</td></tr>
+<tr><td>LYF · Employee Travel RN</td><td>Feb</td><td class='num'>0</td><td class='num'>44</td><td class='num up'>+44</td></tr>
+<tr><td>LYF · Employee Travel RN</td><td>Mar</td><td class='num'>0</td><td class='num'>40</td><td class='num up'>+40</td></tr>
+<tr><td>LYF · Employee Travel RN</td><td>Apr</td><td class='num'>0</td><td class='num'>34</td><td class='num up'>+34</td></tr>
+<tr><td>LYF · Employee Travel RN</td><td>May</td><td class='num'>167</td><td class='num'>49</td><td class='num down'>-118</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) RN</td><td>Jan</td><td class='num'>3,523</td><td class='num'>3,512</td><td class='num down'>-11</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) RN</td><td>Feb</td><td class='num'>3,128</td><td class='num'>3,123</td><td class='num down'>-5</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) RN</td><td>Mar</td><td class='num'>2,742</td><td class='num'>2,733</td><td class='num down'>-9</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) RN</td><td>Apr</td><td class='num'>3,053</td><td class='num'>3,000</td><td class='num down'>-53</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) RN</td><td>May</td><td class='num'>2,778</td><td class='num'>2,766</td><td class='num down'>-12</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) RN</td><td>Jun</td><td class='num'>2,679</td><td class='num'>2,669</td><td class='num down'>-10</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) RN</td><td>Jul</td><td class='num'>2,504</td><td class='num'>2,502</td><td class='num down'>-2</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) RN</td><td>Sep</td><td class='num'>2,374</td><td class='num'>2,376</td><td class='num up'>+2</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) RN</td><td>Oct</td><td class='num'>2,670</td><td class='num'>2,669</td><td class='num down'>-1</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) RN</td><td>Nov</td><td class='num'>3,658</td><td class='num'>3,659</td><td class='num up'>+1</td></tr>
+<tr><td>LYF · Room Nights (overview)</td><td>Feb</td><td class='num'>4,905</td><td class='num'>4,952</td><td class='num up'>+47</td></tr>
+<tr><td>LYF · Room Nights (overview)</td><td>Mar</td><td class='num'>4,486</td><td class='num'>4,526</td><td class='num up'>+40</td></tr>
+<tr><td>LYF · Room Nights (overview)</td><td>Apr</td><td class='num'>4,410</td><td class='num'>4,444</td><td class='num up'>+34</td></tr>
+<tr><td>LYF · Room Nights (overview)</td><td>May</td><td class='num'>4,423</td><td class='num'>4,309</td><td class='num down'>-114</td></tr>
+<tr><td>LYF · Room Nights (overview)</td><td>Jul</td><td class='num'>4,539</td><td class='num'>4,537</td><td class='num down'>-2</td></tr>
+<tr><td>LYF · Room Nights (overview)</td><td>Sep</td><td class='num'>5,127</td><td class='num'>5,129</td><td class='num up'>+2</td></tr>
+<tr><td>LYF · Room Nights (overview)</td><td>Nov</td><td class='num'>5,453</td><td class='num'>5,454</td><td class='num up'>+1</td></tr>
+<tr><td>LYF · Wholesale (Static Rate) RN</td><td>Jan</td><td class='num'>1,271</td><td class='num'>1,282</td><td class='num up'>+11</td></tr>
+<tr><td>LYF · Wholesale (Static Rate) RN</td><td>Feb</td><td class='num'>938</td><td class='num'>942</td><td class='num up'>+4</td></tr>
+<tr><td>LYF · Wholesale (Static Rate) RN</td><td>Mar</td><td class='num'>852</td><td class='num'>859</td><td class='num up'>+7</td></tr>
+<tr><td>LYF · Wholesale (Static Rate) RN</td><td>Apr</td><td class='num'>544</td><td class='num'>590</td><td class='num up'>+46</td></tr>
+<tr><td>LYF · Wholesale (Static Rate) RN</td><td>May</td><td class='num'>657</td><td class='num'>669</td><td class='num up'>+12</td></tr>
+<tr><td>LYF · Wholesale (Static Rate) RN</td><td>Jun</td><td class='num'>665</td><td class='num'>675</td><td class='num up'>+10</td></tr>
+<tr><td>LYF · Wholesale (Static Rate) RN</td><td>Oct</td><td class='num'>1,822</td><td class='num'>1,823</td><td class='num up'>+1</td></tr>
+<tr><td>SP · ASR RN 2025</td><td>Feb</td><td class='num'>654</td><td class='num'>655</td><td class='num up'>+1</td></tr>
+<tr><td>SP · ASR RN 2025</td><td>Mar</td><td class='num'>757</td><td class='num'>763</td><td class='num up'>+6</td></tr>
+<tr><td>SP · ASR RN 2025</td><td>May</td><td class='num'>825</td><td class='num'>824</td><td class='num down'>-1</td></tr>
+<tr><td>SP · Corporate Group RN 2025</td><td>Apr</td><td class='num'>308</td><td class='num'>264</td><td class='num down'>-44</td></tr>
+<tr><td>SP · Corporate Group RN 2025</td><td>Jun</td><td class='num'>56</td><td class='num'>18</td><td class='num down'>-38</td></tr>
+<tr><td>SP · Corporate SS RN 2025</td><td>Mar</td><td class='num'>278</td><td class='num'>280</td><td class='num up'>+2</td></tr>
+<tr><td>SP · Corporate SS RN 2025</td><td>Apr</td><td class='num'>186</td><td class='num'>184</td><td class='num down'>-2</td></tr>
+<tr><td>SP · Online Business RN 2025</td><td>Feb</td><td class='num'>2,388</td><td class='num'>2,387</td><td class='num down'>-1</td></tr>
+<tr><td>SP · Online Business RN 2025</td><td>Mar</td><td class='num'>1,923</td><td class='num'>1,925</td><td class='num up'>+2</td></tr>
+<tr><td>SP · Online Business RN 2025</td><td>Jun</td><td class='num'>1,578</td><td class='num'>1,575</td><td class='num down'>-3</td></tr>
+<tr><td>SP · Room Nights overview 2025</td><td>Mar</td><td class='num'>6,311</td><td class='num'>6,324</td><td class='num up'>+13</td></tr>
+<tr><td>SP · Room Nights overview 2025</td><td>Apr</td><td class='num'>6,804</td><td class='num'>6,758</td><td class='num down'>-46</td></tr>
+<tr><td>SP · Room Nights overview 2025</td><td>May</td><td class='num'>6,180</td><td class='num'>6,178</td><td class='num down'>-2</td></tr>
+<tr><td>SP · Room Nights overview 2025</td><td>Jun</td><td class='num'>5,578</td><td class='num'>5,533</td><td class='num down'>-45</td></tr>
+<tr><td>SP · Wholesale Group RN 2025</td><td>Jun</td><td class='num'>828</td><td class='num'>827</td><td class='num down'>-1</td></tr>
+<tr><td>SP · Wholesale RN 2025</td><td>Mar</td><td class='num'>2,423</td><td class='num'>2,426</td><td class='num up'>+3</td></tr>
+<tr><td>SP · Wholesale RN 2025</td><td>May</td><td class='num'>2,129</td><td class='num'>2,128</td><td class='num down'>-1</td></tr>
+<tr><td>SP · Wholesale RN 2025</td><td>Jun</td><td class='num'>1,732</td><td class='num'>1,729</td><td class='num down'>-3</td></tr></tbody>
+  </table></div>
+</section>
+<section>
+  <h2>Revenue <span class="thai">รายได้ค่าห้อง</span></h2>
+  <p class="section-note">Room revenue per segment per month (THB). <strong>128 corrections.</strong></p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Item</th><th>Month</th><th>Before</th><th>After (LS8)</th><th>Change</th></tr></thead>
+    <tbody><tr><td>AES · ASR Revenue 2025</td><td>Jan</td><td class='num'>2,540,743.00</td><td class='num'>2,540,742.57</td><td class='num down'>-0.43</td></tr>
+<tr><td>AES · ASR Revenue 2025</td><td>Feb</td><td class='num'>2,770,499.00</td><td class='num'>2,770,498.55</td><td class='num down'>-0.45</td></tr>
+<tr><td>AES · ASR Revenue 2025</td><td>Mar</td><td class='num'>2,213,577.00</td><td class='num'>2,213,577.02</td><td class='num up'>+0.02</td></tr>
+<tr><td>AES · ASR Revenue 2025</td><td>Apr</td><td class='num'>2,949,975.00</td><td class='num'>2,949,975.05</td><td class='num up'>+0.05</td></tr>
+<tr><td>AES · ASR Revenue 2025</td><td>May</td><td class='num'>1,111,640.00</td><td class='num'>1,111,639.59</td><td class='num down'>-0.41</td></tr>
+<tr><td>AES · ASR Revenue 2025</td><td>Jun</td><td class='num'>1,700,565.00</td><td class='num'>1,700,565.37</td><td class='num up'>+0.37</td></tr>
+<tr><td>AES · Corporate Group Revenue 2025</td><td>Jan</td><td class='num'>771,028.00</td><td class='num'>771,028.13</td><td class='num up'>+0.13</td></tr>
+<tr><td>AES · Corporate Group Revenue 2025</td><td>Feb</td><td class='num'>358,963.00</td><td class='num'>358,963.41</td><td class='num up'>+0.41</td></tr>
+<tr><td>AES · Corporate Group Revenue 2025</td><td>Mar</td><td class='num'>567,205.00</td><td class='num'>567,204.66</td><td class='num down'>-0.34</td></tr>
+<tr><td>AES · Corporate Group Revenue 2025</td><td>Apr</td><td class='num'>718,557.00</td><td class='num'>718,557.28</td><td class='num up'>+0.28</td></tr>
+<tr><td>AES · Corporate Group Revenue 2025</td><td>Jun</td><td class='num'>97,423.00</td><td class='num'>97,422.79</td><td class='num down'>-0.21</td></tr>
+<tr><td>AES · Corporate Long Stay Revenue 2025</td><td>Jan</td><td class='num'>4,561,643.00</td><td class='num'>4,561,642.97</td><td class='num down'>-0.03</td></tr>
+<tr><td>AES · Corporate Long Stay Revenue 2025</td><td>Feb</td><td class='num'>3,770,221.00</td><td class='num'>3,770,220.74</td><td class='num down'>-0.26</td></tr>
+<tr><td>AES · Corporate Long Stay Revenue 2025</td><td>Mar</td><td class='num'>3,962,649.00</td><td class='num'>3,962,648.94</td><td class='num down'>-0.06</td></tr>
+<tr><td>AES · Corporate Long Stay Revenue 2025</td><td>Apr</td><td class='num'>3,706,505.00</td><td class='num'>3,706,504.99</td><td class='num down'>-0.01</td></tr>
+<tr><td>AES · Corporate Long Stay Revenue 2025</td><td>May</td><td class='num'>4,159,382.00</td><td class='num'>4,159,381.82</td><td class='num down'>-0.18</td></tr>
+<tr><td>AES · Corporate Long Stay Revenue 2025</td><td>Jun</td><td class='num'>4,646,714.00</td><td class='num'>4,646,713.53</td><td class='num down'>-0.47</td></tr>
+<tr><td>AES · Corporate Short Stay Revenue 2025</td><td>Jan</td><td class='num'>2,295,087.00</td><td class='num'>2,295,087.22</td><td class='num up'>+0.22</td></tr>
+<tr><td>AES · Corporate Short Stay Revenue 2025</td><td>Feb</td><td class='num'>2,666,815.00</td><td class='num'>2,666,815.15</td><td class='num up'>+0.15</td></tr>
+<tr><td>AES · Corporate Short Stay Revenue 2025</td><td>Mar</td><td class='num'>2,205,568.00</td><td class='num'>2,205,568.13</td><td class='num up'>+0.13</td></tr>
+<tr><td>AES · Corporate Short Stay Revenue 2025</td><td>Apr</td><td class='num'>2,070,173.00</td><td class='num'>2,070,173.15</td><td class='num up'>+0.15</td></tr>
+<tr><td>AES · Corporate Short Stay Revenue 2025</td><td>May</td><td class='num'>2,592,980.00</td><td class='num'>2,592,980.19</td><td class='num up'>+0.19</td></tr>
+<tr><td>AES · Corporate Short Stay Revenue 2025</td><td>Jun</td><td class='num'>2,231,014.00</td><td class='num'>2,231,054.31</td><td class='num up'>+40.31</td></tr>
+<tr><td>AES · Employee Travel Revenue 2025</td><td>Jan</td><td class='num'>62,459.00</td><td class='num'>62,458.85</td><td class='num down'>-0.15</td></tr>
+<tr><td>AES · Employee Travel Revenue 2025</td><td>Mar</td><td class='num'>30,769.00</td><td class='num'>30,768.76</td><td class='num down'>-0.24</td></tr>
+<tr><td>AES · Employee Travel Revenue 2025</td><td>Apr</td><td class='num'>134,160.00</td><td class='num'>134,160.03</td><td class='num up'>+0.03</td></tr>
+<tr><td>AES · Employee Travel Revenue 2025</td><td>May</td><td class='num'>62,835.00</td><td class='num'>62,834.58</td><td class='num down'>-0.42</td></tr>
+<tr><td>AES · Employee Travel Revenue 2025</td><td>Jun</td><td class='num'>31,138.00</td><td class='num'>31,138.44</td><td class='num up'>+0.44</td></tr>
+<tr><td>AES · Online Business (Dynamic Rate) Revenue 2025</td><td>Jan</td><td class='num'>21,108,926.00</td><td class='num'>21,108,925.69</td><td class='num down'>-0.31</td></tr>
+<tr><td>AES · Online Business (Dynamic Rate) Revenue 2025</td><td>Feb</td><td class='num'>15,316,404.00</td><td class='num'>15,316,403.55</td><td class='num down'>-0.45</td></tr>
+<tr><td>AES · Online Business (Dynamic Rate) Revenue 2025</td><td>Mar</td><td class='num'>10,518,722.00</td><td class='num'>10,518,721.68</td><td class='num down'>-0.32</td></tr>
+<tr><td>AES · Online Business (Dynamic Rate) Revenue 2025</td><td>Apr</td><td class='num'>13,596,962.00</td><td class='num'>13,596,961.61</td><td class='num down'>-0.39</td></tr>
+<tr><td>AES · Online Business (Dynamic Rate) Revenue 2025</td><td>May</td><td class='num'>11,565,832.00</td><td class='num'>11,565,832.33</td><td class='num up'>+0.33</td></tr>
+<tr><td>AES · Online Business (Dynamic Rate) Revenue 2025</td><td>Jun</td><td class='num'>8,108,471.00</td><td class='num'>8,108,471.05</td><td class='num up'>+0.05</td></tr>
+<tr><td>AES · Wholesale (Static Rate) Revenue 2025</td><td>Jan</td><td class='num'>10,183,829.00</td><td class='num'>10,183,829.39</td><td class='num up'>+0.39</td></tr>
+<tr><td>AES · Wholesale (Static Rate) Revenue 2025</td><td>Feb</td><td class='num'>8,210,414.00</td><td class='num'>8,210,413.50</td><td class='num down'>-0.50</td></tr>
+<tr><td>AES · Wholesale (Static Rate) Revenue 2025</td><td>Mar</td><td class='num'>5,251,721.00</td><td class='num'>5,251,720.63</td><td class='num down'>-0.37</td></tr>
+<tr><td>AES · Wholesale (Static Rate) Revenue 2025</td><td>Apr</td><td class='num'>4,558,177.00</td><td class='num'>4,558,177.03</td><td class='num up'>+0.03</td></tr>
+<tr><td>AES · Wholesale (Static Rate) Revenue 2025</td><td>May</td><td class='num'>7,220,754.00</td><td class='num'>7,220,754.49</td><td class='num up'>+0.49</td></tr>
+<tr><td>AES · Wholesale (Static Rate) Revenue 2025</td><td>Jun</td><td class='num'>7,911,526.00</td><td class='num'>7,911,526.14</td><td class='num up'>+0.14</td></tr>
+<tr><td>LYF · ASR Revenue</td><td>Jan</td><td class='num'>1,153,016.00</td><td class='num'>1,155,693.32</td><td class='num up'>+2,677.32</td></tr>
+<tr><td>LYF · ASR Revenue</td><td>Feb</td><td class='num'>1,177,570.00</td><td class='num'>1,183,234.32</td><td class='num up'>+5,664.32</td></tr>
+<tr><td>LYF · ASR Revenue</td><td>Mar</td><td class='num'>992,985.00</td><td class='num'>1,001,481.90</td><td class='num up'>+8,496.90</td></tr>
+<tr><td>LYF · ASR Revenue</td><td>Apr</td><td class='num'>850,507.00</td><td class='num'>858,607.28</td><td class='num up'>+8,100.28</td></tr>
+<tr><td>LYF · ASR Revenue</td><td>May</td><td class='num'>877,810.00</td><td class='num'>877,809.62</td><td class='num down'>-0.38</td></tr>
+<tr><td>LYF · ASR Revenue</td><td>Jun</td><td class='num'>580,344.00</td><td class='num'>580,344.19</td><td class='num up'>+0.19</td></tr>
+<tr><td>LYF · ASR Revenue</td><td>Jul</td><td class='num'>708,094.00</td><td class='num'>708,093.84</td><td class='num down'>-0.16</td></tr>
+<tr><td>LYF · ASR Revenue</td><td>Aug</td><td class='num'>892,149.00</td><td class='num'>892,148.64</td><td class='num down'>-0.36</td></tr>
+<tr><td>LYF · Corporate Long Stay Revenue</td><td>May</td><td class='num'>0.00</td><td class='num'>3,617.72</td><td class='num up'>+3,617.72</td></tr>
+<tr><td>LYF · Corporate Long Stay Revenue</td><td>Jun</td><td class='num'>62,058.00</td><td class='num'>62,057.73</td><td class='num down'>-0.27</td></tr>
+<tr><td>LYF · Corporate Long Stay Revenue</td><td>Jul</td><td class='num'>30,133.00</td><td class='num'>30,133.38</td><td class='num up'>+0.38</td></tr>
+<tr><td>LYF · Corporate Long Stay Revenue</td><td>Aug</td><td class='num'>28,972.00</td><td class='num'>28,971.94</td><td class='num down'>-0.06</td></tr>
+<tr><td>LYF · Corporate Short Stay Revenue</td><td>Jan</td><td class='num'>250,032.00</td><td class='num'>247,228.04</td><td class='num down'>-2,803.96</td></tr>
+<tr><td>LYF · Corporate Short Stay Revenue</td><td>Feb</td><td class='num'>77,691.00</td><td class='num'>77,690.63</td><td class='num down'>-0.37</td></tr>
+<tr><td>LYF · Corporate Short Stay Revenue</td><td>Mar</td><td class='num'>193,114.00</td><td class='num'>186,740.46</td><td class='num down'>-6,373.54</td></tr>
+<tr><td>LYF · Corporate Short Stay Revenue</td><td>Apr</td><td class='num'>131,523.00</td><td class='num'>131,522.82</td><td class='num down'>-0.18</td></tr>
+<tr><td>LYF · Corporate Short Stay Revenue</td><td>May</td><td class='num'>40,123.00</td><td class='num'>40,123.28</td><td class='num up'>+0.28</td></tr>
+<tr><td>LYF · Corporate Short Stay Revenue</td><td>Jun</td><td class='num'>161,129.00</td><td class='num'>161,129.41</td><td class='num up'>+0.41</td></tr>
+<tr><td>LYF · Corporate Short Stay Revenue</td><td>Jul</td><td class='num'>226,025.00</td><td class='num'>226,025.42</td><td class='num up'>+0.42</td></tr>
+<tr><td>LYF · Employee Travel Revenue</td><td>Feb</td><td class='num'>0.00</td><td class='num'>49,765.50</td><td class='num up'>+49,765.50</td></tr>
+<tr><td>LYF · Employee Travel Revenue</td><td>Mar</td><td class='num'>0.00</td><td class='num'>40,166.10</td><td class='num up'>+40,166.10</td></tr>
+<tr><td>LYF · Employee Travel Revenue</td><td>Apr</td><td class='num'>0.00</td><td class='num'>32,660.22</td><td class='num up'>+32,660.22</td></tr>
+<tr><td>LYF · Employee Travel Revenue</td><td>May</td><td class='num'>164,439.00</td><td class='num'>41,847.50</td><td class='num down'>-122,591.50</td></tr>
+<tr><td>LYF · Employee Travel Revenue</td><td>Jun</td><td class='num'>49,734.00</td><td class='num'>49,733.77</td><td class='num down'>-0.23</td></tr>
+<tr><td>LYF · Employee Travel Revenue</td><td>Jul</td><td class='num'>33,162.00</td><td class='num'>33,161.58</td><td class='num down'>-0.42</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) Revenue</td><td>Jan</td><td class='num'>6,610,062.00</td><td class='num'>6,646,641.81</td><td class='num up'>+36,579.81</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) Revenue</td><td>Feb</td><td class='num'>5,555,696.00</td><td class='num'>5,566,741.44</td><td class='num up'>+11,045.44</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) Revenue</td><td>Mar</td><td class='num'>4,124,155.00</td><td class='num'>4,132,709.88</td><td class='num up'>+8,554.88</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) Revenue</td><td>Apr</td><td class='num'>4,339,607.00</td><td class='num'>4,253,221.92</td><td class='num down'>-86,385.08</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) Revenue</td><td>May</td><td class='num'>3,747,525.00</td><td class='num'>3,731,262.02</td><td class='num down'>-16,262.98</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) Revenue</td><td>Jun</td><td class='num'>3,402,001.00</td><td class='num'>3,417,990.04</td><td class='num up'>+15,989.04</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) Revenue</td><td>Jul</td><td class='num'>3,186,015.00</td><td class='num'>3,221,157.92</td><td class='num up'>+35,142.92</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) Revenue</td><td>Aug</td><td class='num'>3,515,038.00</td><td class='num'>3,532,143.00</td><td class='num up'>+17,105.00</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) Revenue</td><td>Sep</td><td class='num'>3,031,508.38</td><td class='num'>3,040,912.42</td><td class='num up'>+9,404.04</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) Revenue</td><td>Oct</td><td class='num'>3,660,699.38</td><td class='num'>3,683,593.82</td><td class='num up'>+22,894.44</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) Revenue</td><td>Nov</td><td class='num'>5,927,837.19</td><td class='num'>6,020,241.63</td><td class='num up'>+92,404.44</td></tr>
+<tr><td>LYF · Online Business (Dynamic Rate) Revenue</td><td>Dec</td><td class='num'>7,217,897.37</td><td class='num'>7,255,424.09</td><td class='num up'>+37,526.72</td></tr>
+<tr><td>LYF · Wholesale (Static Rate) Revenue</td><td>Jan</td><td class='num'>1,633,623.00</td><td class='num'>1,646,493.44</td><td class='num up'>+12,870.44</td></tr>
+<tr><td>LYF · Wholesale (Static Rate) Revenue</td><td>Feb</td><td class='num'>1,190,108.00</td><td class='num'>1,196,012.53</td><td class='num up'>+5,904.53</td></tr>
+<tr><td>LYF · Wholesale (Static Rate) Revenue</td><td>Mar</td><td class='num'>1,070,185.00</td><td class='num'>1,080,898.27</td><td class='num up'>+10,713.27</td></tr>
+<tr><td>LYF · Wholesale (Static Rate) Revenue</td><td>Apr</td><td class='num'>687,327.00</td><td class='num'>751,566.27</td><td class='num up'>+64,239.27</td></tr>
+<tr><td>LYF · Wholesale (Static Rate) Revenue</td><td>May</td><td class='num'>718,700.00</td><td class='num'>732,935.96</td><td class='num up'>+14,235.96</td></tr>
+<tr><td>LYF · Wholesale (Static Rate) Revenue</td><td>Jun</td><td class='num'>707,355.00</td><td class='num'>718,654.74</td><td class='num up'>+11,299.74</td></tr>
+<tr><td>LYF · Wholesale (Static Rate) Revenue</td><td>Jul</td><td class='num'>1,216,653.00</td><td class='num'>1,216,652.66</td><td class='num down'>-0.34</td></tr>
+<tr><td>LYF · Wholesale (Static Rate) Revenue</td><td>Aug</td><td class='num'>1,644,944.00</td><td class='num'>1,644,943.63</td><td class='num down'>-0.37</td></tr>
+<tr><td>LYF · Wholesale (Static Rate) Revenue</td><td>Sep</td><td class='num'>1,703,339.29</td><td class='num'>1,704,899.19</td><td class='num up'>+1,559.90</td></tr>
+<tr><td>LYF · Wholesale (Static Rate) Revenue</td><td>Oct</td><td class='num'>1,798,227.92</td><td class='num'>1,801,136.15</td><td class='num up'>+2,908.23</td></tr>
+<tr><td>LYF · Wholesale (Static Rate) Revenue</td><td>Nov</td><td class='num'>985,580.96</td><td class='num'>986,503.16</td><td class='num up'>+922.20</td></tr>
+<tr><td>LYF · Wholesale (Static Rate) Revenue</td><td>Dec</td><td class='num'>657,080.28</td><td class='num'>658,622.33</td><td class='num up'>+1,542.05</td></tr>
+<tr><td>SP · ASR Revenue 2025</td><td>Feb</td><td class='num'>3,379,989.00</td><td class='num'>3,384,076.61</td><td class='num up'>+4,087.61</td></tr>
+<tr><td>SP · ASR Revenue 2025</td><td>Mar</td><td class='num'>3,655,074.00</td><td class='num'>3,684,809.72</td><td class='num up'>+29,735.72</td></tr>
+<tr><td>SP · ASR Revenue 2025</td><td>Apr</td><td class='num'>3,563,324.00</td><td class='num'>3,563,324.37</td><td class='num up'>+0.37</td></tr>
+<tr><td>SP · ASR Revenue 2025</td><td>May</td><td class='num'>3,482,343.00</td><td class='num'>3,482,342.60</td><td class='num down'>-0.40</td></tr>
+<tr><td>SP · ASR Revenue 2025</td><td>Jun</td><td class='num'>3,653,975.00</td><td class='num'>3,653,974.53</td><td class='num down'>-0.47</td></tr>
+<tr><td>SP · Corporate Group Revenue 2025</td><td>Feb</td><td class='num'>74,766.00</td><td class='num'>74,766.35</td><td class='num up'>+0.35</td></tr>
+<tr><td>SP · Corporate Group Revenue 2025</td><td>Mar</td><td class='num'>153,271.00</td><td class='num'>153,270.90</td><td class='num down'>-0.10</td></tr>
+<tr><td>SP · Corporate Group Revenue 2025</td><td>Apr</td><td class='num'>1,124,470.00</td><td class='num'>986,746.57</td><td class='num down'>-137,723.43</td></tr>
+<tr><td>SP · Corporate Group Revenue 2025</td><td>May</td><td class='num'>107,052.00</td><td class='num'>107,051.70</td><td class='num down'>-0.30</td></tr>
+<tr><td>SP · Corporate Group Revenue 2025</td><td>Jun</td><td class='num'>156,138.00</td><td class='num'>50,467.32</td><td class='num down'>-105,670.68</td></tr>
+<tr><td>SP · Corporate LS Revenue 2025</td><td>Feb</td><td class='num'>1,241,284.00</td><td class='num'>1,292,564.70</td><td class='num up'>+51,280.70</td></tr>
+<tr><td>SP · Corporate LS Revenue 2025</td><td>Mar</td><td class='num'>999,078.00</td><td class='num'>999,077.72</td><td class='num down'>-0.28</td></tr>
+<tr><td>SP · Corporate LS Revenue 2025</td><td>Apr</td><td class='num'>611,743.00</td><td class='num'>611,742.51</td><td class='num down'>-0.49</td></tr>
+<tr><td>SP · Corporate LS Revenue 2025</td><td>May</td><td class='num'>602,277.00</td><td class='num'>602,276.89</td><td class='num down'>-0.11</td></tr>
+<tr><td>SP · Corporate LS Revenue 2025</td><td>Jun</td><td class='num'>626,142.00</td><td class='num'>626,141.52</td><td class='num down'>-0.48</td></tr>
+<tr><td>SP · Corporate SS Revenue 2025</td><td>Feb</td><td class='num'>761,150.00</td><td class='num'>761,149.71</td><td class='num down'>-0.29</td></tr>
+<tr><td>SP · Corporate SS Revenue 2025</td><td>Mar</td><td class='num'>988,451.00</td><td class='num'>996,012.40</td><td class='num up'>+7,561.40</td></tr>
+<tr><td>SP · Corporate SS Revenue 2025</td><td>Apr</td><td class='num'>623,405.00</td><td class='num'>623,404.53</td><td class='num down'>-0.47</td></tr>
+<tr><td>SP · Corporate SS Revenue 2025</td><td>May</td><td class='num'>668,813.00</td><td class='num'>668,812.97</td><td class='num down'>-0.03</td></tr>
+<tr><td>SP · Corporate SS Revenue 2025</td><td>Jun</td><td class='num'>757,677.00</td><td class='num'>757,676.83</td><td class='num down'>-0.17</td></tr>
+<tr><td>SP · Employee Travel Revenue 2025</td><td>Mar</td><td class='num'>51,959.00</td><td class='num'>51,959.08</td><td class='num up'>+0.08</td></tr>
+<tr><td>SP · Employee Travel Revenue 2025</td><td>May</td><td class='num'>45,000.00</td><td class='num'>44,999.65</td><td class='num down'>-0.35</td></tr>
+<tr><td>SP · Employee Travel Revenue 2025</td><td>Jun</td><td class='num'>10,881.00</td><td class='num'>10,880.65</td><td class='num down'>-0.35</td></tr>
+<tr><td>SP · Online Business Revenue 2025</td><td>Feb</td><td class='num'>12,461,308.00</td><td class='num'>12,453,491.49</td><td class='num down'>-7,816.51</td></tr>
+<tr><td>SP · Online Business Revenue 2025</td><td>Mar</td><td class='num'>9,482,518.00</td><td class='num'>9,473,417.62</td><td class='num down'>-9,100.38</td></tr>
+<tr><td>SP · Online Business Revenue 2025</td><td>Apr</td><td class='num'>10,363,521.00</td><td class='num'>10,367,590.54</td><td class='num up'>+4,069.54</td></tr>
+<tr><td>SP · Online Business Revenue 2025</td><td>May</td><td class='num'>7,948,728.00</td><td class='num'>7,952,128.92</td><td class='num up'>+3,400.92</td></tr>
+<tr><td>SP · Online Business Revenue 2025</td><td>Jun</td><td class='num'>5,918,020.00</td><td class='num'>5,918,019.87</td><td class='num down'>-0.13</td></tr>
+<tr><td>SP · Wholesale Group Revenue 2025</td><td>Feb</td><td class='num'>2,059,984.00</td><td class='num'>2,059,984.18</td><td class='num up'>+0.18</td></tr>
+<tr><td>SP · Wholesale Group Revenue 2025</td><td>Mar</td><td class='num'>1,202,999.00</td><td class='num'>1,202,999.09</td><td class='num up'>+0.09</td></tr>
+<tr><td>SP · Wholesale Group Revenue 2025</td><td>Apr</td><td class='num'>1,133,548.00</td><td class='num'>1,115,859.71</td><td class='num down'>-17,688.29</td></tr>
+<tr><td>SP · Wholesale Group Revenue 2025</td><td>May</td><td class='num'>2,086,406.00</td><td class='num'>2,068,717.29</td><td class='num down'>-17,688.71</td></tr>
+<tr><td>SP · Wholesale Group Revenue 2025</td><td>Jun</td><td class='num'>2,106,032.00</td><td class='num'>2,088,343.14</td><td class='num down'>-17,688.86</td></tr>
+<tr><td>SP · Wholesale Revenue 2025</td><td>Feb</td><td class='num'>11,529,719.00</td><td class='num'>11,529,719.04</td><td class='num up'>+0.04</td></tr>
+<tr><td>SP · Wholesale Revenue 2025</td><td>Mar</td><td class='num'>8,074,843.00</td><td class='num'>8,086,825.65</td><td class='num up'>+11,982.65</td></tr>
+<tr><td>SP · Wholesale Revenue 2025</td><td>Apr</td><td class='num'>8,891,266.00</td><td class='num'>8,908,067.82</td><td class='num up'>+16,801.82</td></tr>
+<tr><td>SP · Wholesale Revenue 2025</td><td>May</td><td class='num'>6,735,389.00</td><td class='num'>6,746,827.75</td><td class='num up'>+11,438.75</td></tr>
+<tr><td>SP · Wholesale Revenue 2025</td><td>Jun</td><td class='num'>5,325,625.00</td><td class='num'>5,325,625.21</td><td class='num up'>+0.21</td></tr>
+<tr><td>SR9 · Employee Travel Revenue 2026</td><td>Apr</td><td class='num'>20,020.48</td><td class='num'>0.00</td><td class='num down'>-20,020.48</td></tr></tbody>
+  </table></div>
+</section>
+<section>
+  <h2>Occupancy, ADR & Revpar <span class="thai">อัตราการเข้าพัก / ราคาห้องเฉลี่ย</span></h2>
+  <p class="section-note">Monthly occupancy %, average daily rate and Revpar, updated to the exact source actuals. <strong>75 corrections.</strong></p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Item</th><th>Month</th><th>Before</th><th>After (LS8)</th><th>Change</th></tr></thead>
+    <tbody><tr><td>AES · ADR overview 2025</td><td>Jan</td><td class='num'>4,191.00</td><td class='num'>4,191.35</td><td class='num up'>+0.35</td></tr>
+<tr><td>AES · ADR overview 2025</td><td>Feb</td><td class='num'>3,938.00</td><td class='num'>3,937.86</td><td class='num down'>-0.14</td></tr>
+<tr><td>AES · ADR overview 2025</td><td>Mar</td><td class='num'>3,539.00</td><td class='num'>3,539.28</td><td class='num up'>+0.28</td></tr>
+<tr><td>AES · ADR overview 2025</td><td>Apr</td><td class='num'>3,684.00</td><td class='num'>3,684.18</td><td class='num up'>+0.18</td></tr>
+<tr><td>AES · ADR overview 2025</td><td>May</td><td class='num'>3,299.00</td><td class='num'>3,298.77</td><td class='num down'>-0.23</td></tr>
+<tr><td>AES · ADR overview 2025</td><td>Jun</td><td class='num'>3,366.00</td><td class='num'>3,365.58</td><td class='num down'>-0.42</td></tr>
+<tr><td>AES · OCC overview 2025</td><td>Jan</td><td class='num'>81.30%</td><td class='num'>81.32%</td><td class='num up'>+0.02%</td></tr>
+<tr><td>AES · OCC overview 2025</td><td>Feb</td><td class='num'>76.40%</td><td class='num'>76.37%</td><td class='num down'>-0.03%</td></tr>
+<tr><td>AES · OCC overview 2025</td><td>Mar</td><td class='num'>57.40%</td><td class='num'>57.40%</td><td class='num down'>-0.00%</td></tr>
+<tr><td>AES · OCC overview 2025</td><td>Apr</td><td class='num'>63.90%</td><td class='num'>63.85%</td><td class='num down'>-0.05%</td></tr>
+<tr><td>AES · OCC overview 2025</td><td>May</td><td class='num'>66.50%</td><td class='num'>66.47%</td><td class='num down'>-0.03%</td></tr>
+<tr><td>AES · OCC overview 2025</td><td>Jun</td><td class='num'>62.30%</td><td class='num'>62.32%</td><td class='num up'>+0.02%</td></tr>
+<tr><td>AES · Revpar overview 2025 (=Occ*ADR)</td><td>Jan</td><td class='num'>3,407.28</td><td class='num'>3,408.33</td><td class='num up'>+1.05</td></tr>
+<tr><td>AES · Revpar overview 2025 (=Occ*ADR)</td><td>Feb</td><td class='num'>3,008.63</td><td class='num'>3,007.43</td><td class='num down'>-1.20</td></tr>
+<tr><td>AES · Revpar overview 2025 (=Occ*ADR)</td><td>Mar</td><td class='num'>2,031.39</td><td class='num'>2,031.54</td><td class='num up'>+0.15</td></tr>
+<tr><td>AES · Revpar overview 2025 (=Occ*ADR)</td><td>Apr</td><td class='num'>2,354.08</td><td class='num'>2,352.38</td><td class='num down'>-1.70</td></tr>
+<tr><td>AES · Revpar overview 2025 (=Occ*ADR)</td><td>May</td><td class='num'>2,193.84</td><td class='num'>2,192.68</td><td class='num down'>-1.15</td></tr>
+<tr><td>AES · Revpar overview 2025 (=Occ*ADR)</td><td>Jun</td><td class='num'>2,097.02</td><td class='num'>2,097.28</td><td class='num up'>+0.26</td></tr>
+<tr><td>SR9 · ADR overview 2025</td><td>Jan</td><td class='num'>3,339.65</td><td class='num'>3,339.65</td><td class='num up'>+0.00</td></tr>
+<tr><td>SR9 · ADR overview 2025</td><td>Feb</td><td class='num'>3,055.95</td><td class='num'>3,055.95</td><td class='num up'>+0.00</td></tr>
+<tr><td>SR9 · ADR overview 2025</td><td>Mar</td><td class='num'>2,929.86</td><td class='num'>2,929.86</td><td class='num up'>+0.00</td></tr>
+<tr><td>SR9 · ADR overview 2025</td><td>Apr</td><td class='num'>3,000.99</td><td class='num'>3,000.99</td><td class='num down'>-0.00</td></tr>
+<tr><td>SR9 · ADR overview 2025</td><td>May</td><td class='num'>2,760.44</td><td class='num'>2,760.44</td><td class='num up'>+0.00</td></tr>
+<tr><td>SR9 · ADR overview 2025</td><td>Jun</td><td class='num'>2,775.96</td><td class='num'>2,775.96</td><td class='num down'>-0.00</td></tr>
+<tr><td>Summary · ADR (Summary AES 2025)</td><td>Jan</td><td class='num'>4,191.00</td><td class='num'>4,191.35</td><td class='num up'>+0.35</td></tr>
+<tr><td>Summary · ADR (Summary AES 2025)</td><td>Feb</td><td class='num'>3,938.00</td><td class='num'>3,937.86</td><td class='num down'>-0.14</td></tr>
+<tr><td>Summary · ADR (Summary AES 2025)</td><td>Mar</td><td class='num'>3,539.00</td><td class='num'>3,539.28</td><td class='num up'>+0.28</td></tr>
+<tr><td>Summary · ADR (Summary AES 2025)</td><td>Apr</td><td class='num'>3,684.00</td><td class='num'>3,684.18</td><td class='num up'>+0.18</td></tr>
+<tr><td>Summary · ADR (Summary AES 2025)</td><td>May</td><td class='num'>3,299.00</td><td class='num'>3,298.77</td><td class='num down'>-0.23</td></tr>
+<tr><td>Summary · ADR (Summary AES 2025)</td><td>Jun</td><td class='num'>3,366.00</td><td class='num'>3,365.58</td><td class='num down'>-0.42</td></tr>
+<tr><td>Summary · ADR (Summary LYF 2025)</td><td>Jan</td><td class='num'>1,701.00</td><td class='num'>1,709.76</td><td class='num up'>+8.76</td></tr>
+<tr><td>Summary · ADR (Summary LYF 2025)</td><td>Feb</td><td class='num'>1,631.00</td><td class='num'>1,630.34</td><td class='num down'>-0.66</td></tr>
+<tr><td>Summary · ADR (Summary LYF 2025)</td><td>Mar</td><td class='num'>1,422.00</td><td class='num'>1,423.33</td><td class='num up'>+1.33</td></tr>
+<tr><td>Summary · ADR (Summary LYF 2025)</td><td>Apr</td><td class='num'>1,363.00</td><td class='num'>1,356.34</td><td class='num down'>-6.66</td></tr>
+<tr><td>Summary · ADR (Summary LYF 2025)</td><td>May</td><td class='num'>1,254.00</td><td class='num'>1,259.60</td><td class='num up'>+5.60</td></tr>
+<tr><td>Summary · ADR (Summary LYF 2025)</td><td>Jun</td><td class='num'>1,205.00</td><td class='num'>1,212.03</td><td class='num up'>+7.03</td></tr>
+<tr><td>Summary · ADR (Summary LYF 2025)</td><td>Jul</td><td class='num'>1,190.00</td><td class='num'>1,197.98</td><td class='num up'>+7.98</td></tr>
+<tr><td>Summary · ADR (Summary LYF 2025)</td><td>Aug</td><td class='num'>1,182.00</td><td class='num'>1,184.93</td><td class='num up'>+2.93</td></tr>
+<tr><td>Summary · ADR (Summary LYF 2025)</td><td>Sep</td><td class='num'>1,141.00</td><td class='num'>1,142.46</td><td class='num up'>+1.46</td></tr>
+<tr><td>Summary · ADR (Summary LYF 2025)</td><td>Oct</td><td class='num'>1,216.00</td><td class='num'>1,220.71</td><td class='num up'>+4.71</td></tr>
+<tr><td>Summary · ADR (Summary LYF 2025)</td><td>Nov</td><td class='num'>1,519.00</td><td class='num'>1,536.15</td><td class='num up'>+17.15</td></tr>
+<tr><td>Summary · ADR (Summary LYF 2025)</td><td>Dec</td><td class='num'>1,723.00</td><td class='num'>1,730.11</td><td class='num up'>+7.11</td></tr>
+<tr><td>Summary · ADR (Summary SP 2025)</td><td>Feb</td><td class='num'>4,226.00</td><td class='num'>4,187.58</td><td class='num down'>-38.42</td></tr>
+<tr><td>Summary · ADR (Summary SP 2025)</td><td>Mar</td><td class='num'>3,901.00</td><td class='num'>3,897.59</td><td class='num down'>-3.41</td></tr>
+<tr><td>Summary · ADR (Summary SP 2025)</td><td>Apr</td><td class='num'>3,871.00</td><td class='num'>3,877.16</td><td class='num up'>+6.16</td></tr>
+<tr><td>Summary · ADR (Summary SP 2025)</td><td>May</td><td class='num'>3,507.00</td><td class='num'>3,508.12</td><td class='num up'>+1.12</td></tr>
+<tr><td>Summary · ADR (Summary SP 2025)</td><td>Jun</td><td class='num'>3,325.80</td><td class='num'>3,331.13</td><td class='num up'>+5.33</td></tr>
+<tr><td>Summary · ADR (Summary SR9 2025)</td><td>Jan</td><td class='num'>3,342.44</td><td class='num'>3,339.65</td><td class='num down'>-2.79</td></tr>
+<tr><td>Summary · ADR (Summary SR9 2025)</td><td>Feb</td><td class='num'>3,059.32</td><td class='num'>3,055.95</td><td class='num down'>-3.36</td></tr>
+<tr><td>Summary · ADR (Summary SR9 2025)</td><td>Mar</td><td class='num'>2,930.96</td><td class='num'>2,929.86</td><td class='num down'>-1.10</td></tr>
+<tr><td>Summary · ADR (Summary SR9 2025)</td><td>Apr</td><td class='num'>3,005.13</td><td class='num'>3,000.99</td><td class='num down'>-4.14</td></tr>
+<tr><td>Summary · ADR (Summary SR9 2025)</td><td>May</td><td class='num'>2,764.29</td><td class='num'>2,760.44</td><td class='num down'>-3.85</td></tr>
+<tr><td>Summary · ADR (Summary SR9 2025)</td><td>Jun</td><td class='num'>2,778.29</td><td class='num'>2,775.96</td><td class='num down'>-2.34</td></tr>
+<tr><td>Summary · OCC (Summary AES 2025)</td><td>Jan</td><td class='num'>81.30%</td><td class='num'>81.32%</td><td class='num up'>+0.02%</td></tr>
+<tr><td>Summary · OCC (Summary AES 2025)</td><td>Feb</td><td class='num'>76.40%</td><td class='num'>76.37%</td><td class='num down'>-0.03%</td></tr>
+<tr><td>Summary · OCC (Summary AES 2025)</td><td>Mar</td><td class='num'>57.40%</td><td class='num'>57.40%</td><td class='num down'>-0.00%</td></tr>
+<tr><td>Summary · OCC (Summary AES 2025)</td><td>Apr</td><td class='num'>63.90%</td><td class='num'>63.85%</td><td class='num down'>-0.05%</td></tr>
+<tr><td>Summary · OCC (Summary AES 2025)</td><td>May</td><td class='num'>66.50%</td><td class='num'>66.47%</td><td class='num down'>-0.03%</td></tr>
+<tr><td>Summary · OCC (Summary AES 2025)</td><td>Jun</td><td class='num'>62.30%</td><td class='num'>62.32%</td><td class='num up'>+0.02%</td></tr>
+<tr><td>Summary · OCC (Summary SP 2025)</td><td>Feb</td><td class='num'>83.10%</td><td class='num'>83.10%</td><td class='num up'>+0.00%</td></tr>
+<tr><td>Summary · OCC (Summary SP 2025)</td><td>Apr</td><td class='num'>70.00%</td><td class='num'>69.53%</td><td class='num down'>-0.47%</td></tr>
+<tr><td>Summary · OCC (Summary SP 2025)</td><td>May</td><td class='num'>61.50%</td><td class='num'>61.51%</td><td class='num up'>+0.01%</td></tr>
+<tr><td>Summary · OCC (Summary SP 2025)</td><td>Jun</td><td class='num'>57.40%</td><td class='num'>56.92%</td><td class='num down'>-0.47%</td></tr>
+<tr><td>Summary · Occupancy % (Summary LYF 2025)</td><td>Jan</td><td class='num'>93.30%</td><td class='num'>93.33%</td><td class='num up'>+0.03%</td></tr>
+<tr><td>Summary · Occupancy % (Summary LYF 2025)</td><td>Feb</td><td class='num'>89.40%</td><td class='num'>90.23%</td><td class='num up'>+0.83%</td></tr>
+<tr><td>Summary · Occupancy % (Summary LYF 2025)</td><td>Mar</td><td class='num'>73.80%</td><td class='num'>74.49%</td><td class='num up'>+0.69%</td></tr>
+<tr><td>Summary · Occupancy % (Summary LYF 2025)</td><td>Apr</td><td class='num'>75.00%</td><td class='num'>75.58%</td><td class='num up'>+0.58%</td></tr>
+<tr><td>Summary · Occupancy % (Summary LYF 2025)</td><td>May</td><td class='num'>72.80%</td><td class='num'>70.92%</td><td class='num down'>-1.88%</td></tr>
+<tr><td>Summary · Occupancy % (Summary LYF 2025)</td><td>Jun</td><td class='num'>70.00%</td><td class='num'>70.02%</td><td class='num up'>+0.02%</td></tr>
+<tr><td>Summary · Occupancy % (Summary LYF 2025)</td><td>Jul</td><td class='num'>74.70%</td><td class='num'>74.67%</td><td class='num down'>-0.03%</td></tr>
+<tr><td>Summary · Occupancy % (Summary LYF 2025)</td><td>Aug</td><td class='num'>86.50%</td><td class='num'>86.54%</td><td class='num up'>+0.04%</td></tr>
+<tr><td>Summary · Occupancy % (Summary LYF 2025)</td><td>Sep</td><td class='num'>87.20%</td><td class='num'>87.23%</td><td class='num up'>+0.03%</td></tr>
+<tr><td>Summary · Occupancy % (Summary LYF 2025)</td><td>Oct</td><td class='num'>85.90%</td><td class='num'>85.86%</td><td class='num down'>-0.04%</td></tr>
+<tr><td>Summary · Occupancy % (Summary LYF 2025)</td><td>Nov</td><td class='num'>92.70%</td><td class='num'>92.76%</td><td class='num up'>+0.06%</td></tr>
+<tr><td>Summary · Occupancy % (Summary LYF 2025)</td><td>Dec</td><td class='num'>92.00%</td><td class='num'>92.20%</td><td class='num up'>+0.20%</td></tr></tbody>
+  </table></div>
+</section>
+<div class="notes">
+  <h2>Checked but not changed <span class="thai">ตรวจแล้วแต่ไม่แก้ไข</span></h2>
+  <ul><li>1. Summary!C63:N63 &#x27;Revenue (THB)&#x27; (LYF 2025) is ~3-4% above LS8 room revenue in every month of both 2025 and 2026, so it is on a different basis (not room revenue only) and was left as-is.</li><li>2. LYF nationality blocks (rows 33-44 / 77-88) come from the monthly nationality source workbook, not LS8.</li><li>3. 2026 H1 block was out of scope for this run. Known diffs vs LS8 &#x27;LS8 Segment (2026)&#x27;: RN Feb Online 3409 vs 3410, Mar Online 4095 vs 4094, Feb Wholesale 1021 vs 1020; Revenue Online Jan/Feb/Mar and ASR Jan are below LS8 by ~93,027 THB in total (H1 revenue 38,106,441 vs LS8 38,199,467).</li><li>4. Derived cells (totals, mix %, Revpar on LYF, MoM, check row 66) recalculate from the corrected inputs.</li><li>1. SP &#x27;Corporate Group with Banque&#x27; rows (RN 74 / Rev 87) do not exist in the SP source file and were left untouched. ALL January cells on the SP tab were left untouched on Mae&#x27;s instruction (January includes a Banque group treatment that the market-mix source does not reflect).</li><li>2. AES/SP 2026 blocks: no 2026 source workbook was provided for these properties, so they were not reconciled.</li><li>3. SR9 2025 H2 (Jul-Dec): source data exists but was out of scope for this run (Mae asked for first half year only).</li><li>4. Nationality blocks on all tabs come from the monthly nationality workbook, not these sources.</li><li>5. Summary &#x27;Revenue (THB)&#x27; rows per property are on a different basis (same as the LYF/LS8 finding) and were not reconciled.</li><li>6. Derived cells (totals, mix %, occ/ADR formulas, Revpar, MoM) recalculate from the corrected inputs.</li></ul>
+</div>
+<footer>After the fixes, every reconciled block in the workbook matches its
+source workbook exactly. Totals, mix % and check rows recalculate
+automatically when the file is opened in Excel.</footer>
+</main>

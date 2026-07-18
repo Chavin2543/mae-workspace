@@ -263,13 +263,14 @@ def _audit_sheet_xml(audit_rows):
             "<sheetData>" + "".join(body) + "</sheetData></worksheet>").encode("utf-8")
 
 
-def surgical_save(src_path, out_path, changes, audit_rows):
+def surgical_save(src_path, out_path, changes, audit_rows, audit_sheet=None):
+    audit_sheet = audit_sheet or AUDIT_SHEET
     zin = zipfile.ZipFile(src_path)
     wbxml = zin.read("xl/workbook.xml").decode("utf-8")
     relsxml = zin.read("xl/_rels/workbook.xml.rels").decode("utf-8")
     ctxml = zin.read("[Content_Types].xml").decode("utf-8")
 
-    assert AUDIT_SHEET not in wbxml, f"{AUDIT_SHEET!r} already exists in {src_path}"
+    assert audit_sheet not in wbxml, f"{audit_sheet!r} already exists in {src_path}"
 
     # sheet name -> part path
     relmap = dict(re.findall(r'<Relationship Id="(rId\d+)"[^>]*Target="([^"]+)"', relsxml))
@@ -292,7 +293,7 @@ def surgical_save(src_path, out_path, changes, audit_rows):
     new_sid = max(int(s) for s in re.findall(r'sheetId="(\d+)"', wbxml)) + 1
     wbxml = wbxml.replace(
         "</sheets>",
-        f'<sheet name="{escape(AUDIT_SHEET)}" sheetId="{new_sid}" r:id="{new_rid}"/></sheets>')
+        f'<sheet name="{escape(audit_sheet)}" sheetId="{new_sid}" r:id="{new_rid}"/></sheets>')
     relsxml = relsxml.replace(
         "</Relationships>",
         f'<Relationship Id="{new_rid}" Type="http://schemas.openxmlformats.org/'

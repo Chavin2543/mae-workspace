@@ -32,18 +32,19 @@ def fmt(v, kind):
 
 
 def kind_of(item):
-    if "Occupancy" in item:
+    if "OCC" in item or "Occupancy" in item:
         return "occ"
-    if item.endswith("RN") or "Room Nights" in item:
+    if re.search(r"\bRN\b", item) or "Room Nights" in item:
         return "rn"
     return "money"
 
 
 def group_of(item):
-    if "Occupancy" in item or "ADR (Summary" in item:
-        return ("Occupancy & ADR", "อัตราการเข้าพักและราคาห้องเฉลี่ย",
-                "Monthly occupancy % and average daily rate, updated to the exact LS8 actuals.")
-    if item.endswith("RN") or "Room Nights" in item:
+    if ("OCC" in item or "Occupancy" in item or "ADR" in item
+            or "Revpar" in item):
+        return ("Occupancy, ADR & Revpar", "อัตราการเข้าพัก / ราคาห้องเฉลี่ย",
+                "Monthly occupancy %, average daily rate and Revpar, updated to the exact source actuals.")
+    if re.search(r"\bRN\b", item) or "Room Nights" in item:
         return ("Room Nights", "จำนวนคืนที่ขายได้",
                 "How many room nights each segment sold per month.")
     return ("Revenue", "รายได้ค่าห้อง",
@@ -57,28 +58,28 @@ def main():
     args = ap.parse_args()
 
     wb = openpyxl.load_workbook(args.workbook, data_only=False)
-    audit_name = next((s for s in wb.sheetnames if s.startswith("Recon LS8")), None)
-    if not audit_name:
-        raise SystemExit("No 'Recon LS8' audit sheet found — run reconcile_ls8.py first.")
-    au = wb[audit_name]
-    year = (re.search(r"\((\d{4})\)", audit_name) or [None, "?"])[1]
-    meta = str(au["A2"].value or "")
-    run_date = (re.search(r"Run date: (\S+)", meta) or [None, "?"])[1]
-    src = (re.search(r"Source: (\S+)", meta) or [None, "?"])[1]
-    tgt = (re.search(r"Target: (\S+)", meta) or [None, "?"])[1]
-
+    recon_sheets = [s for s in wb.sheetnames if s.startswith("Recon")]
+    if not recon_sheets:
+        raise SystemExit("No 'Recon …' audit sheet found — run a reconcile script first.")
     changes, notes = [], []
-    r = 6
-    while au.cell(r, 1).value is not None:
-        sheet, cellref, item, month, old, new = (au.cell(r, c).value for c in range(1, 7))
-        changes.append(dict(sheet=sheet, cell=cellref, item=item, month=month,
-                            old=old, new=new))
-        r += 1
-    while au.cell(r, 1).value is None and r < au.max_row:
-        r += 1
-    while r <= au.max_row and au.cell(r, 1).value is not None:
-        notes.append(str(au.cell(r, 1).value))
-        r += 1
+    run_date = "?"
+    for audit_name in recon_sheets:
+        au = wb[audit_name]
+        meta = str(au["A2"].value or "")
+        run_date = (re.search(r"Run date: (\S+)", meta) or [None, run_date])[1]
+        r = 6
+        while au.cell(r, 1).value is not None:
+            sheet, cellref, item, month, old, new = (au.cell(r, c).value
+                                                     for c in range(1, 7))
+            changes.append(dict(sheet=sheet, cell=cellref,
+                                item=f"{sheet} · {item}", month=month,
+                                old=old, new=new))
+            r += 1
+        while au.cell(r, 1).value is None and r < au.max_row:
+            r += 1
+        while r <= au.max_row and au.cell(r, 1).value is not None:
+            notes.append(str(au.cell(r, 1).value))
+            r += 1
 
     groups = {}
     for ch in changes:
@@ -129,7 +130,7 @@ def main():
                    f"{biggest['item'].replace(' Revenue', '')} · {biggest['month']} "
                    f"({fmt(biggest['new'] - biggest['old'], 'money')} THB)")
 
-    html_out = f"""<title>LS8 Reconciliation — {year}</title>
+    html_out = f"""<title>Reconciliation Report — Segment Half-year</title>
 <style>
 :root {{
   --paper:#FAF9F6; --card:#FFFFFF; --ink:#1F2A2E; --muted:#66757A;
@@ -196,14 +197,14 @@ footer {{ color:var(--muted); font-size:.8rem; border-top:1px solid var(--line);
 </style>
 <main>
 <header>
-  <h1>LS8 Reconciliation Report <span class="thai">รายงานการกระทบยอด</span></h1>
-  <p class="sub">lyf Sukhumvit 8 Bangkok — the {year} numbers in the half-year
-  workbook were checked against the LS8 market-segment workbook (the official
-  source) and corrected where they differed. Every change is listed below.</p>
+  <h1>Reconciliation Report <span class="thai">รายงานการกระทบยอด</span></h1>
+  <p class="sub">Each hotel tab in the half-year workbook was checked against
+  that property's official source workbook and corrected where the numbers
+  differed. Every change is listed below.</p>
   <div class="chips">
-    <span class="chip">Run date <b>{run_date}</b></span>
-    <span class="chip">Source <b>{html.escape(os.path.basename(src))}</b></span>
-    <span class="chip">Workbook <b>{html.escape(os.path.basename(tgt))}</b></span>
+    <span class="chip">Last run <b>{run_date}</b></span>
+    <span class="chip">Workbook <b>{html.escape(os.path.basename(args.workbook))}</b></span>
+    {''.join(f'<span class="chip">✓ <b>{html.escape(s)}</b></span>' for s in recon_sheets)}
   </div>
 </header>
 <div class="cards">
@@ -221,9 +222,9 @@ footer {{ color:var(--muted); font-size:.8rem; border-top:1px solid var(--line);
   <h2>Checked but not changed <span class="thai">ตรวจแล้วแต่ไม่แก้ไข</span></h2>
   <ul>{notes_html}</ul>
 </div>
-<footer>After the fixes, every monthly and full-year total in the workbook
-matches LS8 exactly. Totals, mix % and check rows recalculate automatically
-when the file is opened in Excel.</footer>
+<footer>After the fixes, every reconciled block in the workbook matches its
+source workbook exactly. Totals, mix % and check rows recalculate
+automatically when the file is opened in Excel.</footer>
 </main>
 """
     out = args.out or os.path.splitext(args.workbook)[0] + "_report.html"
