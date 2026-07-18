@@ -349,10 +349,34 @@ function perfSlide(sectionTitle, subtitle, actArr, bgArr, lyArr, ytd, noteText) 
       options: { chartColors: [GOLD, GREY], lineSize: 2.5, lineSmooth: false,
                  lineDataSymbol: "circle", lineDataSymbolSize: 5 } },
   ], Object.assign({}, axStyle, {
-    x: M, y: 1.9, w: 7.9, h: 4.6, showLegend: true, legendPos: "b",
+    x: M, y: 1.85, w: 7.9, h: 3.0, showLegend: true, legendPos: "b",
     valAxisNumFmt: "#,##0", showTitle: true, title: "Monthly RevPAR (THB) — actual vs budget vs 2025",
-    titleFontSize: 13, titleColor: NAVY, titleFontFace: F,
+    titleFontSize: 12, titleColor: NAVY, titleFontFace: F,
   }));
+  // 2026 monthly numbers table (like the Summary sheet)
+  {
+    const zebra = (i) => ({ color: i % 2 ? PANEL : "FFFFFF" });
+    const hc = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: NAVY }, align: "center" } });
+    const vRow = (label, vals, ytdText, f, i) => [
+      { text: label, options: { bold: true, color: INK, fill: zebra(i) } }].concat(
+      vals.map((v) => ({ text: f(v), options: { color: INK, align: "right", fill: zebra(i) } })),
+      [{ text: ytdText, options: { bold: true, color: NAVY, align: "right", fill: zebra(i) } }]);
+    const dRow = (label, vals, ytdV) => [
+      { text: label, options: { bold: true, color: MUT, fill: { color: "FFFFFF" } } }].concat(
+      vals.map((v) => ({ text: fmtDelta(v, 0), options: { align: "right", color: v >= 0 ? GOOD : BAD, fill: { color: "FFFFFF" } } })),
+      [{ text: fmtDelta(ytdV, 1), options: { bold: true, align: "right", color: ytdV >= 0 ? GOOD : BAD, fill: { color: "FFFFFF" } } }]);
+    const nf = (v) => Math.round(v).toLocaleString("en-US");
+    const t = [[hc("2026")].concat(lbl.map(hc), [hc("YTD")])];
+    t.push(vRow("Occupancy", actArr.map((m) => m.occ), fmtPct(ytd.act.occ), (v) => (v * 100).toFixed(1) + "%", 0));
+    t.push(vRow("ADR (\u0e3f)", actArr.map((m) => m.adr), nf(ytd.act.adr), nf, 1));
+    t.push(vRow("RevPAR (\u0e3f)", actArr.map((m) => m.revpar), nf(ytd.act.revpar), nf, 0));
+    t.push(dRow("RevPAR vs BG", actArr.map((m, i) => m.revpar / bgArr[i].revpar - 1), grow(ytd.act.revpar, ytd.bg.revpar)));
+    t.push(dRow("RevPAR vs 25", actArr.map((m, i) => m.revpar / lyArr[i].revpar - 1), grow(ytd.act.revpar, ytd.ly.revpar)));
+    s.addTable(t, { x: M, y: 5.05, w: 7.9,
+      colW: [1.45].concat(Array(n).fill(5.22 / n), [1.23]),
+      fontFace: F, fontSize: 9, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
+      rowH: 0.25, valign: "middle" });
+  }
   const rows = [
     ["OCCUPANCY · YTD", fmtPct(ytd.act.occ),
       fmtDelta(ytd.act.occ - ytd.bg.occ).replace("%", " pts") + " vs budget · " + fmtDelta(ytd.act.occ - ytd.ly.occ).replace("%", " pts") + " vs LY",
@@ -394,9 +418,9 @@ for (const key of ["SR9", "AES", "LYF", "SP"]) {
   const p = data.perf[key];
   const act = [], bg = [], ly = [];
   for (let i = 0; i < 6; i++) {
-    act.push({ revpar: p.revpar[i] });
-    bg.push({ revpar: p.bg_revpar[i] });
-    ly.push({ revpar: p.ly_revpar[i] });
+    act.push({ occ: p.occ[i], adr: p.adr[i], revpar: p.revpar[i] });
+    bg.push({ occ: p.bg_occ[i], adr: p.bg_adr[i], revpar: p.bg_revpar[i] });
+    ly.push({ occ: p.ly_occ[i], adr: p.ly_adr[i], revpar: p.ly_revpar[i] });
   }
   perfSlide(p.name + " (" + key + ")", p.rooms + " keys · monthly + YTD Jan–Jun vs budget and last year",
     act, bg, ly, { act: propYtd(p, ""), bg: propYtd(p, "bg_"), ly: propYtd(p, "ly_") },
