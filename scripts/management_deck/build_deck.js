@@ -516,6 +516,57 @@ for (const key of ["SR9", "AES", "LYF", "SP"]) {
   note(s, M, 6.9, 11.9, "Biggest H1 gain: " + winner.label + " (+" + winner.d.toLocaleString("en-US") +
     " RN) \u00b7 biggest decline: " + loser.label + " (" + loser.d.toLocaleString("en-US") +
     " RN). Each year shows its own top-10 list; a 2025 bar of 0 means that nationality was outside 2025\u2019s top-10. Tables show the top 6 of each year.");
+
+  // second slide: YTD mix pies (2025 vs 2026) + change table
+  {
+    const s2 = pres.addSlide();
+    header(s2, "Section 4 \u00b7 Nationality", p.name + " (" + key + ") \u2014 nationality mix & change (YTD)",
+      "Share of top-10 room nights, H1 2025 vs H1 2026 \u00b7 change by nationality");
+    const union = n26.map((e) => e.label);
+    n25.forEach((e) => { if (union.indexOf(e.label) < 0) union.push(e.label); });
+    const colorOf = (lbl) => SEG_COLORS[union.indexOf(lbl) % SEG_COLORS.length];
+    const pie = (x, entries, ttl) => s2.addChart(pres.ChartType.doughnut,
+      [{ name: ttl, labels: entries.map((e) => e.label), values: entries.map((e) => e.h1) }],
+      { x, y: 1.95, w: 3.75, h: 4.7, chartColors: entries.map((e) => colorOf(e.label)),
+        showLegend: true, legendPos: "b", legendFontSize: 8.5, legendFontFace: F, legendColor: INK,
+        dataLabelColor: "FFFFFF", dataLabelFontSize: 8.5, dataLabelFontFace: F,
+        showPercent: true, holeSize: 52,
+        showTitle: true, title: ttl, titleFontSize: 13, titleColor: NAVY, titleFontFace: F });
+    pie(M, n25, "H1 2025 (" + n25.reduce((t, e) => t + e.h1, 0).toLocaleString("en-US") + " RN)");
+    pie(4.55, n26, "H1 2026 (" + n26.reduce((t, e) => t + e.h1, 0).toLocaleString("en-US") + " RN)");
+    // change table (2026 top-10 order)
+    const zebra = (i) => ({ color: i % 2 ? PANEL : "FFFFFF" });
+    const hc = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: NAVY }, align: "center" } });
+    const rows = [[hc("Nationality"), hc("H1 25"), hc("H1 26"), hc("Chg"), hc("%")]];
+    n26.forEach((e, i) => {
+      const prev = by25[e.label] ? by25[e.label].h1 : 0;
+      const d = e.h1 - prev;
+      const pct = prev > 0 ? fmtDelta(d / prev, 0) : "new";
+      rows.push([
+        { text: e.label, options: { bold: true, color: INK, fill: zebra(i) } },
+        { text: prev ? prev.toLocaleString("en-US") : "\u2014", options: { align: "right", color: INK, fill: zebra(i) } },
+        { text: e.h1.toLocaleString("en-US"), options: { align: "right", color: INK, fill: zebra(i) } },
+        { text: (d >= 0 ? "+" : "") + d.toLocaleString("en-US"), options: { align: "right", bold: true, color: d >= 0 ? GOOD : BAD, fill: zebra(i) } },
+        { text: pct, options: { align: "right", color: d >= 0 ? GOOD : BAD, fill: zebra(i) } },
+      ]);
+    });
+    const t25 = n26.reduce((t, e) => t + (by25[e.label] ? by25[e.label].h1 : 0), 0);
+    const t26 = n26.reduce((t, e) => t + e.h1, 0);
+    const td = t26 - t25;
+    rows.push([
+      { text: "Top-10 total", options: { bold: true, color: NAVY, fill: { color: "E2E7F2" } } },
+      { text: t25.toLocaleString("en-US"), options: { align: "right", bold: true, color: NAVY, fill: { color: "E2E7F2" } } },
+      { text: t26.toLocaleString("en-US"), options: { align: "right", bold: true, color: NAVY, fill: { color: "E2E7F2" } } },
+      { text: (td >= 0 ? "+" : "") + td.toLocaleString("en-US"), options: { align: "right", bold: true, color: td >= 0 ? GOOD : BAD, fill: { color: "E2E7F2" } } },
+      { text: t25 ? fmtDelta(td / t25, 0) : "\u2014", options: { align: "right", bold: true, color: td >= 0 ? GOOD : BAD, fill: { color: "E2E7F2" } } },
+    ]);
+    s2.addTable(rows, { x: 8.5, y: 1.95, w: 4.23,
+      colW: [1.43, 0.7, 0.7, 0.72, 0.68],
+      fontFace: F, fontSize: 8.5, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
+      rowH: 0.28, valign: "middle" });
+    note(s2, M, 6.85, 11.9, "Pies show each year\u2019s own top-10 room nights (shares within top-10). "
+      + "Change table follows the 2026 top-10; \u2018new\u2019 = outside 2025\u2019s top-10. Same nationality = same colour in both pies.");
+  }
 }
 
 // ============================================================
