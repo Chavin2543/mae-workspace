@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2026 differences vs LS8 — summary</title>
+<style>
+  :root {
+    --bg: #f7f7f5; --card: #ffffff; --ink: #1a1a1a; --muted: #6b6b6b;
+    --line: #e5e5e0; --accent: #0f6f5c; --warn-bg: #fdf3e7; --warn-ink: #8a5a00;
+    --ok-bg: #eaf5f0; --ok-ink: #0f6f5c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181a; --card: #1f2225; --ink: #ececec; --muted: #a0a0a0;
+      --line: #33383d; --accent: #4fc3a1; --warn-bg: #3a2f1a; --warn-ink: #ffce80;
+      --ok-bg: #1c3229; --ok-ink: #7fd9bb;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, "Noto Sans Thai", sans-serif;
+    line-height: 1.55; padding: 24px 16px; max-width: 760px; margin: 0 auto;
+  }
+  h1 { font-size: 1.35rem; margin-bottom: 4px; }
+  .sub { color: var(--muted); font-size: .9rem; margin-bottom: 20px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 20px; margin-bottom: 16px;
+  }
+  .card h2 { font-size: 1.05rem; margin-bottom: 10px; }
+  .big { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
+  .th { color: var(--muted); font-size: .88rem; margin-top: 2px; }
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 600; font-size: .84rem; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .8rem; font-weight: 600; }
+  .warn { background: var(--warn-bg); color: var(--warn-ink); }
+  .ok { background: var(--ok-bg); color: var(--ok-ink); }
+  .note { font-size: .9rem; color: var(--muted); margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<h1>What's different in 2026 (Jan–Jun) vs LS8</h1>
+<div class="sub">Workbook: Segment_Half_year_version_1 · LYF tab, 2026 block · checked against “LS8 Segment (2026)” · 18 Jul 2026<br>
+สรุปความต่างของตัวเลขปี 2026 (ม.ค.–มิ.ย.) ในไฟล์ Half-year เทียบกับไฟล์ LS8</div>
+
+<div class="card">
+  <h2>The short version · สรุปสั้น ๆ</h2>
+  <p><span class="big">8 cells</span> are slightly different from LS8. Everything else in the 2026 block matches. ✅</p>
+  <p class="th">มี 8 ช่องที่ต่างจาก LS8 เล็กน้อย — ที่เหลือตรงกันทั้งหมด</p>
+  <p class="note">These were <b>left as-is on purpose</b> (Mae's choice in the July run — only 2025 was reconciled). Nothing has been changed in 2026.<br>
+  ช่องเหล่านี้<b>ตั้งใจปล่อยไว้ตามเดิม</b>ตามที่เมย์เลือกไว้ (รอบนี้แก้เฉพาะปี 2025) — ยังไม่มีการแก้ปี 2026</p>
+</div>
+
+<div class="card">
+  <h2><span class="pill warn">Room nights</span> — 4 tiny differences (1 room each) · ต่างกันแค่ห้องเดียวต่อช่อง</h2>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Where · ที่ไหน</th><th>Month</th><th class="num">In workbook</th><th class="num">LS8 says</th><th class="num">Diff</th></tr>
+    <tr><td>Online</td><td>Feb</td><td class="num">3,409</td><td class="num">3,410</td><td class="num">−1</td></tr>
+    <tr><td>Online</td><td>Mar</td><td class="num">4,095</td><td class="num">4,094</td><td class="num">+1</td></tr>
+    <tr><td>Wholesale</td><td>Feb</td><td class="num">1,021</td><td class="num">1,020</td><td class="num">+1</td></tr>
+    <tr><td>Total room nights (overview row)</td><td>Mar</td><td class="num">5,336</td><td class="num">5,335</td><td class="num">+1</td></tr>
+  </table>
+  </div>
+  <p class="note">H1 total: workbook 27,714 vs LS8 27,713 — off by 1 room night.<br>
+  รวมครึ่งปี: ต่างกันแค่ 1 คืน</p>
+</div>
+
+<div class="card">
+  <h2><span class="pill warn">Revenue</span> — workbook is lower by ฿93,027 in total · รายได้ต่ำกว่า LS8 รวม 93,027 บาท</h2>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Where · ที่ไหน</th><th>Month</th><th class="num">In workbook (฿)</th><th class="num">LS8 says (฿)</th><th class="num">Missing (฿)</th></tr>
+    <tr><td>Online</td><td>Jan</td><td class="num">6,423,314.91</td><td class="num">6,440,372.94</td><td class="num">17,058.03</td></tr>
+    <tr><td>Online</td><td>Feb</td><td class="num">5,697,703.85</td><td class="num">5,749,263.59</td><td class="num">51,559.74</td></tr>
+    <tr><td>Online</td><td>Mar</td><td class="num">5,272,618.12</td><td class="num">5,296,638.92</td><td class="num">24,020.80</td></tr>
+    <tr><td>ASR</td><td>Jan</td><td class="num">968,976.16</td><td class="num">969,364.12</td><td class="num">387.96</td></tr>
+  </table>
+  </div>
+  <p class="note">H1 revenue: workbook ฿38,106,440.95 vs LS8 ฿38,199,467.48. Almost all of the gap is Online, Jan–Mar.<br>
+  ส่วนต่างเกือบทั้งหมดอยู่ที่ Online เดือน ม.ค.–มี.ค.</p>
+</div>
+
+<div class="card">
+  <h2><span class="pill ok">Everything else</span> · ที่เหลือตรงหมด</h2>
+  <p>All other 2026 segments and months (Corporate, ASR Feb–Jun, Wholesale, Corporate Group, Employee Travel) match LS8 exactly.</p>
+  <p class="th">เซกเมนต์และเดือนอื่น ๆ ของปี 2026 ตรงกับ LS8 ทุกช่อง</p>
+  <p class="note">Want these 8 cells fixed too? Just say <b>“reconcile 2026”</b> and it will be done the same safe way as 2025, with a full audit trail.<br>
+  ถ้าอยากให้แก้ 8 ช่องนี้ด้วย บอกว่า <b>“reconcile 2026”</b> ได้เลยค่ะ</p>
+</div>
+
+</body>
+</html>

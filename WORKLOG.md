@@ -7,6 +7,12 @@ language.
 
 ---
 
+## 2026-07-18 — Simple HTML summary of 2026 diffs vs LS8
+Recomputed the 2026 H1 (Jan–Jun) differences fresh from the files: 8 cells
+differ — RN Online Feb/Mar, Wholesale Feb, overview Mar (±1 each) and revenue
+Online Jan/Feb/Mar + ASR Jan low by ฿93,026.53 total. No workbook changes
+(2026 stays out of scope per Mae). File: `output/2026_differences_summary.html`.
+
 ## 2026-07-18 — Set up work log + auto-sync rule
 Added this WORKLOG.md, a Stop hook (`.claude/hooks/git_sync_check.py`) that
 reminds Claude to commit+push after every task, and the matching rule in
