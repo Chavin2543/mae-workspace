@@ -7,6 +7,13 @@ language.
 
 ---
 
+## 2026-07-18 — Mae's rule: never touch the Summary tab (all properties)
+Reverted every Summary-sheet edit and rebuilt both deliverables from the
+original workbook; Summary is now byte-identical to Mae's upload. Both
+reconcile scripts skip Summary by default (`--include-summary` kept as an
+explicit override). Rule added to CLAUDE.md. Changes now: LS8 84 cells,
+SR9/AES/SP 121 cells (was 108/148 with Summary).
+
 ## 2026-07-18 — Reconciled SR9 / AES / SP tabs (H1) from property sources
 New sources in `data/source/`: SR9 Market Segment (2025+YTD2026), AES & SP
 2025 Market Mix "as Jun25" (H1 only). New `scripts/reconcile_segments.py`

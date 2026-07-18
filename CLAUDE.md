@@ -139,6 +139,12 @@ URL within a session; pass the previous artifact URL from new sessions).
 
 ## General rules for this repo
 
+- **Never change the `Summary` tab** — Mae's rule (Jul 2026), all properties.
+  Both reconcile scripts skip it by default (`--include-summary` exists but do
+  not use it unless Mae explicitly changes her mind). Property-tab cells that
+  are hardcoded on the property tab itself (e.g. AES Occ/ADR rows, SR9 2025
+  ADR row) are still fair game.
+
 - **After every finished task: sync via git.** Append a short entry to
   `WORKLOG.md` (date, what was done, files touched — 2–4 plain lines, newest
   first), commit, and push. This is how Mae's other machines/sessions learn

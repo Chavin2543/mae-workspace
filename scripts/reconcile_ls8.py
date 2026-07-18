@@ -100,6 +100,9 @@ def main():
     ap.add_argument("--out", help="output path (required unless --dry-run)")
     ap.add_argument("--dry-run", action="store_true",
                     help="print differences only; write nothing")
+    ap.add_argument("--include-summary", action="store_true",
+                    help="also reconcile Summary-sheet Occ/ADR rows "
+                         "(default: never touch Summary — Mae's rule, Jul 2026)")
     args = ap.parse_args()
     if not args.dry_run and not args.out:
         ap.error("--out is required unless --dry-run is given")
@@ -167,12 +170,14 @@ def main():
         set_cell(lyf, LYF_OVERVIEW_RN_ROW, HY_COL0 + i, int(v),
                  "Room Nights (overview)", MONTHS[i])
 
-    # 4) Summary sheet: LYF 2025 Occ / ADR / Revpar (feeds LYF!C52:N54)
-    for i in range(12):
-        set_cell(summary, SUMMARY_OCC_ROW, HY_COL0 + i, actual_occ[i],
-                 "Occupancy % (Summary LYF 2025)", MONTHS[i])
-        set_cell(summary, SUMMARY_ADR_ROW, HY_COL0 + i, actual_adr[i],
-                 "ADR (Summary LYF 2025)", MONTHS[i])
+    # 4) Summary sheet: LYF 2025 Occ / ADR (feeds LYF!C52:N53). Skipped by
+    # default — Mae's rule (Jul 2026): never change the Summary sheet.
+    if args.include_summary:
+        for i in range(12):
+            set_cell(summary, SUMMARY_OCC_ROW, HY_COL0 + i, actual_occ[i],
+                     "Occupancy % (Summary LYF 2025)", MONTHS[i])
+            set_cell(summary, SUMMARY_ADR_ROW, HY_COL0 + i, actual_adr[i],
+                     "ADR (Summary LYF 2025)", MONTHS[i])
 
     if args.dry_run:
         print(f"DRY RUN — {len(changes)} cell(s) differ from LS8; nothing written.")
@@ -214,6 +219,8 @@ def build_audit_rows(changes, args):
         "RN Feb Online 3409 vs 3410, Mar Online 4095 vs 4094, Feb Wholesale 1021 vs 1020; "
         "Revenue Online Jan/Feb/Mar and ASR Jan are below LS8 by ~93,027 THB in total (H1 revenue 38,106,441 vs LS8 38,199,467).",
         "4. Derived cells (totals, mix %, Revpar on LYF, MoM, check row 66) recalculate from the corrected inputs.",
+        "5. Summary sheet: left completely untouched for all properties (Mae's rule, Jul 2026) — including its "
+        "Occ %/ADR rows, even where they differ from the source actuals.",
     )]
     return rows
 

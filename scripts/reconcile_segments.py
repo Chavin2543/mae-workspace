@@ -160,6 +160,9 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--skip-sp-jan", action="store_true",
                     help="leave every January cell on the SP tab untouched")
+    ap.add_argument("--include-summary", action="store_true",
+                    help="also reconcile Summary-sheet Occ/ADR rows "
+                         "(default: never touch Summary — Mae's rule, Jul 2026)")
     args = ap.parse_args()
     if not args.dry_run and not args.out:
         ap.error("--out is required unless --dry-run is given")
@@ -244,11 +247,13 @@ def main():
 
     recon_block(wb["SR9"], SR9_TAB["2026"], sr9_26, 2026)
     recon_block(wb["SR9"], SR9_TAB["2025"], sr9_25, 2025)
-    recon_summary("SR9", SR9_TAB["summary_2025"], sr9_25)
     recon_block(wb["AES"], AES_TAB["2025"], aes, 2025)
-    recon_summary("AES", AES_TAB["summary_2025"], aes)
     recon_block(wb["SP"], SP_TAB["2025"], sp, 2025, sp_skip)
-    recon_summary("SP", SP_TAB["summary_2025"], sp, sp_skip)
+    # Summary sheet is never touched by default — Mae's rule (Jul 2026).
+    if args.include_summary:
+        recon_summary("SR9", SR9_TAB["summary_2025"], sr9_25)
+        recon_summary("AES", AES_TAB["summary_2025"], aes)
+        recon_summary("SP", SP_TAB["summary_2025"], sp, sp_skip)
 
     if args.dry_run:
         print(f"DRY RUN — {len(changes)} cell(s) differ; nothing written.")
@@ -280,8 +285,9 @@ def main():
         "3. SR9 2025 H2 (Jul-Dec): source data exists but was out of scope for this run (Mae asked for first "
         "half year only).",
         "4. Nationality blocks on all tabs come from the monthly nationality workbook, not these sources.",
-        "5. Summary 'Revenue (THB)' rows per property are on a different basis (same as the LYF/LS8 finding) "
-        "and were not reconciled.",
+        "5. Summary sheet: left completely untouched for all properties (Mae's rule, Jul 2026) — including its "
+        "Occ %/ADR rows, even where they differ from the source actuals. Tab rows that read from Summary "
+        "(e.g. SP Occ/ADR, SR9 Occ) therefore keep the Summary values.",
         "6. Derived cells (totals, mix %, occ/ADR formulas, Revpar, MoM) recalculate from the corrected inputs.",
     )]
     surgical_save(args.halfyear, args.out, changes, audit_rows,
