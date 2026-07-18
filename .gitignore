@@ -1,0 +1,12 @@
+# Office temp/lock files
+~$*
+*.tmp
+.~lock.*
+
+# Python
+__pycache__/
+*.pyc
+
+# OS cruft
+.DS_Store
+Thumbs.db
