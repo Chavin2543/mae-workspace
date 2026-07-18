@@ -139,6 +139,12 @@ URL within a session; pass the previous artifact URL from new sessions).
 
 ## General rules for this repo
 
+- **After every finished task: sync via git.** Append a short entry to
+  `WORKLOG.md` (date, what was done, files touched — 2–4 plain lines, newest
+  first), commit, and push. This is how Mae's other machines/sessions learn
+  what happened — the repo must always tell the full story on its own. A Stop
+  hook (`.claude/hooks/git_sync_check.py`) reminds you if you forget. New
+  sessions: read `WORKLOG.md` first to catch up.
 - Ask Mae before touching tabs other than the one being reconciled.
 - Every automated edit to a workbook must leave an audit trail (audit sheet
   and/or report committed to the repo).
