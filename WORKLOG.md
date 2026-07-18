@@ -7,6 +7,14 @@ language.
 
 ---
 
+## 2026-07-18 — Management PowerPoint report (H1 2026)
+Built `output/Portfolio_Performance_Report_H1-2026.pptx` (27 slides, native
+editable charts) from the reconciled workbook: arrivals (MOTS/Chinese/India/
+Middle East/long-haul), Bangkok+Pattaya STR, portfolio & per-property
+Occ/ADR/RevPAR vs budget (monthly+YTD), segmentation & nationality per
+property. Rebuild scripts in `scripts/management_deck/` (extract_deck_data.py
+→ deck_data.json → build_deck.js).
+
 ## 2026-07-18 — Deleted unverified AES Jul-Dec 2025 numbers
 Mae's instruction: the AES tab's Jul-Dec 2025 block (overview + RN/revenue
 by segment, 108 cells) had no source file to verify against, so it was
