@@ -22,6 +22,11 @@ short Thai hints kept as-is. Do not add technical jargon.
 - Type: `/audit-report` — Claude rebuilds the visual summary from the latest
   reconciled file and shows it.
 
+**Save my work to GitHub** (บันทึกงานขึ้น GitHub)
+- Type: `/sync` — Claude saves everything so your other computer sees the
+  latest files too. This usually happens automatically after each task, so
+  you only need it if you want to be sure.
+
 **Tips**
 - You can always just describe what you want in plain words (English or Thai) —
   the commands are shortcuts, not requirements.

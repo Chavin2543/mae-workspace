@@ -7,6 +7,14 @@ language.
 
 ---
 
+## 2026-07-18 — Centralized git: created `main` as the single branch
+All past work (both old `claude/...` branches) now lives on one central
+branch, `main`. New rules in CLAUDE.md: sessions pull `main` at start
+(new hook `.claude/hooks/git_session_sync.py`) and land finished work on
+`main` at end. Added `/sync` command so Mae can save/share with one word.
+Files: CLAUDE.md, WORKLOG.md, `.claude/hooks/git_session_sync.py`,
+`.claude/commands/sync.md`, `.claude/commands/guide.md`.
+
 ## 2026-07-18 — Set up work log + auto-sync rule
 Added this WORKLOG.md, a Stop hook (`.claude/hooks/git_sync_check.py`) that
 reminds Claude to commit+push after every task, and the matching rule in

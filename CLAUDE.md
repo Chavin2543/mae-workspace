@@ -18,6 +18,7 @@ about it). Thai hints are welcome. When she uploads files and asks to
 | `/reconcile-ls8` | Full run: fix workbook to match LS8 + audit tab + visual report + commit/push |
 | `/check-ls8` | Compare only (`--dry-run`) — show differences, change nothing |
 | `/audit-report` | Rebuild + show the visual audit report from the latest reconciled file |
+| `/sync` | Save everything to GitHub `main` so every machine sees the latest work |
 
 Command definitions live in `.claude/commands/`. A SessionStart hook
 (`.claude/settings.json`) installs python deps in the background and points the
@@ -30,8 +31,35 @@ user to `/guide`.
 data/source/   Uploaded input workbooks, renamed to clean names. Never edit in place.
 output/        Reconciled deliverable workbooks (with audit sheet) + HTML reports.
 scripts/       Reusable Python scripts (openpyxl). One script per recurring task.
+WORKLOG.md     What each session did, newest first — read it to catch up.
 CLAUDE.md      This file — the anatomy of each recurring task.
 ```
+
+## Centralized git: one branch, `main`
+
+`main` on GitHub is the single source of truth. Every machine and every Claude
+session (desktop or web) reads and writes the same branch, so Mae never has to
+think about git — she just opens Claude Code and works.
+
+Rules for Claude, any session:
+
+1. **Session start — sync down.** Fetch `origin/main` and fast-forward onto it
+   before doing any work (the SessionStart hook
+   `.claude/hooks/git_session_sync.py` does this automatically when the
+   worktree is clean; if it reports you are behind, merge or rebase onto
+   `origin/main` yourself). Then read `WORKLOG.md` to catch up.
+2. **Task end — sync up.** WORKLOG.md entry + commit + push, and make sure the
+   work reaches `main`. **Standing permission from Mae:** pushing finished work
+   to `main` (e.g. `git push origin HEAD:main`) is always allowed — no need to
+   ask. If the push is rejected because main moved, fetch, merge `origin/main`,
+   and push again. Desktop sessions can simply work on `main` directly.
+3. **Web/cloud sessions** are assigned an auto-named `claude/...` branch by the
+   platform: push there as required, then also land the same commits on `main`
+   (rule 2). Those `claude/...` branches are disposable once merged.
+4. **Historical branches** — fully contained in `main`, never base new work on
+   them: `claude/half-year-reconciliation-ls8-3p4hqz` (first reconciliation +
+   command suite), `claude/recon-excel-2mdfff` (corrupt-file fix + WORKLOG).
+5. **Never force-push `main`** and never rewrite its history.
 
 Conventions: commit both the source snapshot and the reconciled output for each
 run, so every reconciliation is reproducible from the repo alone. Use clear
@@ -141,10 +169,11 @@ URL within a session; pass the previous artifact URL from new sessions).
 
 - **After every finished task: sync via git.** Append a short entry to
   `WORKLOG.md` (date, what was done, files touched — 2–4 plain lines, newest
-  first), commit, and push. This is how Mae's other machines/sessions learn
-  what happened — the repo must always tell the full story on its own. A Stop
-  hook (`.claude/hooks/git_sync_check.py`) reminds you if you forget. New
-  sessions: read `WORKLOG.md` first to catch up.
+  first), commit, push, and land it on `main` (see the centralized-git section
+  above). This is how Mae's other machines/sessions learn what happened — the
+  repo must always tell the full story on its own. A Stop hook
+  (`.claude/hooks/git_sync_check.py`) reminds you if you forget. New sessions:
+  read `WORKLOG.md` first to catch up.
 - Ask Mae before touching tabs other than the one being reconciled.
 - Every automated edit to a workbook must leave an audit trail (audit sheet
   and/or report committed to the repo).
