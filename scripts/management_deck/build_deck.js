@@ -470,6 +470,44 @@ for (const key of ["SR9", "AES", "LYF", "SP"]) {
   const top = segs.slice().sort((a, b) => b.ytd - a.ytd)[0];
   note(s, M, 6.72, 11.9, "Largest segment YTD: " + (SEG_SHORT[top.label] || top.label) + " (" +
     fmtPct(top.ytd / segs.reduce((t, r) => t + r.ytd, 0), 0) + " of room nights).");
+
+  // second slide: monthly numbers table by segment
+  {
+    const s2 = pres.addSlide();
+    header(s2, "Section 4 \u00b7 Segmentation", p.name + " (" + key + ") \u2014 segmentation, monthly numbers",
+      "Room nights by segment per month (2026) \u00b7 YTD, mix and revenue");
+    const zebra = (i) => ({ color: i % 2 ? PANEL : "FFFFFF" });
+    const hc = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: NAVY }, align: "center" } });
+    const totRN = segs.reduce((t, r) => t + r.ytd, 0);
+    const totRev = segs.reduce((t, r) => t + (r.rev_ytd || 0), 0);
+    const rows = [[hc("Segment")].concat(MONTHS.slice(0, 6).map(hc),
+      [hc("YTD RN"), hc("Mix"), hc("Revenue YTD (\u0e3f)"), hc("Rev mix")])];
+    segs.forEach((r, i) => {
+      rows.push([{ text: SEG_SHORT[r.label] || r.label, options: { bold: true, color: INK, fill: zebra(i) } }].concat(
+        r.m.map((v) => ({ text: v == null ? "\u2014" : Math.round(v).toLocaleString("en-US"),
+          options: { color: INK, align: "right", fill: zebra(i) } })),
+        [{ text: r.ytd.toLocaleString("en-US"), options: { bold: true, color: NAVY, align: "right", fill: zebra(i) } },
+         { text: fmtPct(r.ytd / totRN, 0), options: { color: MUT, align: "right", fill: zebra(i) } },
+         { text: Math.round(r.rev_ytd).toLocaleString("en-US"), options: { color: INK, align: "right", fill: zebra(i) } },
+         { text: fmtPct(r.rev_ytd / totRev, 0), options: { color: MUT, align: "right", fill: zebra(i) } }]));
+    });
+    const monthTot = [0, 1, 2, 3, 4, 5].map((i) => segs.reduce((t, r) => t + (r.m[i] || 0), 0));
+    rows.push([{ text: "Total", options: { bold: true, color: NAVY, fill: { color: "E2E7F2" } } }].concat(
+      monthTot.map((v) => ({ text: v.toLocaleString("en-US"), options: { bold: true, color: NAVY, align: "right", fill: { color: "E2E7F2" } } })),
+      [{ text: totRN.toLocaleString("en-US"), options: { bold: true, color: NAVY, align: "right", fill: { color: "E2E7F2" } } },
+       { text: "100%", options: { bold: true, color: NAVY, align: "right", fill: { color: "E2E7F2" } } },
+       { text: Math.round(totRev).toLocaleString("en-US"), options: { bold: true, color: NAVY, align: "right", fill: { color: "E2E7F2" } } },
+       { text: "100%", options: { bold: true, color: NAVY, align: "right", fill: { color: "E2E7F2" } } }]));
+    s2.addTable(rows, { x: M, y: 1.95, w: W - 2 * M,
+      colW: [2.6, 0.88, 0.88, 0.88, 0.88, 0.88, 0.88, 1.0, 0.72, 1.72, 0.81],
+      fontFace: F, fontSize: 9.5, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
+      rowH: 0.32, valign: "middle" });
+    const topRev = segs.slice().sort((a, b) => b.rev_ytd - a.rev_ytd)[0];
+    note(s2, M, 2.1 + 0.34 * (segs.length + 2) + 0.25, 11.9,
+      "Largest revenue segment YTD: " + (SEG_SHORT[topRev.label] || topRev.label) + " (" +
+      fmtPct(topRev.rev_ytd / totRev, 0) + " of segment revenue \u00b7 \u0e3f" +
+      Math.round(topRev.rev_ytd).toLocaleString("en-US") + ").");
+  }
 }
 
 // nationality slides — room-night counts, 2026 and 2025

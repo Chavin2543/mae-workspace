@@ -135,16 +135,23 @@ data["portfolio"] = {"act": agg("occ", "adr", "revpar"),
 
 # ---------- Section 4: segmentation + nationality (property tabs) ----------
 SEG_ROWS = {"SR9": (14, 22), "AES": (14, 20), "LYF": (14, 20), "SP": (14, 23)}
+SEG_REV_ROW0 = {"SR9": 26, "AES": 24, "LYF": 24, "SP": 27}
 seg, nat = {}, {}
 for key in PROPS:
     ws = wb[key if key != "LYF" else "LYF"]
     r0, r1 = SEG_ROWS[key]
+    rev0 = SEG_REV_ROW0[key]
     rows = []
-    for r in range(r0, r1 + 1):
+    for idx, r in enumerate(range(r0, r1 + 1)):
         label = ws.cell(r, 2).value
+        rlabel = ws.cell(rev0 + idx, 2).value
+        assert label == rlabel, f"{key}: RN row {label!r} != revenue row {rlabel!r}"
         vals = row(ws, r, 3, 6)  # Jan-Jun 2026
+        rev = row(ws, rev0 + idx, 3, 6)
         rows.append({"label": label, "m": vals,
-                     "ytd": round(sum(v for v in vals if isinstance(v, (int, float))))})
+                     "ytd": round(sum(v for v in vals if isinstance(v, (int, float)))),
+                     "rev": rev,
+                     "rev_ytd": round(sum(v for v in rev if isinstance(v, (int, float))), 2)})
     seg[key] = rows
     # nationality: find header
     hdr = None
