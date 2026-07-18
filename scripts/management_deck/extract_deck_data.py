@@ -26,7 +26,12 @@ data = {}
 # ---------- Section 1: arrivals (Summary-1 + Arrival) ----------
 s1 = wb["Summary-1"]
 arr = wb["Arrival"]
+mots_full = {}
+for r in range(8, 17):
+    year = str(s1.cell(r, 2).value)
+    mots_full[year] = {"m": row(s1, r, 3, 12), "total": s1.cell(r, 15).value}
 data["arrivals"] = {
+    "mots_full": mots_full,
     "mots": {"2024": row(s1, 14, 3, 12), "2025": row(s1, 15, 3, 12),
              "2026": row(s1, 16, 3, 5),
              "ytd": {"2024": s1["G18"].value, "2025": s1["G19"].value,

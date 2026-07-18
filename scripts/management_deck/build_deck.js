@@ -57,7 +57,7 @@ function tile(slide, x, y, w, h, label, big, sub, subColor) {
 }
 
 function note(slide, x, y, w, text) {
-  slide.addText(text, { x, y, w, h: 0.55, margin: 0, fontFace: F, fontSize: 10.5,
+  slide.addText(text, { x, y, w, h: 0.48, margin: 0, fontFace: F, fontSize: 10.5,
     color: MUT, italic: true });
 }
 
@@ -145,20 +145,59 @@ const PF = { act: ytdOf(data.portfolio.act), bg: ytdOf(data.portfolio.bg), ly: y
 divider("1", "Thailand Tourist Arrivals",
   "Total (MOTS) · Chinese · India · Middle East · Long-haul (EU + USA)");
 
+const fmtN = (v) => (v == null ? "\u2014" : Math.round(v).toLocaleString("en-US"));
+
+// Monthly numbers table (years as rows), like the Summary sheet
+function monthTable(s, x, y, w, series, nMonths, opts) {
+  opts = opts || {};
+  const fs = opts.fontSize || 9.5, rh = opts.rowH || 0.26;
+  const zebra = (i) => ({ color: i % 2 ? PANEL : "FFFFFF" });
+  const hdrCell = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: NAVY }, align: "center" } });
+  const rows = [[hdrCell(opts.corner || "")].concat(
+    MONTHS.slice(0, nMonths).map(hdrCell), [hdrCell(opts.totalLabel || "YTD")])];
+  series.forEach((sr, i) => {
+    const vals = sr.values.slice(0, nMonths);
+    const ytd = sr.total != null ? sr.total : vals.reduce((t, v) => t + (v || 0), 0);
+    rows.push([{ text: sr.name, options: { bold: true, color: INK, fill: zebra(i) } }].concat(
+      vals.map((v) => ({ text: fmtN(v), options: { color: INK, align: "right", fill: zebra(i) } })),
+      [{ text: fmtN(ytd), options: { bold: true, color: NAVY, align: "right", fill: zebra(i) } }]));
+  });
+  const y26 = series.find((sr) => sr.name === "2026"), y25 = series.find((sr) => sr.name === "2025");
+  if (y26 && y25) {
+    const n26 = y26.values.filter((v) => v != null).length;
+    const d = MONTHS.slice(0, nMonths).map((_, i) =>
+      (y26.values[i] != null && y25.values[i] ? y26.values[i] / y25.values[i] - 1 : null));
+    const s26 = y26.values.slice(0, n26).reduce((t, v) => t + (v || 0), 0);
+    const s25 = y25.values.slice(0, n26).reduce((t, v) => t + (v || 0), 0);
+    const dy = s25 ? s26 / s25 - 1 : null;
+    const dCell = (v, bold) => ({ text: v == null ? "\u2014" : fmtDelta(v, bold ? 1 : 0),
+      options: { bold: !!bold, align: "right", color: v == null ? MUT : (v >= 0 ? GOOD : BAD), fill: { color: "FFFFFF" } } });
+    rows.push([{ text: "26 vs 25", options: { bold: true, color: MUT, fill: { color: "FFFFFF" } } }]
+      .concat(d.map((v) => dCell(v, false)), [dCell(dy, true)]));
+  }
+  const lw = opts.labelW || 1.0, tw = opts.totalW || 1.1;
+  const mw = (w - lw - tw) / nMonths;
+  s.addTable(rows, { x, y, w, colW: [lw].concat(Array(nMonths).fill(mw), [tw]),
+    fontFace: F, fontSize: fs, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
+    rowH: rh, valign: "middle" });
+}
+
 function arrivalSlide(title, subtitle, series, ytdTiles, noteText, valFmt) {
   const s = pres.addSlide();
   header(s, "Section 1 · Tourist arrivals", title, subtitle);
   const nCats = Math.max(...series.map((x) => x.values.length));
+  const withTable = nCats <= 6;
   s.addChart(pres.ChartType.bar, series.map((x) => ({
     name: x.name, labels: MONTHS.slice(0, nCats), values: x.values,
   })), Object.assign({}, axStyle, {
-    x: M, y: 1.75, w: 8.2, h: 4.9, barGapWidthPct: 60,
+    x: M, y: 1.75, w: 8.2, h: withTable ? 3.35 : 4.9, barGapWidthPct: 60,
     chartColors: series.map((x) => x.color),
     valAxisNumFmt: valFmt || "#,##0,K", showLegend: true, legendPos: "b",
   }));
+  if (withTable) monthTable(s, M, 5.22, 8.2, series, nCats);
   let ty = 1.85;
   ytdTiles.forEach((t) => { tile(s, 9.15, ty, 3.55, 1.32, t[0], t[1], t[2], t[3]); ty += 1.48; });
-  if (noteText) note(s, M, 6.75, 11.9, noteText);
+  if (noteText) note(s, M, withTable ? 6.98 : 6.75, 11.9, noteText);
   return s;
 }
 
@@ -171,6 +210,19 @@ arrivalSlide("Total international arrivals (MOTS)", "Monthly arrivals, all natio
    ["YTD JAN–MAY 2025", fmtM(A.mots.ytd["2025"]), fmtDelta(grow(A.mots.ytd["2025"], A.mots.ytd["2024"])) + " vs 2024", MUT],
    ["VS PRE-COVID (2019)", fmtPct(A.mots.ytd["2026"] / 16746308, 0), "of Jan–May 2019 level", MUT]],
   "Source: Ministry of Tourism & Sports (MOTS). 2026 slightly below 2025 — January was weak (−12% vs Jan 2025), February–May broadly flat.");
+
+// MOTS monthly detail table (like the Summary sheet)
+{
+  const s = pres.addSlide();
+  header(s, "Section 1 · Tourist arrivals", "Total arrivals (MOTS) — monthly numbers by year",
+    "International arrivals by month, 2018\u20132026 \u00b7 unit: persons \u00b7 same layout as the Summary sheet");
+  const series = Object.keys(A.mots_full).map((y) => ({
+    name: y, values: A.mots_full[y].m, total: A.mots_full[y].total }));
+  monthTable(s, M, 1.8, W - 2 * M, series, 12,
+    { fontSize: 8, rowH: 0.31, labelW: 0.8, totalW: 1.05, corner: "Year", totalLabel: "Total" });
+  note(s, M, 5.65, 11.9,
+    "2026 total = Jan\u2013May. \u201826 vs 25\u2019 row compares each month; the Total cell compares Jan\u2013May of both years (\u22122.3%). COVID years 2020\u20132022 shown for context.");
+}
 
 // Chinese
 arrivalSlide("Chinese arrivals", "Jan–May by year — 2019 shown as pre-COVID reference",
@@ -214,7 +266,7 @@ arrivalSlide("Middle East arrivals", "Jan–May by year — 2019 shown as pre-CO
     { name: "2025", labels: MONTHS.slice(0, 5), values: A[key]["2025"] },
     { name: "2026", labels: MONTHS.slice(0, 5), values: A[key]["2026"] },
   ], Object.assign({}, axStyle, {
-    x, y: 2.1, w: 4.1, h: 4.4, chartColors: [ICE, SKY, NAVY],
+    x, y: 2.0, w: 4.1, h: 3.5, chartColors: [ICE, SKY, NAVY],
     showLegend: true, legendPos: "b", valAxisNumFmt: "#,##0,K",
     showTitle: true, title: ttl, titleFontSize: 13, titleColor: NAVY, titleFontFace: F,
   }));
@@ -227,7 +279,12 @@ arrivalSlide("Middle East arrivals", "Jan–May by year — 2019 shown as pre-CO
     fmtDelta(grow(A.lh_eu["2026"].reduce((a, b) => a + b, 0), A.lh_eu["2025"].reduce((a, b) => a + b, 0))) + " vs 2025", GOOD);
   tile(s, 9.35, 5.16, 3.35, 1.32, "USA YTD", fmtM(A.lh_usa["2026"].reduce((a, b) => a + b, 0)),
     fmtDelta(grow(A.lh_usa["2026"].reduce((a, b) => a + b, 0), A.lh_usa["2025"].reduce((a, b) => a + b, 0))) + " vs 2025", GOOD);
-  note(s, M, 6.75, 11.9, "Long-haul is stable at record levels — strong Jan–Feb (European winter) offset a softer April.");
+  monthTable(s, M, 5.68, 8.45, [
+    { name: "2024", values: A.lh_all["2024"] },
+    { name: "2025", values: A.lh_all["2025"] },
+    { name: "2026", values: A.lh_all["2026"] },
+  ], 5, { corner: "EU+USA", rowH: 0.25, fontSize: 9 });
+  note(s, 9.35, 5.75, 3.4, "Long-haul stable at record levels — strong Jan–Feb offset a softer April.");
 }
 
 // ============================================================
