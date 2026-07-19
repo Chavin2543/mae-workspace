@@ -504,15 +504,14 @@ function finSlide(title, sub, f26, m26, m25) {
     let act, bp, proj, chgTxt, good;
     if (key === "npat") {
       act = npat26; bp = null; proj = null; chgTxt = "\u2014"; good = null;
-    } else if (key === "revenue") {
-      // the result sheets carry no revenue budget rows (only OPEX/GOP/
-      // margin/EBIT); the sheet's YTD revenue "budget" is just GOP-OPEX,
-      // so show actual only (Mae, Jul 2026)
-      act = f26.revenue.act; bp = null; proj = null; chgTxt = "\u2014"; good = null;
     } else {
       const d = f26[key];
       act = d.act; bp = d.bp; proj = d.proj;
-      if (key === "gop_margin") {
+      // bp/proj are null where the monthly blocks have no budget rows
+      // (revenue, GOP margin) \u2014 Mae, Jul 2026: never invent a budget
+      if (proj == null) {
+        chgTxt = "\u2014"; good = null;
+      } else if (key === "gop_margin") {
         const pts = (d.act - d.proj) * 100;
         chgTxt = (pts >= 0 ? "+" : "") + pts.toFixed(1) + " pts"; good = pts >= 0;
       } else {
@@ -553,8 +552,8 @@ function finSlide(title, sub, f26, m26, m25) {
     (npat26 - h25.npat >= 0 ? "+" : "") + fmtMn(npat26 - h25.npat).replace("\u2212", "\u2212") + " vs H1 2025 (" + fmtMn(h25.npat) + ")",
     npat26 - h25.npat >= 0 ? GOOD : BAD);
   note(s, M, 6.95, 11.9, "GOP = gross operating profit (\u2248 EBITDA). Budget (BP) = Ascott business plan; MF budget = Mitsui Fudosan budget. "
-    + "The result sheets record budgets for OPEX, GOP, GOP margin and EBIT only \u2014 revenue and NPAT have no budget (shown \u2014); "
-    + "JV expense derived as EBIT \u2212 GOP. Source: result FY25/FY26 sheets (official record).");
+    + "All figures are Jan\u2013Jun sums of the monthly P&L blocks in the result sheets; budget rows exist for OPEX, GOP and EBIT only "
+    + "(revenue, GOP margin and NPAT show \u2014). JV expense derived as EBIT \u2212 GOP. Source: result FY25/FY26 sheets (official record).");
   return s;
 }
 

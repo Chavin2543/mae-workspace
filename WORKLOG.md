@@ -7,6 +7,13 @@ language.
 
 ---
 
+## 2026-07-19 — Deck financials now read the monthly P&L blocks only (Mae's rule)
+Per Mae: the "YTD performance" summary at the top of the result sheets is
+never used anymore. All deck YTD figures = Jan–Jun sums of the monthly
+blocks; GOP margin budget now "—" (no revenue budget exists to compute it).
+Verified all 5 slides vs independent sheet sums. Decision logged
+(docs/decisions/2026-07-19-fin-monthly-blocks-only.md); deck + scripts updated.
+
 ## 2026-07-19 — Deck: fixed table overlay; revenue budget removed (not in file)
 Mae was right: result sheets have budget rows only for OPEX/GOP/margin/EBIT —
 the revenue "budget" was a sheet formula (GOP−OPEX), so the deck now shows —

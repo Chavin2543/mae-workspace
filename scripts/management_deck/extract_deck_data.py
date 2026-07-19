@@ -115,39 +115,33 @@ for key in PROPS:
         p_["revpar"][0] = round(p_["occ"][0] * p_["adr"][0], 2)
 data["perf"] = perf
 
-# ---------- financial YTD blocks (result FY25 / FY26 sheets) ----------
-FIN_ROWS = {"gop_margin": 10, "revenue": 12, "opex": 13, "gop": 14, "jv": 15, "ebit": 16}
+# ---------- financials: monthly P&L blocks ONLY (Mae, Jul 2026) ----------
+# Never read the small "YTD performance" summary at the top of the result
+# sheets — its Revenue/JV "budgets" are derived formulas, not real budget
+# lines. Everything below comes from the monthly blocks (label col R,
+# months T..AE = Jan..Dec): actual rows plus the real budget rows
+# (Ascott BP / MF Projection) which exist for OPEX, GOP, % GOP, EBIT only.
 r26s, r25s = wb["result FY26"], wb["result FY25"]
-FIN26_COL0 = {"SR9": 4, "AES": 10, "LYF": 16, "SP": 22, "PF": 28}
-FIN25_COL0 = {"SR9": 4, "AES": 16, "LYF": 22, "SP": 28}  # ATB (col 10) excluded
-fin = {"2026": {}, "2025": {}}
-for prop, c in FIN26_COL0.items():
-    fin["2026"][prop] = {m: {"bp": r26s.cell(r, c).value, "proj": r26s.cell(r, c + 1).value,
-                             "act": r26s.cell(r, c + 2).value}
-                         for m, r in FIN_ROWS.items()}
-for prop, c in FIN25_COL0.items():
-    fin["2025"][prop] = {m: {"bp": r25s.cell(r, c).value, "proj": r25s.cell(r, c + 1).value,
-                             "act": r25s.cell(r, c + 2).value}
-                         for m, r in FIN_ROWS.items()}
-data["fin"] = fin
-
-# monthly P&L blocks (col R area of the result sheets): Total Revenue, OPEX,
-# GOP, % GOP Margin, EBIT, NPAT — actual, monthly, cols T..AE = Jan..Dec
 LABELS = {"Total Revenue": "revenue", "OPEX": "opex", "GOP": "gop",
-          "% GOP Margin": "margin", "EBIT": "ebit", "NPAT": "npat"}
+          "% GOP Margin": "margin", "EBIT": "ebit", "NPAT": "npat",
+          "Ascott BP OPEX": "opex_bp", "MF Projection OPEX": "opex_mf",
+          "Ascott BP GOP": "gop_bp", "MF Projection GOP": "gop_mf",
+          "Ascott BP EBIT": "ebit_bp", "MF Projection EBIT": "ebit_mf"}
 def scan_fin_monthly(ws, order):
     anchors = [r for r in range(15, ws.max_row + 1)
                if str(ws.cell(r, 18).value or "").strip() == "Total Revenue"]
     assert len(anchors) >= len(order), f"anchors={anchors}"
     out = {}
-    for prop, r0 in zip(order, anchors):
+    for i, (prop, r0) in enumerate(zip(order, anchors)):
+        # stop before the next block's header rows (kthb / property name)
+        r_end = min(r0 + 16, anchors[i + 1] - 3 if i + 1 < len(anchors) else r0 + 16)
         rows = {}
-        for r in range(r0, r0 + 16):
+        for r in range(r0, r_end):
             lab = str(ws.cell(r, 18).value or "").strip()
             if lab in LABELS and LABELS[lab] not in rows:
                 rows[LABELS[lab]] = r
         blk = {k: [ws.cell(r, c).value for c in range(20, 32)] for k, r in rows.items()}
-        if "opex" not in blk and "gop" in blk:  # FY26 portfolio block has no OPEX row
+        if "opex" not in blk and "gop" in blk:  # FY26 portfolio block has no OPEX rows
             blk["opex"] = [ (g - v) if isinstance(g,(int,float)) and isinstance(v,(int,float)) else None
                             for g, v in zip(blk["gop"], blk["revenue"]) ]
         out[prop] = blk
@@ -155,7 +149,34 @@ def scan_fin_monthly(ws, order):
 fin_m = {"2026": scan_fin_monthly(r26s, ["PF", "SR9", "AES", "LYF", "SP"]),
          "2025": scan_fin_monthly(r25s, ["SR9", "ATB", "AES", "LYF", "SP"])}
 fin_m["2025"].pop("ATB")
+# FY26 portfolio block has no OPEX budget rows: sum the four properties
+for met in ("opex_bp", "opex_mf"):
+    if met not in fin_m["2026"]["PF"]:
+        fin_m["2026"]["PF"][met] = [
+            sum(fin_m["2026"][p][met][i] or 0 for p in ("SR9", "AES", "LYF", "SP"))
+            for i in range(12)]
 data["fin_monthly"] = fin_m
+
+# YTD (H1) figures = Jan-Jun sums of the monthly blocks
+def h1sum(vals):
+    return sum(v for v in vals[:6] if isinstance(v, (int, float)))
+fin = {}
+for year, blocks in fin_m.items():
+    fin[year] = {}
+    for prop, blk in blocks.items():
+        g = {}
+        for met in ("revenue", "opex", "gop", "ebit"):
+            g[met] = {"act": h1sum(blk[met]),
+                      "bp": h1sum(blk[met + "_bp"]) if met + "_bp" in blk else None,
+                      "proj": h1sum(blk[met + "_mf"]) if met + "_mf" in blk else None}
+        # GOP margin budget would need a revenue budget, which the file lacks
+        g["gop_margin"] = {"act": g["gop"]["act"] / g["revenue"]["act"],
+                           "bp": None, "proj": None}
+        g["jv"] = {k: (g["ebit"][k] - g["gop"][k])
+                      if g["ebit"][k] is not None and g["gop"][k] is not None else None
+                   for k in ("act", "bp", "proj")}
+        fin[year][prop] = g
+data["fin"] = fin
 
 # fill missing June-2026 revenue for AES/SP from result totals (Summary rows
 # sum exactly to the result revenue for the other properties)
