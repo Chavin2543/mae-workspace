@@ -7,6 +7,12 @@ language.
 
 ---
 
+## 2026-07-19 — Financial slides: 2025 reference + monthly tables; STR labels
+Each P&L slide now shows an FY 2025 actual column (full year — the result
+sheets have no H1 2025 P&L split) and a monthly revenue table in THB M for
+2025 and 2026 with YoY row. Data labels added to the Bangkok/Pattaya STR
+charts (the only charts without number tables); other charts stay clean.
+
 ## 2026-07-19 — Deck refreshed + new Financial Performance section
 Rebuilt the management deck from the results-checked workbook (corrected
 Jan occupancy flows through). New Section 4: P&L for portfolio + each
