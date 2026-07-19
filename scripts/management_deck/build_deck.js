@@ -110,7 +110,8 @@ const ytdOf = (arr) => { // YTD aggregates from portfolio month dicts
   const rev = arr.reduce((t, m) => t + m.revenue, 0);
   return { occ: sold / ra, adr: rev / sold, revpar: rev / ra, revenue: rev };
 };
-const PF = { act: ytdOf(data.portfolio.act), bg: ytdOf(data.portfolio.bg), ly: ytdOf(data.portfolio.ly) };
+const PF = { act: ytdOf(data.portfolio.act), bg: ytdOf(data.portfolio.bg),
+             ly: ytdOf(data.portfolio.ly), ly24: ytdOf(data.portfolio.ly24) };
 {
   const s = pres.addSlide();
   header(s, "Executive summary", "H1 2026 at a glance",
@@ -304,10 +305,11 @@ function strSlide(cityKey, cityName, subtitle, noteText) {
   defs.forEach((def, i) => {
     const [ttl, key, fmt] = def;
     s.addChart(pres.ChartType.bar, [
+      { name: "2024", labels: MONTHS.slice(0, 5), values: d[key]["2024"].slice(0, 5) },
       { name: "2025", labels: MONTHS.slice(0, 5), values: d[key]["2025"].slice(0, 5) },
       { name: "2026", labels: MONTHS.slice(0, 5), values: d[key]["2026"] },
     ], Object.assign({}, axStyle, {
-      x: M + i * 4.15, y: 2.0, w: 3.95, h: 4.35, chartColors: [SKY, NAVY],
+      x: M + i * 4.15, y: 2.0, w: 3.95, h: 4.35, chartColors: [ICE, SKY, NAVY],
       showLegend: true, legendPos: "b", valAxisNumFmt: fmt,
       showValue: true, dataLabelPosition: "outEnd", dataLabelFontSize: 7.5,
       dataLabelFontFace: F, dataLabelColor: MUT,
@@ -327,9 +329,9 @@ function strSlide(cityKey, cityName, subtitle, noteText) {
   note(s, M, 6.78, 11.9, noteText);
   return s;
 }
-strSlide("bangkok", "Bangkok", "Monthly compset performance, 2025 vs 2026 (Jan–May) — ADR excludes breakfast",
+strSlide("bangkok", "Bangkok", "Monthly compset performance, 2024–2026 (Jan–May) — ADR excludes breakfast",
   "Bangkok market: occupancy holding above last year, but rate is down — the market is buying occupancy with price.");
-strSlide("pattaya", "Pattaya", "Monthly compset performance, 2025 vs 2026 (Jan–May)",
+strSlide("pattaya", "Pattaya", "Monthly compset performance, 2024–2026 (Jan–May)",
   "Pattaya market: strong high season (Jan–Feb) then softening from March; rates broadly below 2025.");
 
 // ============================================================
@@ -337,7 +339,7 @@ strSlide("pattaya", "Pattaya", "Monthly compset performance, 2025 vs 2026 (Jan�
 // ============================================================
 divider("3", "Performance vs Budget", "Portfolio and each property — Occ, ADR, RevPAR · monthly & YTD");
 
-function perfSlide(sectionTitle, subtitle, actArr, bgArr, lyArr, ytd, noteText) {
+function perfSlide(sectionTitle, subtitle, actArr, bgArr, lyArr, ly24Arr, ytd, noteText) {
   const s = pres.addSlide();
   header(s, "Section 3 · Performance vs budget", sectionTitle, subtitle);
   const n = actArr.length;
@@ -348,12 +350,13 @@ function perfSlide(sectionTitle, subtitle, actArr, bgArr, lyArr, ytd, noteText) 
       options: { chartColors: [NAVY], barGapWidthPct: 80 } },
     { type: pres.ChartType.line,
       data: [{ name: "Budget", labels: lbl, values: bgArr.map((m) => m.revpar) },
-             { name: "2025", labels: lbl, values: lyArr.map((m) => m.revpar) }],
-      options: { chartColors: [GOLD, GREY], lineSize: 2.5, lineSmooth: false,
+             { name: "2025", labels: lbl, values: lyArr.map((m) => m.revpar) },
+             { name: "2024", labels: lbl, values: ly24Arr.map((m) => m.revpar) }],
+      options: { chartColors: [GOLD, GREY, ICE], lineSize: 2.5, lineSmooth: false,
                  lineDataSymbol: "circle", lineDataSymbolSize: 5 } },
   ], Object.assign({}, axStyle, {
     x: M, y: 1.85, w: 7.9, h: 3.0, showLegend: true, legendPos: "b",
-    valAxisNumFmt: "#,##0", showTitle: true, title: "Monthly RevPAR (THB) — actual vs budget vs 2025",
+    valAxisNumFmt: "#,##0", showTitle: true, title: "Monthly RevPAR (THB) — actual vs budget vs 2025 vs 2024",
     titleFontSize: 12, titleColor: NAVY, titleFontFace: F,
   }));
   // 2026 monthly numbers table (like the Summary sheet)
@@ -375,10 +378,11 @@ function perfSlide(sectionTitle, subtitle, actArr, bgArr, lyArr, ytd, noteText) 
     t.push(vRow("RevPAR (\u0e3f)", actArr.map((m) => m.revpar), nf(ytd.act.revpar), nf, 0));
     t.push(dRow("RevPAR vs BG", actArr.map((m, i) => m.revpar / bgArr[i].revpar - 1), grow(ytd.act.revpar, ytd.bg.revpar)));
     t.push(dRow("RevPAR vs 25", actArr.map((m, i) => m.revpar / lyArr[i].revpar - 1), grow(ytd.act.revpar, ytd.ly.revpar)));
-    s.addTable(t, { x: M, y: 5.05, w: 7.9,
+    t.push(dRow("RevPAR vs 24", actArr.map((m, i) => m.revpar / ly24Arr[i].revpar - 1), grow(ytd.act.revpar, ytd.ly24.revpar)));
+    s.addTable(t, { x: M, y: 4.95, w: 7.9,
       colW: [1.45].concat(Array(n).fill(5.22 / n), [1.23]),
       fontFace: F, fontSize: 9, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
-      rowH: 0.25, valign: "middle" });
+      rowH: 0.24, valign: "middle" });
   }
   const rows = [
     ["OCCUPANCY · YTD", fmtPct(ytd.act.occ),
@@ -398,15 +402,16 @@ function perfSlide(sectionTitle, subtitle, actArr, bgArr, lyArr, ytd, noteText) 
 
 // portfolio
 perfSlide("Portfolio — all four properties", "Weighted by room inventory (1,406 keys) · YTD = Jan–Jun 2026",
-  data.portfolio.act, data.portfolio.bg, data.portfolio.ly, PF,
+  data.portfolio.act, data.portfolio.bg, data.portfolio.ly, data.portfolio.ly24, PF,
   "Portfolio RevPAR is ~4% behind budget, driven mainly by rate (ADR −3.4%); occupancy is near plan (−0.7 pts). Vs last year RevPAR is broadly flat. April was the softest month (Songkran).");
 
 // per property
-const propYtd = (p, pre) => {
+const DAYS24 = [31, 29, 31, 30, 31, 30]; // 2024 leap year
+const propYtd = (p, pre, days = DAYS) => {
   let sold = 0, ra = 0, rev = 0;
   for (let i = 0; i < 6; i++) {
     const occ = p[pre + "occ"][i], adr = p[pre + "adr"][i];
-    const ra_i = p.rooms * DAYS[i];
+    const ra_i = p.rooms * days[i];
     ra += ra_i; sold += occ * ra_i; rev += occ * ra_i * adr;
   }
   return { occ: sold / ra, adr: rev / sold, revpar: rev / ra };
@@ -419,14 +424,16 @@ const PROP_NOTES = {
 };
 for (const key of ["SR9", "AES", "LYF", "SP"]) {
   const p = data.perf[key];
-  const act = [], bg = [], ly = [];
+  const act = [], bg = [], ly = [], ly24 = [];
   for (let i = 0; i < 6; i++) {
     act.push({ occ: p.occ[i], adr: p.adr[i], revpar: p.revpar[i] });
     bg.push({ occ: p.bg_occ[i], adr: p.bg_adr[i], revpar: p.bg_revpar[i] });
     ly.push({ occ: p.ly_occ[i], adr: p.ly_adr[i], revpar: p.ly_revpar[i] });
+    ly24.push({ occ: p.ly24_occ[i], adr: p.ly24_adr[i], revpar: p.ly24_revpar[i] });
   }
-  perfSlide(p.name + " (" + key + ")", p.rooms + " keys · monthly + YTD Jan–Jun vs budget and last year",
-    act, bg, ly, { act: propYtd(p, ""), bg: propYtd(p, "bg_"), ly: propYtd(p, "ly_") },
+  perfSlide(p.name + " (" + key + ")", p.rooms + " keys · monthly + YTD Jan–Jun vs budget, 2025 and 2024",
+    act, bg, ly, ly24, { act: propYtd(p, ""), bg: propYtd(p, "bg_"), ly: propYtd(p, "ly_"),
+                         ly24: propYtd(p, "ly24_", DAYS24) },
     PROP_NOTES[key]);
 }
 
@@ -442,15 +449,16 @@ divider("4", "Financial Performance",
 const fmtMn = (v) => (v < 0 ? "\u2212" : "") + "\u0e3f" + Math.abs(v / 1e6).toFixed(1) + "M";
 const h1of = (arr) => arr.slice(0, 6).reduce((t, v) => t + (v || 0), 0);
 
-function finSlide(title, sub, f26, m26, m25) {
+function finSlide(title, sub, f26, m26, m25, m24) {
   const s = pres.addSlide();
   header(s, "Section 4 \u00b7 Financial performance", title, sub);
   const rev26 = m26.revenue.slice(0, 6), rev25 = m25.revenue.slice(0, 6);
   s.addChart(pres.ChartType.bar, [
+    { name: "2024", labels: MONTHS.slice(0, 6), values: m24.revenue.slice(0, 6) },
     { name: "2025", labels: MONTHS.slice(0, 6), values: rev25 },
     { name: "2026", labels: MONTHS.slice(0, 6), values: rev26 },
   ], Object.assign({}, axStyle, {
-    x: M, y: 1.95, w: 5.9, h: 2.55, chartColors: [SKY, NAVY],
+    x: M, y: 1.95, w: 5.9, h: 2.2, chartColors: [ICE, SKY, NAVY],
     showLegend: true, legendPos: "b", valAxisNumFmt: "#,##0,,\"M\"",
     showTitle: true, title: "Monthly revenue (\u0e3fM)", titleFontSize: 12.5,
     titleColor: NAVY, titleFontFace: F,
@@ -458,42 +466,44 @@ function finSlide(title, sub, f26, m26, m25) {
   const zebra = (i) => ({ color: i % 2 ? PANEL : "FFFFFF" });
   const hc = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: NAVY }, align: "center" } });
   const mnum = (v) => (v == null ? "\u2014" : (v / 1e6).toFixed(1));
-  // left: monthly P&L, each line 2026 paired with 2025, unit M THB
+  // left: monthly P&L, each line as a \u201926/\u201925/\u201924 triple, unit M THB
   {
     const lines = [
-      ["Revenue \u201926", m26.revenue], ["Revenue \u201925", m25.revenue],
-      ["OPEX \u201926", m26.opex], ["OPEX \u201925", m25.opex],
-      ["GOP \u201926", m26.gop], ["GOP \u201925", m25.gop],
-      ["EBIT \u201926", m26.ebit], ["EBIT \u201925", m25.ebit],
-      ["NPAT \u201926", m26.npat], ["NPAT \u201925", m25.npat],
+      ["Revenue \u201926", m26.revenue], ["Revenue \u201925", m25.revenue], ["Revenue \u201924", m24.revenue],
+      ["OPEX \u201926", m26.opex], ["OPEX \u201925", m25.opex], ["OPEX \u201924", m24.opex],
+      ["GOP \u201926", m26.gop], ["GOP \u201925", m25.gop], ["GOP \u201924", m24.gop],
+      ["EBIT \u201926", m26.ebit], ["EBIT \u201925", m25.ebit], ["EBIT \u201924", m24.ebit],
+      ["NPAT \u201926", m26.npat], ["NPAT \u201925", m25.npat], ["NPAT \u201924", m24.npat],
     ];
     const rows = [[hc("\u0e3fM")].concat(MONTHS.slice(0, 6).map(hc), [hc("H1")])];
     lines.forEach(([name, vals], i) => {
-      // zebra per metric pair so the \u201926/\u201925 lines read as one band;
-      // \u201925 values muted so the current year stays dominant
-      const band = zebra(Math.floor(i / 2));
-      const prior = i % 2 === 1;
+      // zebra per metric triple so the \u201926/\u201925/\u201924 lines read as one band;
+      // prior years muted so the current year stays dominant
+      const band = zebra(Math.floor(i / 3));
+      const prior = i % 3 !== 0;
       const vcol = prior ? MUT : INK;
       rows.push([{ text: name, options: { bold: !prior, color: prior ? MUT : INK, fill: band } }].concat(
         vals.slice(0, 6).map((v) => ({ text: mnum(v), options: { align: "right", color: vcol, fill: band } })),
         [{ text: mnum(h1of(vals)), options: { align: "right", bold: true, color: prior ? MUT : NAVY, fill: band } }]));
     });
-    // 11 rows must clear the footnote at y=6.95: tight rows + small cell
-    // margins keep the rendered height near the declared 0.19"/row
-    s.addTable(rows, { x: M, y: 4.55, w: 5.9,
+    // 16 rows must clear the footnote at y=6.95: tight rows + small cell
+    // margins keep the rendered height near the declared 0.165"/row
+    s.addTable(rows, { x: M, y: 4.25, w: 5.9,
       colW: [1.02].concat(Array(6).fill(0.66), [0.92]),
-      fontFace: F, fontSize: 8, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
-      rowH: 0.19, margin: [0.01, 0.03, 0.01, 0.03], valign: "middle" });
+      fontFace: F, fontSize: 7.5, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
+      rowH: 0.165, margin: [0.01, 0.03, 0.01, 0.03], valign: "middle" });
   }
-  // right: P&L table H1 2026 vs budgets vs H1 2025
-  const h25 = {
-    revenue: h1of(m25.revenue), opex: h1of(m25.opex), gop: h1of(m25.gop),
-    ebit: h1of(m25.ebit), npat: h1of(m25.npat),
+  // right: P&L table H1 2026 vs MF budget vs H1 2025 vs H1 2024
+  const h1block = (m) => {
+    const h = { revenue: h1of(m.revenue), opex: h1of(m.opex), gop: h1of(m.gop),
+                ebit: h1of(m.ebit), npat: h1of(m.npat) };
+    h.gop_margin = h.gop / h.revenue;
+    h.jv = h.ebit - h.gop;
+    return h;
   };
-  h25.gop_margin = h25.gop / h25.revenue;
-  h25.jv = h25.ebit - h25.gop;
+  const h25 = h1block(m25), h24 = h1block(m24);
   const npat26 = h1of(m26.npat);
-  const rows = [[hc("H1 2026 (YTD)"), hc("Actual"), hc("MF budget"), hc("vs MF budget"), hc("H1 2025"), hc("vs H1 25")]];
+  const rows = [[hc("H1 2026 (YTD)"), hc("Actual"), hc("MF budget"), hc("vs MF budget"), hc("H1 2025"), hc("vs H1 25"), hc("H1 2024")]];
   const items = [
     ["Revenue", "revenue", fmtMn, false], ["OPEX", "opex", fmtMn, true],
     ["GOP (EBITDA)", "gop", fmtMn, false], ["GOP margin", "gop_margin", (v) => fmtPct(v), false],
@@ -539,9 +549,10 @@ function finSlide(title, sub, f26, m26, m25) {
         }
         return { text: txt, options: { align: "right", bold: true, color: good2 ? GOOD : BAD, fill: zebra(i) } };
       })(),
+      { text: f(h24[key]), options: { align: "right", color: MUT, fill: zebra(i) } },
     ]);
   });
-  s.addTable(rows, { x: 6.7, y: 1.95, w: 6.03, colW: [1.36, 0.94, 0.94, 0.97, 0.89, 0.93],
+  s.addTable(rows, { x: 6.6, y: 1.95, w: 6.13, colW: [1.24, 0.85, 0.85, 0.88, 0.80, 0.79, 0.72],
     fontFace: F, fontSize: 9, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
     rowH: 0.31, valign: "middle" });
   const r26t = h1of(rev26), r25t = h25.revenue;
@@ -552,25 +563,29 @@ function finSlide(title, sub, f26, m26, m25) {
     npat26 - h25.npat >= 0 ? GOOD : BAD);
   note(s, M, 6.95, 11.9, "GOP = gross operating profit (\u2248 EBITDA). MF budget = Mitsui Fudosan budget. "
     + "All figures are Jan\u2013Jun sums of the monthly P&L blocks in the result sheets; budget rows exist for OPEX, GOP and EBIT only "
-    + "(revenue, GOP margin and NPAT show \u2014). JV expense derived as EBIT \u2212 GOP. Source: result FY25/FY26 sheets (official record).");
+    + "(revenue, GOP margin and NPAT show \u2014). JV expense derived as EBIT \u2212 GOP. Source: result FY24/FY25/FY26 sheets (official record).");
   return s;
 }
 
 {
   const F26 = data.fin["2026"];
-  const FM26 = data.fin_monthly["2026"], FM25 = data.fin_monthly["2025"];
-  // 4-property portfolio 2025 monthly = sum of the properties
-  const pf25 = {};
-  for (const met of ["revenue", "opex", "gop", "ebit", "npat"]) {
-    pf25[met] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((i) =>
-      ["SR9", "AES", "LYF", "SP"].reduce((t, k) => t + (FM25[k][met][i] || 0), 0));
-  }
-  finSlide("Portfolio \u2014 P&L, H1 2026", "All four properties \u00b7 YTD Jan\u2013Jun vs MF budget \u00b7 monthly P&L and H1 2025 comparison",
-    F26.PF, FM26.PF, pf25);
+  const FM26 = data.fin_monthly["2026"], FM25 = data.fin_monthly["2025"], FM24 = data.fin_monthly["2024"];
+  // 4-property portfolio prior-year monthly = sum of the properties
+  const pfSum = (FM) => {
+    const pf = {};
+    for (const met of ["revenue", "opex", "gop", "ebit", "npat"]) {
+      pf[met] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((i) =>
+        ["SR9", "AES", "LYF", "SP"].reduce((t, k) => t + (FM[k][met][i] || 0), 0));
+    }
+    return pf;
+  };
+  const pf25 = pfSum(FM25), pf24 = pfSum(FM24);
+  finSlide("Portfolio \u2014 P&L, H1 2026", "All four properties \u00b7 YTD Jan\u2013Jun vs MF budget \u00b7 monthly P&L and H1 2025/2024 comparison",
+    F26.PF, FM26.PF, pf25, pf24);
   for (const key of ["SR9", "AES", "LYF", "SP"]) {
     finSlide(data.perf[key].name + " (" + key + ") \u2014 P&L, H1 2026",
-      "YTD Jan\u2013Jun vs MF budget \u00b7 monthly P&L and H1 2025 comparison",
-      F26[key], FM26[key], FM25[key]);
+      "YTD Jan\u2013Jun vs MF budget \u00b7 monthly P&L and H1 2025/2024 comparison",
+      F26[key], FM26[key], FM25[key], FM24[key]);
   }
 }
 

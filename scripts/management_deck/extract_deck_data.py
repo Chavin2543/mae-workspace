@@ -7,11 +7,14 @@ import sys
 import openpyxl
 
 WB = "/home/user/mae-workspace/output/Segment_Half_year_ALLreconciled_results-checked.xlsx"
+WB24 = "/home/user/mae-workspace/data/source/result FY24.xlsx"
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 DAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+DAYS24 = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]  # 2024 leap year
 
 wb = openpyxl.load_workbook(WB, data_only=True)
+r24s = openpyxl.load_workbook(WB24, data_only=True)["result FY24"]
 
 
 def row(ws, r, c0, n):
@@ -66,14 +69,14 @@ for k in ("mideast",):
 cs = wb["Compset"]
 data["str"] = {
     "bangkok": {
-        "occ":    {"2019": row(cs, 6, 2, 12), "2025": row(cs, 12, 2, 12), "2026": row(cs, 13, 2, 5)},
-        "adr":    {"2019": row(cs, 18, 2, 12), "2025": row(cs, 24, 2, 12), "2026": row(cs, 25, 2, 5)},
-        "revpar": {"2019": row(cs, 30, 2, 12), "2025": row(cs, 36, 2, 12), "2026": row(cs, 37, 2, 5)},
+        "occ":    {"2019": row(cs, 6, 2, 12), "2024": row(cs, 11, 2, 12), "2025": row(cs, 12, 2, 12), "2026": row(cs, 13, 2, 5)},
+        "adr":    {"2019": row(cs, 18, 2, 12), "2024": row(cs, 23, 2, 12), "2025": row(cs, 24, 2, 12), "2026": row(cs, 25, 2, 5)},
+        "revpar": {"2019": row(cs, 30, 2, 12), "2024": row(cs, 35, 2, 12), "2025": row(cs, 36, 2, 12), "2026": row(cs, 37, 2, 5)},
     },
     "pattaya": {
-        "occ":    {"2019": row(cs, 307, 2, 6), "2025": row(cs, 313, 2, 6), "2026": row(cs, 314, 2, 5)},
-        "adr":    {"2019": row(cs, 324, 2, 6), "2025": row(cs, 330, 2, 6), "2026": row(cs, 331, 2, 5)},
-        "revpar": {"2019": row(cs, 341, 2, 6), "2025": row(cs, 347, 2, 6), "2026": row(cs, 348, 2, 5)},
+        "occ":    {"2019": row(cs, 307, 2, 6), "2024": row(cs, 312, 2, 6), "2025": row(cs, 313, 2, 6), "2026": row(cs, 314, 2, 5)},
+        "adr":    {"2019": row(cs, 324, 2, 6), "2024": row(cs, 329, 2, 6), "2025": row(cs, 330, 2, 6), "2026": row(cs, 331, 2, 5)},
+        "revpar": {"2019": row(cs, 341, 2, 6), "2024": row(cs, 346, 2, 6), "2025": row(cs, 347, 2, 6), "2026": row(cs, 348, 2, 5)},
     },
 }
 
@@ -105,6 +108,15 @@ for key, cfg in PROPS.items():
         if isinstance(r_, (int, float)) and isinstance(rp, (int, float)) and rp:
             ras.append(r_ / rp / DAYS[i])
     perf[key]["rooms"] = round(sum(ras) / len(ras))
+# 2024 monthly Occ/ADR/RevPAR from result FY24 (Actual Result sub-blocks,
+# months D..O; name rows: SR9 34, ATB 56 skipped, AES 78, LYF 100, SP 122)
+FY24_BLOCK = {"SR9": 34, "AES": 78, "LYF": 100, "SP": 122}
+for key, b in FY24_BLOCK.items():
+    assert str(r24s.cell(b, 2).value).strip().upper() == key.upper(), (key, r24s.cell(b, 2).value)
+    perf[key]["ly24_occ"] = row(r24s, b + 11, 4, 12)
+    perf[key]["ly24_adr"] = row(r24s, b + 14, 4, 12)
+    perf[key]["ly24_revpar"] = row(r24s, b + 17, 4, 12)
+
 # corrections for stale formula caches after the surgical patch (Excel has
 # not recalculated): AES Jan-2026 occ root lives on the AES tab; Jan revpar
 # is occ*adr everywhere.
@@ -147,8 +159,10 @@ def scan_fin_monthly(ws, order):
         out[prop] = blk
     return out
 fin_m = {"2026": scan_fin_monthly(r26s, ["PF", "SR9", "AES", "LYF", "SP"]),
-         "2025": scan_fin_monthly(r25s, ["SR9", "ATB", "AES", "LYF", "SP"])}
+         "2025": scan_fin_monthly(r25s, ["SR9", "ATB", "AES", "LYF", "SP"]),
+         "2024": scan_fin_monthly(r24s, ["SR9", "ATB", "AES", "LYF", "SP"])}
 fin_m["2025"].pop("ATB")
+fin_m["2024"].pop("ATB")
 # FY26 portfolio block has no OPEX budget rows: sum the four properties
 for met in ("opex_bp", "opex_mf"):
     if met not in fin_m["2026"]["PF"]:
@@ -190,7 +204,7 @@ for prop in ("AES", "SP"):
 N = 6
 
 
-def agg(occ_key, adr_key, rvp_key):
+def agg(occ_key, adr_key, rvp_key, days=DAYS):
     months = []
     for i in range(N):
         ra = sold = revv = 0.0
@@ -199,7 +213,7 @@ def agg(occ_key, adr_key, rvp_key):
             occ, adr = p[occ_key][i], p[adr_key][i]
             if not isinstance(occ, (int, float)) or not isinstance(adr, (int, float)):
                 return months  # stop at first incomplete month
-            ra_i = p["rooms"] * DAYS[i]
+            ra_i = p["rooms"] * days[i]
             ra += ra_i
             sold += occ * ra_i
             revv += occ * ra_i * adr
@@ -211,7 +225,8 @@ def agg(occ_key, adr_key, rvp_key):
 
 data["portfolio"] = {"act": agg("occ", "adr", "revpar"),
                      "bg": agg("bg_occ", "bg_adr", "bg_revpar"),
-                     "ly": agg("ly_occ", "ly_adr", "ly_revpar")}
+                     "ly": agg("ly_occ", "ly_adr", "ly_revpar"),
+                     "ly24": agg("ly24_occ", "ly24_adr", "ly24_revpar", DAYS24)}
 
 # ---------- Section 4: segmentation + nationality (property tabs) ----------
 SEG_ROWS = {"SR9": (14, 22), "AES": (14, 20), "LYF": (14, 20), "SP": (14, 23)}

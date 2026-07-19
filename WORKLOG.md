@@ -7,6 +7,13 @@ language.
 
 ---
 
+## 2026-07-19 — Deck: 2024 added to STR, Section 3 and Section 4
+Mae uploaded result FY24 (filed: data/source/result FY24.xlsx). STR charts
+got a 2024 series; Section 3 slides a 2024 RevPAR line + vs-24 row; financial
+slides ’24 monthly P&L rows + H1 2024 column (monthly blocks only, ATB
+excluded from portfolio, leap-year Feb handled). All values verified vs the
+FY24 sheet. Files: output deck + scripts/management_deck/.
+
 ## 2026-07-19 — Deck: data labels on Section 5 charts
 Per Mae: added value labels to the segment stacked bars and the nationality
 H1 comparison bars on all four property slides (zeros hidden to keep them
