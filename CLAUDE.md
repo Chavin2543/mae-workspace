@@ -19,23 +19,46 @@ about it). Thai hints are welcome. When she uploads files and asks to
 | `/check-ls8` | Compare only (`--dry-run`) — show differences, change nothing |
 | `/audit-report` | Rebuild + show the visual audit report from the latest reconciled file |
 | `/sync` | Save everything to GitHub `main` so every machine sees the latest work |
+| `/status` | What's in the workspace: open tasks, latest files, recent decisions |
+| `/new-task` | Start a tracked task (commits pending work first) |
+| `/task-done` | Close the open task: outcome, move to done, commit & push |
+| `/log-decision` | Record a decision so future sessions follow it |
 
-Command definitions live in `.claude/commands/`. A SessionStart hook
-(`.claude/settings.json`) installs python deps in the background and points the
-user to `/guide`.
+Command definitions live in `.claude/commands/`. SessionStart hooks
+(`.claude/settings.json`) install python deps, restore `resources/`, inject
+workspace state (open tasks, recent decisions), and point the user to `/guide`.
 
 ## Directory layout
 
 ```
-.claude/       Command suite (commands/*.md) + hooks (settings.json).
-data/source/   Uploaded input workbooks, renamed to clean names. Never edit in place.
-output/        Reconciled deliverable workbooks (with audit sheet) + HTML reports.
-scripts/       Reusable Python scripts (openpyxl). One script per recurring task.
-WORKLOG.md     What each session did, newest first — read it to catch up.
-resources/     Reference material, gitignored (large). Re-cloned by the
-               SessionStart hook when missing — see below.
-CLAUDE.md      This file — the anatomy of each recurring task.
+.claude/           Commands (commands/*.md), hooks (hooks/*, settings.json).
+data/source/       Uploaded input workbooks, renamed to clean names. READ-ONLY.
+data/pdf/          Uploaded PDF snapshots (History & Forecast etc.). READ-ONLY.
+docs/decisions/    Decision logs — one dated file per decision. See README there.
+tasks/open|done/   One file per tracked task. See tasks/README.md.
+output/            Deliverables: reconciled workbooks + their HTML reports.
+scripts/           Reusable Python scripts (openpyxl). One script per recurring task.
+resources/         Reference material, gitignored (large), auto-restored by hook.
+WORKLOG.md         What each session did, newest first — read it to catch up.
+CLAUDE.md          This file — the anatomy of each recurring task.
 ```
+
+### Where every file goes
+
+| File type | Home | Notes |
+|---|---|---|
+| Uploaded Excel sources | `data/source/` | Rename to clean names; never edit/delete (hook-enforced) |
+| Uploaded PDFs | `data/pdf/` | Same rules as sources |
+| Reconciled/output workbooks | `output/` | `<original name>_<what>-reconciled.xlsx`, audit sheet inside |
+| HTML/visual reports | `output/` | Next to the workbook they describe (`<stem>_report.html`) |
+| Python scripts | `scripts/` | One per recurring task, argparse-style like `reconcile_ls8.py` |
+| Decision records | `docs/decisions/` | `YYYY-MM-DD-slug.md` from the template |
+| Task records | `tasks/open/` → `tasks/done/` | `YYYY-MM-DD-slug.md` from the template |
+| Reference material | `resources/` | Gitignored, read-only |
+| Temp/scratch files | session scratchpad | Never the repo — the Stop hook rejects stray files |
+
+A new file type gets a home added to this table (log the decision) — nothing
+goes in the repo root except this file.
 
 ### resources/claude-cookbooks
 
@@ -218,8 +241,31 @@ URL within a session; pass the previous artifact URL from new sessions).
   repo must always tell the full story on its own. A Stop hook
   (`.claude/hooks/git_sync_check.py`) reminds you if you forget. New sessions:
   read `WORKLOG.md` first to catch up.
+- **Always commit before starting a task.** Real work gets a task file in
+  `tasks/open/` first (see `tasks/README.md`); close it via `/task-done`.
+- **Log decisions.** Anything Mae decides that future sessions must respect
+  goes in `docs/decisions/` (`/log-decision`). Check there before re-asking or
+  re-litigating a settled question.
 - Ask Mae before touching tabs other than the one being reconciled.
 - Every automated edit to a workbook must leave an audit trail (audit sheet
   and/or report committed to the repo).
 - Keep fonts/formats of edited cells as found; write plain values, not styles.
-- Commit messages: `Reconcile <scope> vs <source> (<month year>)`.
+- Commit messages: `Reconcile <scope> vs <source> (<month year>)` for
+  reconciliations; `task: start|done <slug>`, `docs: log decision <slug>`,
+  plain descriptive messages otherwise.
+
+## Enforcement hooks (`.claude/hooks/`)
+
+These rules are not advisory — hooks enforce them and Claude cannot skip them:
+
+| Hook | Event | What it does |
+|---|---|---|
+| `protect_paths.py` | PreToolUse (Write/Edit) | Blocks edits inside `data/source/`, `data/pdf/`, `resources/` |
+| `guard_bash.py` | PreToolUse (Bash) | Blocks branch creation, force-push, rm/mv/redirect into `data/source/` |
+| `checkpoint.py` | UserPromptSubmit | Auto-commits pending changes before each new task |
+| `finish_guard.py` | Stop | Refuses to end the turn with uncommitted or unpushed work |
+| `session_status.sh` | SessionStart | Injects branch, open tasks, recent decisions into context |
+
+If a hook blocks you, it is enforcing a rule from this file: don't work around
+it (no bypass flags, no copies of protected files back into protected paths) —
+do the compliant thing instead. Hook changes are decisions: log them.
