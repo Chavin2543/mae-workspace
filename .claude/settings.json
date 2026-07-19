@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "(pip install -q openpyxl pandas >/dev/null 2>&1 &); echo '{\"systemMessage\":\"Mae workspace ready — type /guide to see what this session can do (พิมพ์ /guide เพื่อดูวิธีใช้งานค่ะ)\"}'",
+            "command": "(pip install -q openpyxl pandas >/dev/null 2>&1 &); ([ -d resources/claude-cookbooks ] || git clone -q --depth 1 https://github.com/anthropics/claude-cookbooks.git resources/claude-cookbooks >/dev/null 2>&1 &); echo '{\"systemMessage\":\"Mae workspace ready — type /guide to see what this session can do (พิมพ์ /guide เพื่อดูวิธีใช้งานค่ะ)\"}'",
             "timeout": 15,
             "statusMessage": "Preparing Mae's workspace..."
           }

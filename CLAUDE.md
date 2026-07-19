@@ -30,8 +30,19 @@ user to `/guide`.
 data/source/   Uploaded input workbooks, renamed to clean names. Never edit in place.
 output/        Reconciled deliverable workbooks (with audit sheet) + HTML reports.
 scripts/       Reusable Python scripts (openpyxl). One script per recurring task.
+resources/     Reference material, gitignored (large). Re-cloned by the
+               SessionStart hook when missing — see below.
 CLAUDE.md      This file — the anatomy of each recurring task.
 ```
+
+### resources/claude-cookbooks
+
+A read-only clone of https://github.com/anthropics/claude-cookbooks (official
+Anthropic examples: Claude API patterns, tool use, skills, agent SDK, etc.).
+It is **not committed** (356 MB, gitignored); the SessionStart hook shallow-
+clones it in the background if the folder is missing, so give it a moment on a
+fresh session. Use it as reference when building or improving automation in
+this workspace. Never edit files inside it, and never commit it.
 
 Conventions: commit both the source snapshot and the reconciled output for each
 run, so every reconciliation is reproducible from the repo alone. Use clear
