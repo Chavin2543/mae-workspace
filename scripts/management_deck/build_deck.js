@@ -598,6 +598,8 @@ for (const key of ["SR9", "AES", "LYF", "SP"]) {
     Object.assign({}, axStyle, {
       x: M, y: 1.9, w: 7.3, h: 4.7, barGrouping: "stacked", barGapWidthPct: 45,
       chartColors: SEG_COLORS.slice(0, segs.length),
+      showValue: true, dataLabelPosition: "ctr", dataLabelColor: "FFFFFF",
+      dataLabelFontSize: 7.5, dataLabelFontFace: F, dataLabelFormatCode: "#,##0;;",
       showLegend: true, legendPos: "b", valAxisNumFmt: "#,##0",
       showTitle: true, title: "Room nights per month (stacked)", titleFontSize: 13,
       titleColor: NAVY, titleFontFace: F,
@@ -669,6 +671,8 @@ for (const key of ["SR9", "AES", "LYF", "SP"]) {
     { name: "2026 H1", labels: n26.map((c) => c.label), values: n26.map((c) => c.h1) },
   ], Object.assign({}, axStyle, {
     x: M, y: 1.9, w: 5.9, h: 4.85, barDir: "bar", chartColors: [SKY, NAVY],
+    showValue: true, dataLabelPosition: "outEnd", dataLabelColor: MUT,
+    dataLabelFontSize: 8, dataLabelFontFace: F, dataLabelFormatCode: "#,##0;;",
     showLegend: true, legendPos: "b", valAxisNumFmt: "#,##0",
     catAxisLabelFontSize: 9.5, barGapWidthPct: 40,
     showTitle: true, title: "Room nights H1 (Jan\u2013Jun)", titleFontSize: 13,

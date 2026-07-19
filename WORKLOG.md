@@ -7,6 +7,11 @@ language.
 
 ---
 
+## 2026-07-19 — Deck: data labels on Section 5 charts
+Per Mae: added value labels to the segment stacked bars and the nationality
+H1 comparison bars on all four property slides (zeros hidden to keep them
+readable). Files: output deck + scripts/management_deck/build_deck.js.
+
 ## 2026-07-19 — Deck: removed the Ascott Budget (BP) column
 Per Mae: the financial P&L tables compare to the MF budget only. Deleted the
 Budget (BP) column on all 5 financial slides; subtitles/footnote updated.
