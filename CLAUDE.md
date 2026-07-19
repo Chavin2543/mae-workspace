@@ -169,6 +169,12 @@ URL within a session; pass the previous artifact URL from new sessions).
 
 ## General rules for this repo
 
+- **Read Excel files completely — every tab, full width (Mae's rule, Jul
+  2026).** Before reading any workbook or claiming data is missing, run
+  `python3 scripts/excel_map.py <file>` (and `--find WORD` to search every
+  cell). The `read-excel` skill (`.claude/skills/read-excel/`) has the full
+  procedure. Origin: a scan once stopped at column Q while monthly P&L data
+  started at column R.
 - **The `result FY25` / `result FY26` sheets are the official record — never
   change them** (Mae's rule, Jul 2026). Occ/ADR/RevPAR always come from these
   result sheets; their ADR **includes breakfast** for SR9/AES/SP (LYF has no

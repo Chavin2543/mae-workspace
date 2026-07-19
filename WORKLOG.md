@@ -7,6 +7,12 @@ language.
 
 ---
 
+## 2026-07-19 — New skill: read-excel (read the WHOLE file, every tab)
+Mae's lesson from the missed column-R data: created `.claude/skills/
+read-excel/` (mandatory full-file scan before any Excel work or any
+"data missing" claim) + `scripts/excel_map.py` (maps every sheet's true
+size/data regions; --find searches every cell). Rule added to CLAUDE.md.
+
 ## 2026-07-19 — P&L tables: added "vs H1 25" column
 Every financial slide's P&L table now has a colored vs-H1-2025 column
 (% change; pts for margin; THB change for NPAT), per Mae.
