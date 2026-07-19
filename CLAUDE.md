@@ -141,6 +141,10 @@ URL within a session; pass the previous artifact URL from new sessions).
 
 ## General rules for this repo
 
+- **Git branch: always work on `main` only.** Do all work, commits, and pushes
+  directly on the `main` branch. Never create or switch to another branch
+  unless Mae explicitly asks. (If the session harness forces a different
+  designated branch, follow the harness — but never invent branches yourself.)
 - Ask Mae before touching tabs other than the one being reconciled.
 - Every automated edit to a workbook must leave an audit trail (audit sheet
   and/or report committed to the repo).
