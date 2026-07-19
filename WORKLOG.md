@@ -7,6 +7,14 @@ language.
 
 ---
 
+## 2026-07-19 — Cross-check vs result FY25 / result FY26 sheets
+Mae uploaded a new master with "result FY25/FY26" sheets as the truth for
+Occ/ADR/RevPAR. Checked all 4 properties, both years, vs Summary + property
+tabs. Key finding: 2026 ADR/RevPAR in the workbook = ADR incl. breakfast
+(matches the "ADR BF" row), while 2025 = excl. breakfast — mixed basis for
+SR9/AES/SP (LYF ok). Details reported to Mae; no cells changed yet.
+File saved: data/source/Segment_Half_year_ALLreconciled_with_results.xlsx.
+
 ## 2026-07-18 — Management PowerPoint report (H1 2026)
 Built `output/Portfolio_Performance_Report_H1-2026.pptx` (27 slides, native
 editable charts) from the reconciled workbook: arrivals (MOTS/Chinese/India/
