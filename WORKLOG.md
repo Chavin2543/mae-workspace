@@ -7,6 +7,13 @@ language.
 
 ---
 
+## 2026-07-19 — Branch cleanup + merged workspace-organization system
+Mae set main as default and deleted the old branches. Merged the other
+session's filing/task/decision system (tasks/, docs/decisions/, /status,
+/new-task, /task-done, /log-decision, enforcement hooks) into main,
+keeping /sync and all existing rules. This session now works on main
+directly. One branch may remain while that other session is active.
+
 ## 2026-07-19 — All branches reconciled into main + "main only" rule
 Merged claude/main-branch-only-rule-c5lwl2 (main-only rule, claude-cookbooks
 reference library hook) into main; verified every other branch is fully
