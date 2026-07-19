@@ -169,6 +169,15 @@ URL within a session; pass the previous artifact URL from new sessions).
 
 ## General rules for this repo
 
+- **The `result FY25` / `result FY26` sheets are the official record — never
+  change them** (Mae's rule, Jul 2026). Occ/ADR/RevPAR always come from these
+  result sheets; their ADR **includes breakfast** for SR9/AES/SP (LYF has no
+  breakfast product), both years. Booking-system RN exports drift daily
+  (cancellations, reclassification, OTA reconciliation) — use them only for
+  segmentation/nationality mix, and never "correct" the frozen result numbers
+  from an RN export. Small Occ gaps between RN-derived figures and the result
+  sheets (e.g. SR9 Jan 2026: 87.7% vs 87.0%) are expected — note them, don't
+  fix them.
 - **Never change the `Summary` tab** — Mae's rule (Jul 2026), all properties.
   Both reconcile scripts skip it by default (`--include-summary` exists but do
   not use it unless Mae explicitly changes her mind). Property-tab cells that

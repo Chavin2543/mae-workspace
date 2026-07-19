@@ -7,6 +7,12 @@ language.
 
 ---
 
+## 2026-07-19 — Standing rule: result sheets are the official record
+Agreed with Mae: never change the result FY25/FY26 numbers (frozen at
+accounting close; ADR incl. breakfast except LYF). Booking-system RN
+exports drift daily — use only for segment/nationality mix. Rule added
+to CLAUDE.md.
+
 ## 2026-07-19 — Aligned workbook to result sheets (Mae's basis ruling)
 Mae confirmed 2025 ADR already includes breakfast, so the 2026 incl-BF
 numbers were already correct — no basis change. Fixed the 9 remaining
