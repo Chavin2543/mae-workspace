@@ -7,6 +7,15 @@ language.
 
 ---
 
+## 2026-07-19 — Aligned workbook to result sheets (Mae's basis ruling)
+Mae confirmed 2025 ADR already includes breakfast, so the 2026 incl-BF
+numbers were already correct — no basis change. Fixed the 9 remaining
+mismatches: Jan-2026 occupancy roots (AES tab, Summary LYF+SP — Mae's
+explicit OK) and SR9 tab 2025 ADR row. SR9 Jan-2026 occ left as formula
+(RN-derived, 87.71% vs result 87.02% — noted in audit). Jul-Dec 2025
+gaps left per Mae. Audit sheet "Recon result check (Jul 2026)".
+File: output/Segment_Half_year_ALLreconciled_results-checked.xlsx.
+
 ## 2026-07-19 — Cross-check vs result FY25 / result FY26 sheets
 Mae uploaded a new master with "result FY25/FY26" sheets as the truth for
 Occ/ADR/RevPAR. Checked all 4 properties, both years, vs Summary + property
