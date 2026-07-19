@@ -5,7 +5,7 @@ import json
 
 import openpyxl
 
-WB = "/home/user/mae-workspace/output/Segment_Half_year_version_1_ALL-reconciled.xlsx"
+WB = "/home/user/mae-workspace/output/Segment_Half_year_ALLreconciled_results-checked.xlsx"
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 DAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
@@ -24,7 +24,7 @@ def row(ws, r, c0, n):
 data = {}
 
 # ---------- Section 1: arrivals (Summary-1 + Arrival) ----------
-s1 = wb["Summary-1"]
+s1 = wb["Summary-arrival"]
 arr = wb["Arrival"]
 mots_full = {}
 for r in range(8, 17):
@@ -104,7 +104,39 @@ for key, cfg in PROPS.items():
         if isinstance(r_, (int, float)) and isinstance(rp, (int, float)) and rp:
             ras.append(r_ / rp / DAYS[i])
     perf[key]["rooms"] = round(sum(ras) / len(ras))
+# corrections for stale formula caches after the surgical patch (Excel has
+# not recalculated): AES Jan-2026 occ root lives on the AES tab; Jan revpar
+# is occ*adr everywhere.
+perf["AES"]["occ"][0] = round(wb["AES"]["C8"].value, 4)
+for key in PROPS:
+    p_ = perf[key]
+    if isinstance(p_["occ"][0], (int, float)) and isinstance(p_["adr"][0], (int, float)):
+        p_["revpar"][0] = round(p_["occ"][0] * p_["adr"][0], 2)
 data["perf"] = perf
+
+# ---------- financial YTD blocks (result FY25 / FY26 sheets) ----------
+FIN_ROWS = {"gop_margin": 10, "revenue": 12, "opex": 13, "gop": 14, "jv": 15, "ebit": 16}
+r26s, r25s = wb["result FY26"], wb["result FY25"]
+FIN26_COL0 = {"SR9": 4, "AES": 10, "LYF": 16, "SP": 22, "PF": 28}
+FIN25_COL0 = {"SR9": 4, "AES": 16, "LYF": 22, "SP": 28}  # ATB (col 10) excluded
+fin = {"2026": {}, "2025": {}}
+for prop, c in FIN26_COL0.items():
+    fin["2026"][prop] = {m: {"bp": r26s.cell(r, c).value, "proj": r26s.cell(r, c + 1).value,
+                             "act": r26s.cell(r, c + 2).value}
+                         for m, r in FIN_ROWS.items()}
+for prop, c in FIN25_COL0.items():
+    fin["2025"][prop] = {m: {"bp": r25s.cell(r, c).value, "proj": r25s.cell(r, c + 1).value,
+                             "act": r25s.cell(r, c + 2).value}
+                         for m, r in FIN_ROWS.items()}
+data["fin"] = fin
+
+# fill missing June-2026 revenue for AES/SP from result totals (Summary rows
+# sum exactly to the result revenue for the other properties)
+for prop in ("AES", "SP"):
+    rev = perf[prop]["revenue"]
+    if rev[5] is None:
+        known = sum(v for v in rev[:5] if isinstance(v, (int, float)))
+        rev[5] = round(fin["2026"][prop]["revenue"]["act"] - known, 2)
 
 # portfolio aggregation Jan-Jun (2026 actuals exist for occ/adr/revpar all props)
 N = 6

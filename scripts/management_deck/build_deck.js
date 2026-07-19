@@ -92,7 +92,7 @@ function divider(num, title, items) {
     margin: 0, fontFace: F, fontSize: 15, color: GOLD, bold: true, charSpacing: 3 });
   s.addText("Performance Report — H1 2026", { x: M, y: 2.55, w: 12.2, h: 1.05,
     margin: 0, fontFace: F, fontSize: 48, color: "FFFFFF", bold: true });
-  s.addText("Tourist arrivals · Market (STR) · Portfolio performance vs budget · Segmentation & nationality",
+  s.addText("Tourist arrivals · Market (STR) · Performance vs budget · Financial performance · Segmentation & nationality",
     { x: M, y: 3.7, w: 11.5, h: 0.4, margin: 0, fontFace: F, fontSize: 15, color: "AFC0E8" });
   s.addText("Somerset Rama 9 (SR9)  ·  Ascott Embassy Sathorn (AES)  ·  lyf Sukhumvit 8 (LYF)  ·  Somerset Pattaya (SP)",
     { x: M, y: 6.35, w: 11.5, h: 0.35, margin: 0, fontFace: F, fontSize: 12, color: "7C8BC0" });
@@ -430,7 +430,80 @@ for (const key of ["SR9", "AES", "LYF", "SP"]) {
 // ============================================================
 // SECTION 4 — SEGMENTATION & NATIONALITY
 // ============================================================
-divider("4", "Segmentation & Nationality", "Room nights by segment and guest nationality — each property, monthly & YTD");
+// ============================================================
+// SECTION 4 — FINANCIAL PERFORMANCE
+// ============================================================
+divider("4", "Financial Performance",
+  "Revenue \u00b7 OPEX \u00b7 GOP (EBITDA) \u00b7 EBIT \u2014 portfolio and each property, H1 2026 vs budget");
+
+const fmtMn = (v) => (v < 0 ? "\u2212" : "") + "\u0e3f" + Math.abs(v / 1e6).toFixed(1) + "M";
+function finSlide(title, sub, f26, rev26, rev25) {
+  const s = pres.addSlide();
+  header(s, "Section 4 \u00b7 Financial performance", title, sub);
+  s.addChart(pres.ChartType.bar, [
+    { name: "2025", labels: MONTHS.slice(0, 6), values: rev25 },
+    { name: "2026", labels: MONTHS.slice(0, 6), values: rev26 },
+  ], Object.assign({}, axStyle, {
+    x: M, y: 1.95, w: 6.05, h: 4.55, chartColors: [SKY, NAVY],
+    showLegend: true, legendPos: "b", valAxisNumFmt: "#,##0,,\"M\"",
+    showTitle: true, title: "Monthly revenue (THB)", titleFontSize: 13,
+    titleColor: NAVY, titleFontFace: F,
+  }));
+  const zebra = (i) => ({ color: i % 2 ? PANEL : "FFFFFF" });
+  const hc = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: NAVY }, align: "center" } });
+  const rows = [[hc("H1 2026 (YTD)"), hc("Actual"), hc("Budget (BP)"), hc("MF Proj."), hc("vs Proj.")]];
+  const items = [
+    ["Revenue", "revenue", fmtMn, false], ["OPEX", "opex", fmtMn, true],
+    ["GOP (EBITDA)", "gop", fmtMn, false], ["GOP margin", "gop_margin", (v) => fmtPct(v), false],
+    ["JV expense", "jv", fmtMn, true], ["EBIT", "ebit", fmtMn, false],
+  ];
+  items.forEach(([label, key, f, costLine], i) => {
+    const d = f26[key];
+    let chgTxt, good;
+    if (key === "gop_margin") {
+      const pts = (d.act - d.proj) * 100;
+      chgTxt = (pts >= 0 ? "+" : "") + pts.toFixed(1) + " pts"; good = pts >= 0;
+    } else {
+      const pct = d.act / d.proj - 1;
+      chgTxt = fmtDelta(pct); good = costLine ? pct <= 0 : pct >= 0;
+    }
+    rows.push([
+      { text: label, options: { bold: true, color: INK, fill: zebra(i) } },
+      { text: f(d.act), options: { align: "right", bold: true, color: NAVY, fill: zebra(i) } },
+      { text: f(d.bp), options: { align: "right", color: INK, fill: zebra(i) } },
+      { text: f(d.proj), options: { align: "right", color: INK, fill: zebra(i) } },
+      { text: chgTxt, options: { align: "right", bold: true, color: good ? GOOD : BAD, fill: zebra(i) } },
+    ]);
+  });
+  s.addTable(rows, { x: 6.95, y: 2.0, w: 5.78, colW: [1.6, 1.12, 1.12, 1.12, 0.82],
+    fontFace: F, fontSize: 10, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
+    rowH: 0.34, valign: "middle" });
+  const r26t = rev26.reduce((t, v) => t + (v || 0), 0);
+  const r25t = rev25.reduce((t, v) => t + (v || 0), 0);
+  tile(s, 6.95, 4.7, 2.82, 1.32, "REVENUE H1 2026", fmtMn(r26t),
+    fmtDelta(grow(r26t, r25t)) + " vs H1 2025", grow(r26t, r25t) >= 0 ? GOOD : BAD);
+  tile(s, 9.91, 4.7, 2.82, 1.32, "EBIT H1 2026", fmtMn(f26.ebit.act),
+    "EBIT margin " + fmtPct(f26.ebit.act / f26.revenue.act), MUT);
+  note(s, M, 6.78, 11.9, "GOP = gross operating profit (\u2248 EBITDA). Budget (BP) = Ascott business plan; "
+    + "MF Proj. = Mitsui Fudosan projection. P&L is recorded YTD only (no monthly split); NPAT is not in the result sheets.");
+  return s;
+}
+
+{
+  const F26 = data.fin["2026"];
+  const sumRev = (pre) => [0, 1, 2, 3, 4, 5].map((i) =>
+    ["SR9", "AES", "LYF", "SP"].reduce((t, k) => t + (data.perf[k][pre][i] || 0), 0));
+  finSlide("Portfolio \u2014 P&L, H1 2026", "All four properties \u00b7 YTD Jan\u2013Jun vs budget and MF projection \u00b7 monthly revenue vs 2025",
+    F26.PF, sumRev("revenue"), sumRev("ly_revenue"));
+  for (const key of ["SR9", "AES", "LYF", "SP"]) {
+    const p = data.perf[key];
+    finSlide(p.name + " (" + key + ") \u2014 P&L, H1 2026",
+      "YTD Jan\u2013Jun vs budget and MF projection \u00b7 monthly revenue vs 2025",
+      F26[key], p.revenue.slice(0, 6), p.ly_revenue.slice(0, 6));
+  }
+}
+
+divider("5", "Segmentation & Nationality", "Room nights by segment and guest nationality — each property, monthly & YTD");
 
 const SEG_SHORT = {
   "Corporate SS": "Corporate SS", "Corporate LS": "Corporate LS",
@@ -447,7 +520,7 @@ for (const key of ["SR9", "AES", "LYF", "SP"]) {
   const p = data.perf[key];
   const segs = data.seg[key].filter((r) => r.ytd > 0);
   const s = pres.addSlide();
-  header(s, "Section 4 · Segmentation", p.name + " (" + key + ") — room nights by segment",
+  header(s, "Section 5 · Segmentation", p.name + " (" + key + ") — room nights by segment",
     "Monthly mix Jan–Jun 2026 (left) and YTD share (right)");
   s.addChart(pres.ChartType.bar,
     segs.map((r, i) => ({ name: SEG_SHORT[r.label] || r.label, labels: MONTHS.slice(0, 6), values: r.m })),
@@ -474,7 +547,7 @@ for (const key of ["SR9", "AES", "LYF", "SP"]) {
   // second slide: monthly numbers table by segment
   {
     const s2 = pres.addSlide();
-    header(s2, "Section 4 \u00b7 Segmentation", p.name + " (" + key + ") \u2014 segmentation, monthly numbers",
+    header(s2, "Section 5 \u00b7 Segmentation", p.name + " (" + key + ") \u2014 segmentation, monthly numbers",
       "Room nights by segment per month (2026) \u00b7 YTD, mix and revenue");
     const zebra = (i) => ({ color: i % 2 ? PANEL : "FFFFFF" });
     const hc = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: NAVY }, align: "center" } });
@@ -518,7 +591,7 @@ for (const key of ["SR9", "AES", "LYF", "SP"]) {
   const by25 = {};
   n25.forEach((e) => { by25[e.label] = e; });
   const s = pres.addSlide();
-  header(s, "Section 4 \u00b7 Nationality", p.name + " (" + key + ") \u2014 guest nationality (room nights)",
+  header(s, "Section 5 \u00b7 Nationality", p.name + " (" + key + ") \u2014 guest nationality (room nights)",
     "Top 10 nationalities \u00b7 H1 room nights 2026 vs 2025 (left) \u00b7 monthly room nights by year (right)");
   s.addChart(pres.ChartType.bar, [
     { name: "2025 H1", labels: n26.map((c) => c.label), values: n26.map((c) => (by25[c.label] ? by25[c.label].h1 : 0)) },
@@ -558,7 +631,7 @@ for (const key of ["SR9", "AES", "LYF", "SP"]) {
   // second slide: YTD mix pies (2025 vs 2026) + change table
   {
     const s2 = pres.addSlide();
-    header(s2, "Section 4 \u00b7 Nationality", p.name + " (" + key + ") \u2014 nationality mix & change (YTD)",
+    header(s2, "Section 5 \u00b7 Nationality", p.name + " (" + key + ") \u2014 nationality mix & change (YTD)",
       "Share of top-10 room nights, H1 2025 vs H1 2026 \u00b7 change by nationality");
     const union = n26.map((e) => e.label);
     n25.forEach((e) => { if (union.indexOf(e.label) < 0) union.push(e.label); });
@@ -617,12 +690,12 @@ for (const key of ["SR9", "AES", "LYF", "SP"]) {
     { text: "Data sources", options: { bold: true, color: NAVY, fontSize: 14, breakLine: true, paraSpaceAfter: 6 } },
     { text: "Arrivals: Ministry of Tourism & Sports (MOTS) and AOT statistics, as compiled in the Segment Half-year workbook (tabs Arrival / Summary-1). 2026 data through May.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "STR / compset: Bangkok and Pattaya competitive-set Occ, ADR, RevPAR from the Compset tab (ADR excludes breakfast).", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
-    { text: "Property performance: Summary tab of the reconciled workbook (Segment_Half_year_version_1_ALL-reconciled.xlsx) — actuals, budget (BG rows) and 2025. Segment data reconciled to each property's source system, July 2026.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
+    { text: "Property performance: Summary tab of the checked workbook (Segment_Half_year_ALLreconciled_results-checked.xlsx), aligned to the result sheets; property ADR includes breakfast (LYF has none) — actuals, budget (BG rows) and 2025. Segment data reconciled to each property's source system, July 2026.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "Segmentation: property tabs (2026 Jan–Jun). Nationality: room nights by nationality from each property tab — H1 2026 and 2025 (each year's own top-10).", options: { bullet: true, breakLine: true, paraSpaceAfter: 10 } },
     { text: "Definitions & notes", options: { bold: true, color: NAVY, fontSize: 14, breakLine: true, paraSpaceAfter: 6 } },
     { text: "ADR = room revenue ÷ rooms sold; RevPAR = room revenue ÷ rooms available; Occ = rooms sold ÷ rooms available. YTD = Jan–Jun 2026 unless stated.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "Portfolio figures weight the four properties by room inventory (SR9 464 · AES 403 · SP 333 · LYF 206 = 1,406 keys).", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
-    { text: "AES & SP June 2026 revenue estimated from Occ × ADR (source revenue available through May).", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
+    { text: "Financials (Revenue, OPEX, GOP/EBITDA, EBIT) from the result FY25/FY26 sheets — the official record, frozen at accounting close. AES & SP June 2026 revenue derived from the result totals. NPAT is not recorded there.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "All charts are native PowerPoint charts — right-click → Edit Data to change any number.", options: { bullet: true } },
   ], { x: M, y: 1.8, w: W - 2 * M, h: 5.4, margin: 0, fontFace: F, fontSize: 12, color: INK });
 }

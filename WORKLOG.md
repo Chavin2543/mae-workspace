@@ -7,6 +7,14 @@ language.
 
 ---
 
+## 2026-07-19 — Deck refreshed + new Financial Performance section
+Rebuilt the management deck from the results-checked workbook (corrected
+Jan occupancy flows through). New Section 4: P&L for portfolio + each
+property — Revenue/OPEX/GOP(EBITDA)/JV/EBIT, Actual vs Ascott BP vs MF
+Projection, plus monthly revenue 2026-vs-2025 charts (AES/SP June derived
+from result totals). NPAT not in result sheets — noted on slides.
+Seg & nationality renumbered to Section 5; deck now 42 slides.
+
 ## 2026-07-19 — Standing rule: result sheets are the official record
 Agreed with Mae: never change the result FY25/FY26 numbers (frozen at
 accounting close; ADR incl. breakfast except LYF). Booking-system RN
