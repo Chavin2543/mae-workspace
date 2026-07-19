@@ -8,6 +8,51 @@
             "command": "(pip install -q openpyxl pandas >/dev/null 2>&1 &); ([ -d resources/claude-cookbooks ] || git clone -q --depth 1 https://github.com/anthropics/claude-cookbooks.git resources/claude-cookbooks >/dev/null 2>&1 &); echo '{\"systemMessage\":\"Mae workspace ready — type /guide to see what this session can do (พิมพ์ /guide เพื่อดูวิธีใช้งานค่ะ)\"}'",
             "timeout": 15,
             "statusMessage": "Preparing Mae's workspace..."
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/git_session_sync.py\"",
+            "timeout": 45,
+            "statusMessage": "Syncing with GitHub main..."
+          },
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/session_status.sh\"",
+            "timeout": 15,
+            "statusMessage": "Reading workspace state..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/checkpoint.py\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/protect_paths.py\"",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard_bash.py\"",
+            "timeout": 15
           }
         ]
       }
@@ -17,8 +62,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/git_sync_check.py\"",
-            "timeout": 15
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/finish_guard.py\"",
+            "timeout": 30
           }
         ]
       }

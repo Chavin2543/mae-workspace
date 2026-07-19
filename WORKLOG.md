@@ -7,6 +7,15 @@ language.
 
 ---
 
+## 2026-07-19 — Filing system, decision logs, task workflow, enforcement hooks
+Merged the workspace-organization system into main: filing table in CLAUDE.md
+(data/pdf, docs/decisions, tasks/open|done), decision logs seeded with July
+rulings, task records, and hooks that enforce the rules (protect read-only
+paths, block new branches/force-push, auto-commit before tasks, block finishing
+unsynced). Stop hooks consolidated: finish_guard.py replaces git_sync_check.py;
+git_session_sync.py now wired into SessionStart. New commands: /status,
+/new-task, /task-done, /log-decision.
+
 ## 2026-07-19 — All branches reconciled into main + "main only" rule
 Merged claude/main-branch-only-rule-c5lwl2 (main-only rule, claude-cookbooks
 reference library hook) into main; verified every other branch is fully

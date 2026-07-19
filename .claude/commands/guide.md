@@ -27,6 +27,15 @@ short Thai hints kept as-is. Do not add technical jargon.
   latest files too. This usually happens automatically after each task, so
   you only need it if you want to be sure.
 
+**See where things stand** (ดูสถานะงานตอนนี้)
+- Type: `/status` — what's in progress, the newest files, and recent decisions.
+
+**Keep work organized** (จัดระเบียบงาน)
+- `/new-task` starts a tracked piece of work, `/task-done` closes it, and
+  `/log-decision` writes down a decision so Claude remembers it next time.
+- These mostly run themselves — Claude uses them automatically; you only need
+  them if you want to check or record something yourself.
+
 **Tips**
 - You can always just describe what you want in plain words (English or Thai) —
   the commands are shortcuts, not requirements.
