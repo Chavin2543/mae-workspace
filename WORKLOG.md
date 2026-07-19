@@ -7,6 +7,11 @@ language.
 
 ---
 
+## 2026-07-19 — Financial slides: H1 2025 comparison + label renames
+P&L tables now compare against H1 2025 (revenue — the only 2025 line
+recorded by half year; other lines n/a with FY 2025 kept in the footnote).
+Renamed "MF Proj." to "MF budget" and "vs Proj." to "vs MF budget" (Mae).
+
 ## 2026-07-19 — Financial slides: 2025 reference + monthly tables; STR labels
 Each P&L slide now shows an FY 2025 actual column (full year — the result
 sheets have no H1 2025 P&L split) and a monthly revenue table in THB M for

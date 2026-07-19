@@ -477,7 +477,7 @@ function finSlide(title, sub, f26, rev26, rev25, f25) {
   }
   const zebra = (i) => ({ color: i % 2 ? PANEL : "FFFFFF" });
   const hc = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: NAVY }, align: "center" } });
-  const rows = [[hc("H1 2026 (YTD)"), hc("Actual"), hc("Budget (BP)"), hc("MF Proj."), hc("vs Proj."), hc("FY 2025")]];
+  const rows = [[hc("H1 2026 (YTD)"), hc("Actual"), hc("Budget (BP)"), hc("MF budget"), hc("vs MF budget"), hc("H1 2025")]];
   const items = [
     ["Revenue", "revenue", fmtMn, false], ["OPEX", "opex", fmtMn, true],
     ["GOP (EBITDA)", "gop", fmtMn, false], ["GOP margin", "gop_margin", (v) => fmtPct(v), false],
@@ -499,11 +499,11 @@ function finSlide(title, sub, f26, rev26, rev25, f25) {
       { text: f(d.bp), options: { align: "right", color: INK, fill: zebra(i) } },
       { text: f(d.proj), options: { align: "right", color: INK, fill: zebra(i) } },
       { text: chgTxt, options: { align: "right", bold: true, color: good ? GOOD : BAD, fill: zebra(i) } },
-      { text: f25 && f25[key] != null ? f(f25[key]) : "\u2014",
-        options: { align: "right", color: MUT, fill: zebra(i) } },
+      { text: key === "revenue" ? fmtMn(rev25.reduce((t, v) => t + (v || 0), 0)) : "n/a",
+        options: { align: "right", color: key === "revenue" ? INK : MUT, fill: zebra(i) } },
     ]);
   });
-  s.addTable(rows, { x: 6.95, y: 2.0, w: 5.78, colW: [1.32, 0.93, 0.93, 0.93, 0.75, 0.92],
+  s.addTable(rows, { x: 6.95, y: 2.0, w: 5.78, colW: [1.24, 0.91, 0.91, 0.91, 0.95, 0.86],
     fontFace: F, fontSize: 9.5, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
     rowH: 0.34, valign: "middle" });
   const r26t = rev26.reduce((t, v) => t + (v || 0), 0);
@@ -512,8 +512,9 @@ function finSlide(title, sub, f26, rev26, rev25, f25) {
     fmtDelta(grow(r26t, r25t)) + " vs H1 2025", grow(r26t, r25t) >= 0 ? GOOD : BAD);
   tile(s, 9.91, 4.7, 2.82, 1.32, "EBIT H1 2026", fmtMn(f26.ebit.act),
     "EBIT margin " + fmtPct(f26.ebit.act / f26.revenue.act), MUT);
-  note(s, M, 6.85, 11.9, "GOP = gross operating profit (\u2248 EBITDA). Budget (BP) = Ascott business plan; MF Proj. = Mitsui Fudosan projection. "
-    + "FY 2025 = full-year 2025 actual for reference (the result sheets record 2025 P&L by full year only; H1 2025 revenue is in the monthly table). NPAT is not in the result sheets.");
+  note(s, M, 6.85, 11.9, "GOP = gross operating profit (\u2248 EBITDA). Budget (BP) = Ascott business plan; MF budget = Mitsui Fudosan budget. "
+    + "H1 2025: only revenue is recorded by half year \u2014 2025 OPEX/GOP/EBIT exist as full year only (FY 2025 actual: revenue " + fmtMn(f25.revenue)
+    + " \u00b7 GOP " + fmtMn(f25.gop) + " \u00b7 EBIT " + fmtMn(f25.ebit) + "). NPAT is not in the result sheets.");
   return s;
 }
 
@@ -535,12 +536,12 @@ function finSlide(title, sub, f26, rev26, rev25, f25) {
   })();
   const sumRev = (pre) => [0, 1, 2, 3, 4, 5].map((i) =>
     ["SR9", "AES", "LYF", "SP"].reduce((t, k) => t + (data.perf[k][pre][i] || 0), 0));
-  finSlide("Portfolio \u2014 P&L, H1 2026", "All four properties \u00b7 YTD Jan\u2013Jun vs budget and MF projection \u00b7 monthly revenue and FY 2025 reference",
+  finSlide("Portfolio \u2014 P&L, H1 2026", "All four properties \u00b7 YTD Jan\u2013Jun vs Ascott BP and MF budget \u00b7 monthly revenue vs H1 2025",
     F26.PF, sumRev("revenue"), sumRev("ly_revenue"), fy25pf);
   for (const key of ["SR9", "AES", "LYF", "SP"]) {
     const p = data.perf[key];
     finSlide(p.name + " (" + key + ") \u2014 P&L, H1 2026",
-      "YTD Jan\u2013Jun vs budget and MF projection \u00b7 monthly revenue and FY 2025 reference",
+      "YTD Jan\u2013Jun vs Ascott BP and MF budget \u00b7 monthly revenue vs H1 2025",
       F26[key], p.revenue.slice(0, 6), p.ly_revenue.slice(0, 6), fy25(key));
   }
 }
