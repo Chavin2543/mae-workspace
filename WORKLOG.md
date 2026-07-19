@@ -7,6 +7,11 @@ language.
 
 ---
 
+## 2026-07-19 — Deck: removed the Ascott Budget (BP) column
+Per Mae: the financial P&L tables compare to the MF budget only. Deleted the
+Budget (BP) column on all 5 financial slides; subtitles/footnote updated.
+Files: output deck + scripts/management_deck/build_deck.js.
+
 ## 2026-07-19 — Deck financials now read the monthly P&L blocks only (Mae's rule)
 Per Mae: the "YTD performance" summary at the top of the result sheets is
 never used anymore. All deck YTD figures = Jan–Jun sums of the monthly

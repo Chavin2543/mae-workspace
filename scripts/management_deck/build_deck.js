@@ -493,7 +493,7 @@ function finSlide(title, sub, f26, m26, m25) {
   h25.gop_margin = h25.gop / h25.revenue;
   h25.jv = h25.ebit - h25.gop;
   const npat26 = h1of(m26.npat);
-  const rows = [[hc("H1 2026 (YTD)"), hc("Actual"), hc("Budget (BP)"), hc("MF budget"), hc("vs MF budget"), hc("H1 2025"), hc("vs H1 25")]];
+  const rows = [[hc("H1 2026 (YTD)"), hc("Actual"), hc("MF budget"), hc("vs MF budget"), hc("H1 2025"), hc("vs H1 25")]];
   const items = [
     ["Revenue", "revenue", fmtMn, false], ["OPEX", "opex", fmtMn, true],
     ["GOP (EBITDA)", "gop", fmtMn, false], ["GOP margin", "gop_margin", (v) => fmtPct(v), false],
@@ -501,12 +501,12 @@ function finSlide(title, sub, f26, m26, m25) {
     ["NPAT", "npat", fmtMn, false],
   ];
   items.forEach(([label, key, f, costLine], i) => {
-    let act, bp, proj, chgTxt, good;
+    let act, proj, chgTxt, good;
     if (key === "npat") {
-      act = npat26; bp = null; proj = null; chgTxt = "\u2014"; good = null;
+      act = npat26; proj = null; chgTxt = "\u2014"; good = null;
     } else {
       const d = f26[key];
-      act = d.act; bp = d.bp; proj = d.proj;
+      act = d.act; proj = d.proj;
       // bp/proj are null where the monthly blocks have no budget rows
       // (revenue, GOP margin) \u2014 Mae, Jul 2026: never invent a budget
       if (proj == null) {
@@ -522,7 +522,6 @@ function finSlide(title, sub, f26, m26, m25) {
     rows.push([
       { text: label, options: { bold: true, color: INK, fill: zebra(i) } },
       { text: f(act), options: { align: "right", bold: true, color: NAVY, fill: zebra(i) } },
-      { text: bp == null ? "\u2014" : f(bp), options: { align: "right", color: INK, fill: zebra(i) } },
       { text: proj == null ? "\u2014" : f(proj), options: { align: "right", color: INK, fill: zebra(i) } },
       { text: chgTxt, options: { align: "right", bold: true, color: good == null ? MUT : (good ? GOOD : BAD), fill: zebra(i) } },
       { text: f(h25[key]), options: { align: "right", color: INK, fill: zebra(i) } },
@@ -542,7 +541,7 @@ function finSlide(title, sub, f26, m26, m25) {
       })(),
     ]);
   });
-  s.addTable(rows, { x: 6.7, y: 1.95, w: 6.03, colW: [1.16, 0.81, 0.81, 0.81, 0.85, 0.78, 0.81],
+  s.addTable(rows, { x: 6.7, y: 1.95, w: 6.03, colW: [1.36, 0.94, 0.94, 0.97, 0.89, 0.93],
     fontFace: F, fontSize: 9, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
     rowH: 0.31, valign: "middle" });
   const r26t = h1of(rev26), r25t = h25.revenue;
@@ -551,7 +550,7 @@ function finSlide(title, sub, f26, m26, m25) {
   tile(s, 9.83, 4.6, 2.9, 1.32, "NPAT H1 2026", fmtMn(npat26),
     (npat26 - h25.npat >= 0 ? "+" : "") + fmtMn(npat26 - h25.npat).replace("\u2212", "\u2212") + " vs H1 2025 (" + fmtMn(h25.npat) + ")",
     npat26 - h25.npat >= 0 ? GOOD : BAD);
-  note(s, M, 6.95, 11.9, "GOP = gross operating profit (\u2248 EBITDA). Budget (BP) = Ascott business plan; MF budget = Mitsui Fudosan budget. "
+  note(s, M, 6.95, 11.9, "GOP = gross operating profit (\u2248 EBITDA). MF budget = Mitsui Fudosan budget. "
     + "All figures are Jan\u2013Jun sums of the monthly P&L blocks in the result sheets; budget rows exist for OPEX, GOP and EBIT only "
     + "(revenue, GOP margin and NPAT show \u2014). JV expense derived as EBIT \u2212 GOP. Source: result FY25/FY26 sheets (official record).");
   return s;
@@ -566,11 +565,11 @@ function finSlide(title, sub, f26, m26, m25) {
     pf25[met] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((i) =>
       ["SR9", "AES", "LYF", "SP"].reduce((t, k) => t + (FM25[k][met][i] || 0), 0));
   }
-  finSlide("Portfolio \u2014 P&L, H1 2026", "All four properties \u00b7 YTD Jan\u2013Jun vs Ascott BP and MF budget \u00b7 monthly P&L and H1 2025 comparison",
+  finSlide("Portfolio \u2014 P&L, H1 2026", "All four properties \u00b7 YTD Jan\u2013Jun vs MF budget \u00b7 monthly P&L and H1 2025 comparison",
     F26.PF, FM26.PF, pf25);
   for (const key of ["SR9", "AES", "LYF", "SP"]) {
     finSlide(data.perf[key].name + " (" + key + ") \u2014 P&L, H1 2026",
-      "YTD Jan\u2013Jun vs Ascott BP and MF budget \u00b7 monthly P&L and H1 2025 comparison",
+      "YTD Jan\u2013Jun vs MF budget \u00b7 monthly P&L and H1 2025 comparison",
       F26[key], FM26[key], FM25[key]);
   }
 }
