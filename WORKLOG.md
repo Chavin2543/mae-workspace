@@ -7,6 +7,12 @@ language.
 
 ---
 
+## 2026-07-19 — All branches reconciled into main + "main only" rule
+Merged claude/main-branch-only-rule-c5lwl2 (main-only rule, claude-cookbooks
+reference library hook) into main; verified every other branch is fully
+contained in main. Deleted merged disposable branches. New standing rule in
+CLAUDE.md: always work on main ("always").
+
 ## 2026-07-19 — New skill: read-excel (read the WHOLE file, every tab)
 Mae's lesson from the missed column-R data: created `.claude/skills/
 read-excel/` (mandatory full-file scan before any Excel work or any
