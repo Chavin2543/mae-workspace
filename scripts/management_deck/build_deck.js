@@ -450,7 +450,7 @@ function finSlide(title, sub, f26, m26, m25) {
     { name: "2025", labels: MONTHS.slice(0, 6), values: rev25 },
     { name: "2026", labels: MONTHS.slice(0, 6), values: rev26 },
   ], Object.assign({}, axStyle, {
-    x: M, y: 1.95, w: 6.05, h: 3.0, chartColors: [SKY, NAVY],
+    x: M, y: 1.95, w: 5.9, h: 3.0, chartColors: [SKY, NAVY],
     showLegend: true, legendPos: "b", valAxisNumFmt: "#,##0,,\"M\"",
     showTitle: true, title: "Monthly revenue (\u0e3fM)", titleFontSize: 12.5,
     titleColor: NAVY, titleFontFace: F,
@@ -471,8 +471,8 @@ function finSlide(title, sub, f26, m26, m25) {
         vals.slice(0, 6).map((v) => ({ text: mnum(v), options: { align: "right", color: INK, fill: zebra(i) } })),
         [{ text: mnum(h1of(vals)), options: { align: "right", bold: true, color: NAVY, fill: zebra(i) } }]));
     });
-    s.addTable(rows, { x: M, y: 5.08, w: 6.05,
-      colW: [1.05].concat(Array(6).fill(0.68), [0.92]),
+    s.addTable(rows, { x: M, y: 5.08, w: 5.9,
+      colW: [1.02].concat(Array(6).fill(0.66), [0.92]),
       fontFace: F, fontSize: 8.5, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
       rowH: 0.25, valign: "middle" });
   }
@@ -484,7 +484,7 @@ function finSlide(title, sub, f26, m26, m25) {
   h25.gop_margin = h25.gop / h25.revenue;
   h25.jv = h25.ebit - h25.gop;
   const npat26 = h1of(m26.npat);
-  const rows = [[hc("H1 2026 (YTD)"), hc("Actual"), hc("Budget (BP)"), hc("MF budget"), hc("vs MF budget"), hc("H1 2025")]];
+  const rows = [[hc("H1 2026 (YTD)"), hc("Actual"), hc("Budget (BP)"), hc("MF budget"), hc("vs MF budget"), hc("H1 2025"), hc("vs H1 25")]];
   const items = [
     ["Revenue", "revenue", fmtMn, false], ["OPEX", "opex", fmtMn, true],
     ["GOP (EBITDA)", "gop", fmtMn, false], ["GOP margin", "gop_margin", (v) => fmtPct(v), false],
@@ -513,15 +513,29 @@ function finSlide(title, sub, f26, m26, m25) {
       { text: proj == null ? "\u2014" : f(proj), options: { align: "right", color: INK, fill: zebra(i) } },
       { text: chgTxt, options: { align: "right", bold: true, color: good == null ? MUT : (good ? GOOD : BAD), fill: zebra(i) } },
       { text: f(h25[key]), options: { align: "right", color: INK, fill: zebra(i) } },
+      (() => {
+        let txt, good2;
+        if (key === "npat") {
+          const d2 = act - h25.npat;
+          txt = (d2 >= 0 ? "+" : "") + fmtMn(d2); good2 = d2 >= 0;
+        } else if (key === "gop_margin") {
+          const pts2 = (act - h25.gop_margin) * 100;
+          txt = (pts2 >= 0 ? "+" : "") + pts2.toFixed(1) + " pts"; good2 = pts2 >= 0;
+        } else {
+          const pct2 = act / h25[key] - 1;
+          txt = fmtDelta(pct2); good2 = costLine ? pct2 <= 0 : pct2 >= 0;
+        }
+        return { text: txt, options: { align: "right", bold: true, color: good2 ? GOOD : BAD, fill: zebra(i) } };
+      })(),
     ]);
   });
-  s.addTable(rows, { x: 6.95, y: 1.95, w: 5.78, colW: [1.24, 0.91, 0.91, 0.91, 0.95, 0.86],
-    fontFace: F, fontSize: 9.5, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
+  s.addTable(rows, { x: 6.7, y: 1.95, w: 6.03, colW: [1.16, 0.81, 0.81, 0.81, 0.85, 0.78, 0.81],
+    fontFace: F, fontSize: 9, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
     rowH: 0.31, valign: "middle" });
   const r26t = h1of(rev26), r25t = h25.revenue;
-  tile(s, 6.95, 4.6, 2.82, 1.32, "REVENUE H1 2026", fmtMn(r26t),
+  tile(s, 6.7, 4.6, 2.9, 1.32, "REVENUE H1 2026", fmtMn(r26t),
     fmtDelta(grow(r26t, r25t)) + " vs H1 2025", grow(r26t, r25t) >= 0 ? GOOD : BAD);
-  tile(s, 9.91, 4.6, 2.82, 1.32, "NPAT H1 2026", fmtMn(npat26),
+  tile(s, 9.83, 4.6, 2.9, 1.32, "NPAT H1 2026", fmtMn(npat26),
     (npat26 - h25.npat >= 0 ? "+" : "") + fmtMn(npat26 - h25.npat).replace("\u2212", "\u2212") + " vs H1 2025 (" + fmtMn(h25.npat) + ")",
     npat26 - h25.npat >= 0 ? GOOD : BAD);
   note(s, M, 6.95, 11.9, "GOP = gross operating profit (\u2248 EBITDA). Budget (BP) = Ascott business plan; MF budget = Mitsui Fudosan budget. "

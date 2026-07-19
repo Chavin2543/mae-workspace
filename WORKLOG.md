@@ -7,6 +7,10 @@ language.
 
 ---
 
+## 2026-07-19 — P&L tables: added "vs H1 25" column
+Every financial slide's P&L table now has a colored vs-H1-2025 column
+(% change; pts for margin; THB change for NPAT), per Mae.
+
 ## 2026-07-19 — Found monthly P&L + NPAT in result sheets; financials complete
 Mae was right: monthly P&L (incl. NPAT) exists in the col-R blocks of both
 result sheets (earlier scan stopped one column short). Financial slides now
