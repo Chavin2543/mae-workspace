@@ -32,8 +32,19 @@ data/source/   Uploaded input workbooks, renamed to clean names. Never edit in p
 output/        Reconciled deliverable workbooks (with audit sheet) + HTML reports.
 scripts/       Reusable Python scripts (openpyxl). One script per recurring task.
 WORKLOG.md     What each session did, newest first — read it to catch up.
+resources/     Reference material, gitignored (large). Re-cloned by the
+               SessionStart hook when missing — see below.
 CLAUDE.md      This file — the anatomy of each recurring task.
 ```
+
+### resources/claude-cookbooks
+
+A read-only clone of https://github.com/anthropics/claude-cookbooks (official
+Anthropic examples: Claude API patterns, tool use, skills, agent SDK, etc.).
+It is **not committed** (356 MB, gitignored); the SessionStart hook shallow-
+clones it in the background if the folder is missing, so give it a moment on a
+fresh session. Use it as reference when building or improving automation in
+this workspace. Never edit files inside it, and never commit it.
 
 ## Centralized git: one branch, `main`
 
@@ -60,6 +71,11 @@ Rules for Claude, any session:
    them: `claude/half-year-reconciliation-ls8-3p4hqz` (first reconciliation +
    command suite), `claude/recon-excel-2mdfff` (corrupt-file fix + WORKLOG).
 5. **Never force-push `main`** and never rewrite its history.
+6. **Mae's rule (Jul 2026): always work on `main` — "always".** Desktop
+   sessions check out `main` directly and never create other branches. Web
+   sessions that are forced onto an auto-named `claude/...` branch must land
+   every commit on `main` the same day (rule 2) — the branch itself is
+   disposable and can be deleted once merged.
 
 Conventions: commit both the source snapshot and the reconciled output for each
 run, so every reconciliation is reproducible from the repo alone. Use clear
@@ -169,6 +185,11 @@ URL within a session; pass the previous artifact URL from new sessions).
 
 ## General rules for this repo
 
+- **Git branch: always work on `main` only (Mae's rule, Jul 2026 — "always").**
+  Do all work, commits, and pushes directly on the `main` branch. Never create
+  or switch to another branch unless Mae explicitly asks. (If the session
+  harness forces a different designated branch, follow the harness — but land
+  everything on `main` immediately and never invent branches yourself.)
 - **Read Excel files completely — every tab, full width (Mae's rule, Jul
   2026).** Before reading any workbook or claiming data is missing, run
   `python3 scripts/excel_map.py <file>` (and `--find WORD` to search every
