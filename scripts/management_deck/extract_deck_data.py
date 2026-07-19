@@ -130,6 +130,32 @@ for prop, c in FIN25_COL0.items():
                          for m, r in FIN_ROWS.items()}
 data["fin"] = fin
 
+# monthly P&L blocks (col R area of the result sheets): Total Revenue, OPEX,
+# GOP, % GOP Margin, EBIT, NPAT — actual, monthly, cols T..AE = Jan..Dec
+LABELS = {"Total Revenue": "revenue", "OPEX": "opex", "GOP": "gop",
+          "% GOP Margin": "margin", "EBIT": "ebit", "NPAT": "npat"}
+def scan_fin_monthly(ws, order):
+    anchors = [r for r in range(15, ws.max_row + 1)
+               if str(ws.cell(r, 18).value or "").strip() == "Total Revenue"]
+    assert len(anchors) >= len(order), f"anchors={anchors}"
+    out = {}
+    for prop, r0 in zip(order, anchors):
+        rows = {}
+        for r in range(r0, r0 + 16):
+            lab = str(ws.cell(r, 18).value or "").strip()
+            if lab in LABELS and LABELS[lab] not in rows:
+                rows[LABELS[lab]] = r
+        blk = {k: [ws.cell(r, c).value for c in range(20, 32)] for k, r in rows.items()}
+        if "opex" not in blk and "gop" in blk:  # FY26 portfolio block has no OPEX row
+            blk["opex"] = [ (g - v) if isinstance(g,(int,float)) and isinstance(v,(int,float)) else None
+                            for g, v in zip(blk["gop"], blk["revenue"]) ]
+        out[prop] = blk
+    return out
+fin_m = {"2026": scan_fin_monthly(r26s, ["PF", "SR9", "AES", "LYF", "SP"]),
+         "2025": scan_fin_monthly(r25s, ["SR9", "ATB", "AES", "LYF", "SP"])}
+fin_m["2025"].pop("ATB")
+data["fin_monthly"] = fin_m
+
 # fill missing June-2026 revenue for AES/SP from result totals (Summary rows
 # sum exactly to the result revenue for the other properties)
 for prop in ("AES", "SP"):

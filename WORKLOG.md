@@ -7,6 +7,13 @@ language.
 
 ---
 
+## 2026-07-19 — Found monthly P&L + NPAT in result sheets; financials complete
+Mae was right: monthly P&L (incl. NPAT) exists in the col-R blocks of both
+result sheets (earlier scan stopped one column short). Financial slides now
+show real H1 2025 for every line (no more n/a), an NPAT row and tile
+(portfolio H1 2026 NPAT +7.9M vs -12.6M LY), and a monthly P&L table
+(Revenue/OPEX/GOP/EBIT/NPAT) per slide.
+
 ## 2026-07-19 — Financial slides: H1 2025 comparison + label renames
 P&L tables now compare against H1 2025 (revenue — the only 2025 line
 recorded by half year; other lines n/a with FY 2025 kept in the footnote).
