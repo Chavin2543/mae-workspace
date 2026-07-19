@@ -7,6 +7,12 @@ language.
 
 ---
 
+## 2026-07-19 — Deck: monthly P&L tables now compare ’26 vs ’25 on every line
+Per Mae: added OPEX ’25, GOP ’25, EBIT ’25, NPAT ’25 rows to the monthly P&L
+table on all 5 financial slides, paired under their ’26 rows (’25 in grey).
+Deck rebuilt; extract_deck_data.py output path is now an argument.
+Files: output/Portfolio_Performance_Report_H1-2026.pptx, scripts/management_deck/.
+
 ## 2026-07-19 — Project README
 Added README.md: what the workspace is, Mae's commands, directory map, the
 reliability rules (one branch, read-only originals, audit trails, hooks), and

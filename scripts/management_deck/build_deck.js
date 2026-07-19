@@ -450,7 +450,7 @@ function finSlide(title, sub, f26, m26, m25) {
     { name: "2025", labels: MONTHS.slice(0, 6), values: rev25 },
     { name: "2026", labels: MONTHS.slice(0, 6), values: rev26 },
   ], Object.assign({}, axStyle, {
-    x: M, y: 1.95, w: 5.9, h: 3.0, chartColors: [SKY, NAVY],
+    x: M, y: 1.95, w: 5.9, h: 2.55, chartColors: [SKY, NAVY],
     showLegend: true, legendPos: "b", valAxisNumFmt: "#,##0,,\"M\"",
     showTitle: true, title: "Monthly revenue (\u0e3fM)", titleFontSize: 12.5,
     titleColor: NAVY, titleFontFace: F,
@@ -458,23 +458,30 @@ function finSlide(title, sub, f26, m26, m25) {
   const zebra = (i) => ({ color: i % 2 ? PANEL : "FFFFFF" });
   const hc = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: NAVY }, align: "center" } });
   const mnum = (v) => (v == null ? "\u2014" : (v / 1e6).toFixed(1));
-  // left: monthly P&L 2026 (with 2025 revenue reference), unit M THB
+  // left: monthly P&L, each line 2026 paired with 2025, unit M THB
   {
     const lines = [
       ["Revenue \u201926", m26.revenue], ["Revenue \u201925", m25.revenue],
-      ["OPEX \u201926", m26.opex], ["GOP \u201926", m26.gop],
-      ["EBIT \u201926", m26.ebit], ["NPAT \u201926", m26.npat],
+      ["OPEX \u201926", m26.opex], ["OPEX \u201925", m25.opex],
+      ["GOP \u201926", m26.gop], ["GOP \u201925", m25.gop],
+      ["EBIT \u201926", m26.ebit], ["EBIT \u201925", m25.ebit],
+      ["NPAT \u201926", m26.npat], ["NPAT \u201925", m25.npat],
     ];
     const rows = [[hc("\u0e3fM")].concat(MONTHS.slice(0, 6).map(hc), [hc("H1")])];
     lines.forEach(([name, vals], i) => {
-      rows.push([{ text: name, options: { bold: true, color: INK, fill: zebra(i) } }].concat(
-        vals.slice(0, 6).map((v) => ({ text: mnum(v), options: { align: "right", color: INK, fill: zebra(i) } })),
-        [{ text: mnum(h1of(vals)), options: { align: "right", bold: true, color: NAVY, fill: zebra(i) } }]));
+      // zebra per metric pair so the \u201926/\u201925 lines read as one band;
+      // \u201925 values muted so the current year stays dominant
+      const band = zebra(Math.floor(i / 2));
+      const prior = i % 2 === 1;
+      const vcol = prior ? MUT : INK;
+      rows.push([{ text: name, options: { bold: !prior, color: prior ? MUT : INK, fill: band } }].concat(
+        vals.slice(0, 6).map((v) => ({ text: mnum(v), options: { align: "right", color: vcol, fill: band } })),
+        [{ text: mnum(h1of(vals)), options: { align: "right", bold: true, color: prior ? MUT : NAVY, fill: band } }]));
     });
-    s.addTable(rows, { x: M, y: 5.08, w: 5.9,
+    s.addTable(rows, { x: M, y: 4.62, w: 5.9,
       colW: [1.02].concat(Array(6).fill(0.66), [0.92]),
       fontFace: F, fontSize: 8.5, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
-      rowH: 0.25, valign: "middle" });
+      rowH: 0.2, valign: "middle" });
   }
   // right: P&L table H1 2026 vs budgets vs H1 2025
   const h25 = {

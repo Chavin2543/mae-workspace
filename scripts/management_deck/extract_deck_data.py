@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Extract everything the management deck needs from the reconciled workbook
-into deck_data.json."""
+into deck_data.json (path = first argument, default ./deck_data.json)."""
 import json
+import sys
 
 import openpyxl
 
@@ -265,7 +266,7 @@ for key in PROPS:
     nat_rn[key] = blocks
 data["nat_rn"] = nat_rn
 
-out = "/tmp/claude-0/-home-user-mae-workspace/1ca9b4aa-1acb-530b-bc1a-fb243eb675fd/scratchpad/deck_data.json"
+out = sys.argv[1] if len(sys.argv) > 1 else "deck_data.json"
 with open(out, "w") as f:
     json.dump(data, f, indent=1)
 
