@@ -7,6 +7,12 @@ language.
 
 ---
 
+## 2026-07-19 — Project README
+Added README.md: what the workspace is, Mae's commands, directory map, the
+reliability rules (one branch, read-only originals, audit trails, hooks), and
+script usage for technical readers. Root-file exception list updated in
+CLAUDE.md.
+
 ## 2026-07-19 — Filing system, decision logs, task workflow, enforcement hooks
 Merged the workspace-organization system into main: filing table in CLAUDE.md
 (data/pdf, docs/decisions, tasks/open|done), decision logs seeded with July

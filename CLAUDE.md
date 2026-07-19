@@ -58,7 +58,7 @@ CLAUDE.md          This file — the anatomy of each recurring task.
 | Temp/scratch files | session scratchpad | Never the repo — the Stop hook rejects stray files |
 
 A new file type gets a home added to this table (log the decision) — nothing
-goes in the repo root except this file.
+goes in the repo root except CLAUDE.md, README.md, and WORKLOG.md.
 
 ### resources/claude-cookbooks
 
