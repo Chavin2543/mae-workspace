@@ -478,10 +478,12 @@ function finSlide(title, sub, f26, m26, m25) {
         vals.slice(0, 6).map((v) => ({ text: mnum(v), options: { align: "right", color: vcol, fill: band } })),
         [{ text: mnum(h1of(vals)), options: { align: "right", bold: true, color: prior ? MUT : NAVY, fill: band } }]));
     });
-    s.addTable(rows, { x: M, y: 4.62, w: 5.9,
+    // 11 rows must clear the footnote at y=6.95: tight rows + small cell
+    // margins keep the rendered height near the declared 0.19"/row
+    s.addTable(rows, { x: M, y: 4.55, w: 5.9,
       colW: [1.02].concat(Array(6).fill(0.66), [0.92]),
-      fontFace: F, fontSize: 8.5, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
-      rowH: 0.2, valign: "middle" });
+      fontFace: F, fontSize: 8, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
+      rowH: 0.19, margin: [0.01, 0.03, 0.01, 0.03], valign: "middle" });
   }
   // right: P&L table H1 2026 vs budgets vs H1 2025
   const h25 = {
@@ -502,6 +504,11 @@ function finSlide(title, sub, f26, m26, m25) {
     let act, bp, proj, chgTxt, good;
     if (key === "npat") {
       act = npat26; bp = null; proj = null; chgTxt = "\u2014"; good = null;
+    } else if (key === "revenue") {
+      // the result sheets carry no revenue budget rows (only OPEX/GOP/
+      // margin/EBIT); the sheet's YTD revenue "budget" is just GOP-OPEX,
+      // so show actual only (Mae, Jul 2026)
+      act = f26.revenue.act; bp = null; proj = null; chgTxt = "\u2014"; good = null;
     } else {
       const d = f26[key];
       act = d.act; bp = d.bp; proj = d.proj;
@@ -546,7 +553,8 @@ function finSlide(title, sub, f26, m26, m25) {
     (npat26 - h25.npat >= 0 ? "+" : "") + fmtMn(npat26 - h25.npat).replace("\u2212", "\u2212") + " vs H1 2025 (" + fmtMn(h25.npat) + ")",
     npat26 - h25.npat >= 0 ? GOOD : BAD);
   note(s, M, 6.95, 11.9, "GOP = gross operating profit (\u2248 EBITDA). Budget (BP) = Ascott business plan; MF budget = Mitsui Fudosan budget. "
-    + "NPAT is recorded as actual only (no budget). H1 2025 JV expense derived as EBIT \u2212 GOP. Source: result FY25/FY26 sheets (official record).");
+    + "The result sheets record budgets for OPEX, GOP, GOP margin and EBIT only \u2014 revenue and NPAT have no budget (shown \u2014); "
+    + "JV expense derived as EBIT \u2212 GOP. Source: result FY25/FY26 sheets (official record).");
   return s;
 }
 

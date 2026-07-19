@@ -7,6 +7,13 @@ language.
 
 ---
 
+## 2026-07-19 — Deck: fixed table overlay; revenue budget removed (not in file)
+Mae was right: result sheets have budget rows only for OPEX/GOP/margin/EBIT —
+the revenue "budget" was a sheet formula (GOP−OPEX), so the deck now shows —
+for revenue budgets, like NPAT. Monthly P&L table tightened so it no longer
+overlaps the footnote (all 5 financial slides). All lines recheck clean vs
+result FY25/FY26. Files: output deck + scripts/management_deck/build_deck.js.
+
 ## 2026-07-19 — Deck: monthly P&L tables now compare ’26 vs ’25 on every line
 Per Mae: added OPEX ’25, GOP ’25, EBIT ’25, NPAT ’25 rows to the monthly P&L
 table on all 5 financial slides, paired under their ’26 rows (’25 in grey).
