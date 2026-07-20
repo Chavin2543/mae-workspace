@@ -159,9 +159,14 @@ function monthTable(s, x, y, w, series, nMonths, opts) {
   series.forEach((sr, i) => {
     const vals = sr.values.slice(0, nMonths);
     const ytd = sr.total != null ? sr.total : vals.reduce((t, v) => t + (v || 0), 0);
-    rows.push([{ text: sr.name, options: { bold: true, color: INK, fill: zebra(i) } }].concat(
-      vals.map((v) => ({ text: fmtN(v), options: { color: INK, align: "right", fill: zebra(i) } })),
-      [{ text: fmtN(ytd), options: { bold: true, color: NAVY, align: "right", fill: zebra(i) } }]));
+    // per-series marks: sr.fill = row background (e.g. gray for COVID years),
+    // sr.highlightTotal = yellow highlight on the total cell (peak year)
+    const band = sr.fill ? { color: sr.fill } : zebra(i);
+    const vcol = sr.fill ? MUT : INK;
+    rows.push([{ text: sr.name, options: { bold: true, color: vcol, fill: band } }].concat(
+      vals.map((v) => ({ text: fmtN(v), options: { color: vcol, align: "right", fill: band } })),
+      [{ text: fmtN(ytd), options: { bold: true, color: NAVY, align: "right",
+          fill: sr.highlightTotal ? { color: "FFFF00" } : band } }]));
   });
   const y26 = series.find((sr) => sr.name === "2026"), y25 = series.find((sr) => sr.name === "2025");
   if (y26 && y25) {
@@ -218,11 +223,15 @@ arrivalSlide("Total international arrivals (MOTS)", "Monthly arrivals, all natio
   header(s, "Section 1 · Tourist arrivals", "Total arrivals (MOTS) — monthly numbers by year",
     "International arrivals by month, 2018\u20132026 \u00b7 unit: persons \u00b7 same layout as the Summary sheet");
   const series = Object.keys(A.mots_full).map((y) => ({
-    name: y, values: A.mots_full[y].m, total: A.mots_full[y].total }));
+    name: y === "2020" || y === "2021" ? y + " (COVID)" : y,
+    values: A.mots_full[y].m, total: A.mots_full[y].total,
+    fill: y === "2020" || y === "2021" ? "D9D9D9" : undefined,   // gray out COVID years
+    highlightTotal: y === "2019" }));                            // 2019 = peak year
   monthTable(s, M, 1.8, W - 2 * M, series, 12,
-    { fontSize: 8, rowH: 0.31, labelW: 0.8, totalW: 1.05, corner: "Year", totalLabel: "Total" });
+    { fontSize: 8, rowH: 0.31, labelW: 1.0, totalW: 1.05, corner: "Year", totalLabel: "Total" });
   note(s, M, 5.65, 11.9,
-    "2026 total = Jan\u2013May. \u201826 vs 25\u2019 row compares each month; the Total cell compares Jan\u2013May of both years (\u22122.3%). COVID years 2020\u20132022 shown for context.");
+    "2026 total = Jan\u2013May. \u201826 vs 25\u2019 row compares each month; the Total cell compares Jan\u2013May of both years (\u22122.3%). "
+    + "2019 total highlighted = pre-COVID peak; 2020\u20132021 grayed = COVID years.");
 }
 
 // Chinese
@@ -403,7 +412,8 @@ function perfSlide(sectionTitle, subtitle, actArr, bgArr, lyArr, ly24Arr, ytd, n
 // portfolio
 perfSlide("Portfolio — all four properties", "Weighted by room inventory (1,406 keys) · YTD = Jan–Jun 2026",
   data.portfolio.act, data.portfolio.bg, data.portfolio.ly, data.portfolio.ly24, PF,
-  "Portfolio RevPAR is ~4% behind budget, driven mainly by rate (ADR −3.4%); occupancy is near plan (−0.7 pts). Vs last year RevPAR is broadly flat. April was the softest month (Songkran).");
+  "Portfolio RevPAR is ~4% behind budget, driven mainly by rate (ADR −3.4%); occupancy is near plan (−0.7 pts). Vs last year RevPAR is broadly flat. "
+  + "April was the softest month — driven by AES (−16% RevPAR vs budget, ≈half the gap) and LYF (occupancy 50% vs 83% budgeted), not really the market: the Bangkok compset was broadly flat vs last year (only Pattaya was genuinely softer, affecting SP).");
 
 // per property
 const DAYS24 = [31, 29, 31, 30, 31, 30]; // 2024 leap year
@@ -503,7 +513,7 @@ function finSlide(title, sub, f26, m26, m25, m24) {
   };
   const h25 = h1block(m25), h24 = h1block(m24);
   const npat26 = h1of(m26.npat);
-  const rows = [[hc("H1 2026 (YTD)"), hc("Actual"), hc("MF budget"), hc("vs MF budget"), hc("H1 2025"), hc("vs H1 25"), hc("H1 2024")]];
+  const rows = [[hc("H1 2026 (YTD)"), hc("Actual"), hc("MF budget"), hc("vs MF budget"), hc("H1 2025"), hc("vs H1 25"), hc("H1 2024"), hc("vs H1 24")]];
   const items = [
     ["Revenue", "revenue", fmtMn, false], ["OPEX", "opex", fmtMn, true],
     ["GOP (EBITDA)", "gop", fmtMn, false], ["GOP margin", "gop_margin", (v) => fmtPct(v), false],
@@ -529,31 +539,34 @@ function finSlide(title, sub, f26, m26, m25, m24) {
         chgTxt = fmtDelta(pct); good = costLine ? pct <= 0 : pct >= 0;
       }
     }
+    // delta cell vs a prior-year H1 block (same rules for 2025 and 2024)
+    const vsPrior = (h) => {
+      let txt, good2;
+      if (key === "npat") {
+        const d2 = act - h.npat;
+        txt = (d2 >= 0 ? "+" : "") + fmtMn(d2); good2 = d2 >= 0;
+      } else if (key === "gop_margin") {
+        const pts2 = (act - h.gop_margin) * 100;
+        txt = (pts2 >= 0 ? "+" : "") + pts2.toFixed(1) + " pts"; good2 = pts2 >= 0;
+      } else {
+        const pct2 = act / h[key] - 1;
+        txt = fmtDelta(pct2); good2 = costLine ? pct2 <= 0 : pct2 >= 0;
+      }
+      return { text: txt, options: { align: "right", bold: true, color: good2 ? GOOD : BAD, fill: zebra(i) } };
+    };
     rows.push([
       { text: label, options: { bold: true, color: INK, fill: zebra(i) } },
       { text: f(act), options: { align: "right", bold: true, color: NAVY, fill: zebra(i) } },
       { text: proj == null ? "\u2014" : f(proj), options: { align: "right", color: INK, fill: zebra(i) } },
       { text: chgTxt, options: { align: "right", bold: true, color: good == null ? MUT : (good ? GOOD : BAD), fill: zebra(i) } },
       { text: f(h25[key]), options: { align: "right", color: INK, fill: zebra(i) } },
-      (() => {
-        let txt, good2;
-        if (key === "npat") {
-          const d2 = act - h25.npat;
-          txt = (d2 >= 0 ? "+" : "") + fmtMn(d2); good2 = d2 >= 0;
-        } else if (key === "gop_margin") {
-          const pts2 = (act - h25.gop_margin) * 100;
-          txt = (pts2 >= 0 ? "+" : "") + pts2.toFixed(1) + " pts"; good2 = pts2 >= 0;
-        } else {
-          const pct2 = act / h25[key] - 1;
-          txt = fmtDelta(pct2); good2 = costLine ? pct2 <= 0 : pct2 >= 0;
-        }
-        return { text: txt, options: { align: "right", bold: true, color: good2 ? GOOD : BAD, fill: zebra(i) } };
-      })(),
+      vsPrior(h25),
       { text: f(h24[key]), options: { align: "right", color: MUT, fill: zebra(i) } },
+      vsPrior(h24),
     ]);
   });
-  s.addTable(rows, { x: 6.6, y: 1.95, w: 6.13, colW: [1.24, 0.85, 0.85, 0.88, 0.80, 0.79, 0.72],
-    fontFace: F, fontSize: 9, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
+  s.addTable(rows, { x: 6.45, y: 1.95, w: 6.28, colW: [1.12, 0.76, 0.76, 0.80, 0.72, 0.74, 0.68, 0.70],
+    fontFace: F, fontSize: 8.5, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
     rowH: 0.31, valign: "middle" });
   const r26t = h1of(rev26), r25t = h25.revenue;
   tile(s, 6.7, 4.6, 2.9, 1.32, "REVENUE H1 2026", fmtMn(r26t),

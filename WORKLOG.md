@@ -7,6 +7,13 @@ language.
 
 ---
 
+## 2026-07-20 — Deck: vs H1 24 column, MOTS COVID/peak marks, April note
+Per Mae: financial tables got a "vs H1 24" delta column; the MOTS arrivals
+table grays out 2020/2021 with a (COVID) label and highlights the 2019 peak
+total 39,916,251 in yellow; portfolio slide note now attributes April
+softness to AES + LYF rather than the market (Bangkok compset was flat).
+Files: output deck + scripts/management_deck/build_deck.js.
+
 ## 2026-07-19 — Deck: 2024 added to STR, Section 3 and Section 4
 Mae uploaded result FY24 (filed: data/source/result FY24.xlsx). STR charts
 got a 2024 series; Section 3 slides a 2024 RevPAR line + vs-24 row; financial
