@@ -7,6 +7,12 @@ language.
 
 ---
 
+## 2026-07-20 — New: Q2 2026 one-slide summary (MF Asia format)
+Per Mae: built output/Thailand_SA_Q2-2026_summary.pptx — overview bullets +
+blue table (Occ, ADR, short-stay revenue share, nationality YTD) for the four
+hotels, Q2 = Apr–Jun, all figures from the reconciled workbook via
+deck_data. New reusable script scripts/quarter_summary.py.
+
 ## 2026-07-20 — Deck: vs H1 24 column, MOTS COVID/peak marks, April note
 Per Mae: financial tables got a "vs H1 24" delta column; the MOTS arrivals
 table grays out 2020/2021 with a (COVID) label and highlights the 2019 peak
