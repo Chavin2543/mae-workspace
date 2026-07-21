@@ -7,6 +7,12 @@ language.
 
 ---
 
+## 2026-07-20 — Deck: sign-based tile colors + EBIT summary box
+Per Mae: every key-data box's bottom +/- line is now green when better, red
+when worse (arrivals tiles were partly hardcoded); financial slides' summary
+box shows EBIT instead of NPAT (NPAT stays in the tables). Verified 40
+signed deltas across all slides. Files: output deck + build_deck.js.
+
 ## 2026-07-20 — Deck restructured into property chapters (management comment)
 Management wants the story per property: deck now runs Arrivals · Market ·
 Portfolio (perf+P&L) · then one chapter per hotel (SR9, AES, LYF, SP), each

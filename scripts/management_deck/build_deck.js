@@ -129,7 +129,8 @@ const PF = { act: ytdOf(data.portfolio.act), bg: ytdOf(data.portfolio.bg),
     ["PORTFOLIO REVPAR YTD", fmtTHB(PF.act.revpar), fmtDelta(grow(PF.act.revpar, PF.bg.revpar)) + " vs budget · " + fmtDelta(grow(PF.act.revpar, PF.ly.revpar)) + " vs LY"],
   ];
   r1.forEach((t, i) => tile(s, M + i * (tw + 0.3), 1.72, tw, th, t[0], t[1], t[2],
-    i === 0 ? BAD : GOOD));
+    [grow(A.mots.ytd["2026"], A.mots.ytd["2025"]), grow(A.chinese.ytd["2026"], A.chinese.ytd["2025"]),
+     grow(A.india.ytd["2026"], A.india.ytd["2025"])][i] >= 0 ? GOOD : BAD));
   r2.forEach((t, i) => tile(s, M + i * (tw + 0.3), 3.3, tw, th, t[0], t[1], t[2],
     [PF.act.occ - PF.bg.occ, grow(PF.act.adr, PF.bg.adr), grow(PF.act.revpar, PF.bg.revpar)][i] >= 0 ? GOOD : BAD));
   s.addText([
@@ -212,8 +213,8 @@ arrivalSlide("Total international arrivals (MOTS)", "Monthly arrivals, all natio
   [{ name: "2024", values: A.mots["2024"], color: ICE },
    { name: "2025", values: A.mots["2025"], color: SKY },
    { name: "2026", values: A.mots["2026"], color: NAVY }],
-  [["YTD JAN–MAY 2026", fmtM(A.mots.ytd["2026"]), fmtDelta(grow(A.mots.ytd["2026"], A.mots.ytd["2025"])) + " vs 2025 (" + fmtM(A.mots.ytd["2025"]) + ")", BAD],
-   ["YTD JAN–MAY 2025", fmtM(A.mots.ytd["2025"]), fmtDelta(grow(A.mots.ytd["2025"], A.mots.ytd["2024"])) + " vs 2024", MUT],
+  [["YTD JAN–MAY 2026", fmtM(A.mots.ytd["2026"]), fmtDelta(grow(A.mots.ytd["2026"], A.mots.ytd["2025"])) + " vs 2025 (" + fmtM(A.mots.ytd["2025"]) + ")", grow(A.mots.ytd["2026"], A.mots.ytd["2025"]) >= 0 ? GOOD : BAD],
+   ["YTD JAN–MAY 2025", fmtM(A.mots.ytd["2025"]), fmtDelta(grow(A.mots.ytd["2025"], A.mots.ytd["2024"])) + " vs 2024", grow(A.mots.ytd["2025"], A.mots.ytd["2024"]) >= 0 ? GOOD : BAD],
    ["VS PRE-COVID (2019)", fmtPct(A.mots.ytd["2026"] / 16746308, 0), "of Jan–May 2019 level", MUT]],
   "Source: Ministry of Tourism & Sports (MOTS). 2026 slightly below 2025 — January was weak (−12% vs Jan 2025), February–May broadly flat.");
 
@@ -240,7 +241,7 @@ arrivalSlide("Chinese arrivals", "Jan–May by year — 2019 shown as pre-COVID 
    { name: "2024", values: A.chinese["2024"], color: ICE },
    { name: "2025", values: A.chinese["2025"], color: SKY },
    { name: "2026", values: A.chinese["2026"], color: NAVY }],
-  [["YTD JAN–MAY 2026", fmtM(A.chinese.ytd["2026"]), fmtDelta(grow(A.chinese.ytd["2026"], A.chinese.ytd["2025"])) + " vs 2025", GOOD],
+  [["YTD JAN–MAY 2026", fmtM(A.chinese.ytd["2026"]), fmtDelta(grow(A.chinese.ytd["2026"], A.chinese.ytd["2025"])) + " vs 2025", grow(A.chinese.ytd["2026"], A.chinese.ytd["2025"]) >= 0 ? GOOD : BAD],
    ["VS 2019 LEVEL", fmtPct(A.chinese.ytd["2026"] / A.chinese.ytd["2019"], 0), "of pre-COVID Jan–May", MUT],
    ["VS 2024 LEVEL", fmtPct(A.chinese.ytd["2026"] / A.chinese.ytd["2024"], 0), "of Jan–May 2024", MUT]],
   "Chinese demand is recovering vs a weak 2025 (safety concerns faded) but is still only ~48% of pre-COVID volume.");
@@ -250,8 +251,8 @@ arrivalSlide("India arrivals", "Jan–May by year — India keeps setting record
   [{ name: "2024", values: A.india["2024"], color: ICE },
    { name: "2025", values: A.india["2025"], color: SKY },
    { name: "2026", values: A.india["2026"], color: NAVY }],
-  [["YTD JAN–MAY 2026", fmtM(A.india.ytd["2026"]), fmtDelta(grow(A.india.ytd["2026"], A.india.ytd["2025"])) + " vs 2025", GOOD],
-   ["YTD JAN–MAY 2025", fmtM(A.india.ytd["2025"]), fmtDelta(grow(A.india.ytd["2025"], A.india.ytd["2024"])) + " vs 2024", MUT],
+  [["YTD JAN–MAY 2026", fmtM(A.india.ytd["2026"]), fmtDelta(grow(A.india.ytd["2026"], A.india.ytd["2025"])) + " vs 2025", grow(A.india.ytd["2026"], A.india.ytd["2025"]) >= 0 ? GOOD : BAD],
+   ["YTD JAN–MAY 2025", fmtM(A.india.ytd["2025"]), fmtDelta(grow(A.india.ytd["2025"], A.india.ytd["2024"])) + " vs 2024", grow(A.india.ytd["2025"], A.india.ytd["2024"]) >= 0 ? GOOD : BAD],
    ["TREND", "3rd year", "of consecutive YTD growth", GOOD]],
   "India is the strongest growth market: +24% in January alone; Apr–May flat against a high 2025 base.");
 
@@ -261,7 +262,7 @@ arrivalSlide("Middle East arrivals", "Jan–May by year — 2019 shown as pre-CO
    { name: "2024", values: A.mideast["2024"], color: ICE },
    { name: "2025", values: A.mideast["2025"], color: SKY },
    { name: "2026", values: A.mideast["2026"], color: NAVY }],
-  [["YTD JAN–MAY 2026", fmtM(A.mideast.ytd["2026"]), fmtDelta(grow(A.mideast.ytd["2026"], A.mideast.ytd["2025"])) + " vs 2025", BAD],
+  [["YTD JAN–MAY 2026", fmtM(A.mideast.ytd["2026"]), fmtDelta(grow(A.mideast.ytd["2026"], A.mideast.ytd["2025"])) + " vs 2025", grow(A.mideast.ytd["2026"], A.mideast.ytd["2025"]) >= 0 ? GOOD : BAD],
    ["VS 2019 LEVEL", fmtPct(A.mideast.ytd["2026"] / A.mideast.ytd["2019"], 0), "of pre-COVID Jan–May", MUT],
    ["WORST MONTH", "Apr −57%", "vs April 2025", BAD]],
   "Middle East volumes dropped sharply from February — regional war effect. Watch for recovery in H2.", "#,##0");
@@ -284,11 +285,11 @@ arrivalSlide("Middle East arrivals", "Jan–May by year — 2019 shown as pre-CO
   mk("lh_usa", 4.95, "USA");
   const c = A.lh_all;
   tile(s, 9.35, 2.2, 3.35, 1.32, "LONG-HAUL YTD 2026", fmtM(c.ytd["2026"]),
-    fmtDelta(grow(c.ytd["2026"], c.ytd["2025"])) + " vs 2025", GOOD);
+    fmtDelta(grow(c.ytd["2026"], c.ytd["2025"])) + " vs 2025", grow(c.ytd["2026"], c.ytd["2025"]) >= 0 ? GOOD : BAD);
   tile(s, 9.35, 3.68, 3.35, 1.32, "EUROPE YTD", fmtM(A.lh_eu["2026"].reduce((a, b) => a + b, 0)),
-    fmtDelta(grow(A.lh_eu["2026"].reduce((a, b) => a + b, 0), A.lh_eu["2025"].reduce((a, b) => a + b, 0))) + " vs 2025", GOOD);
+    fmtDelta(grow(A.lh_eu["2026"].reduce((a, b) => a + b, 0), A.lh_eu["2025"].reduce((a, b) => a + b, 0))) + " vs 2025", grow(A.lh_eu["2026"].reduce((a, b) => a + b, 0), A.lh_eu["2025"].reduce((a, b) => a + b, 0)) >= 0 ? GOOD : BAD);
   tile(s, 9.35, 5.16, 3.35, 1.32, "USA YTD", fmtM(A.lh_usa["2026"].reduce((a, b) => a + b, 0)),
-    fmtDelta(grow(A.lh_usa["2026"].reduce((a, b) => a + b, 0), A.lh_usa["2025"].reduce((a, b) => a + b, 0))) + " vs 2025", GOOD);
+    fmtDelta(grow(A.lh_usa["2026"].reduce((a, b) => a + b, 0), A.lh_usa["2025"].reduce((a, b) => a + b, 0))) + " vs 2025", grow(A.lh_usa["2026"].reduce((a, b) => a + b, 0), A.lh_usa["2025"].reduce((a, b) => a + b, 0)) >= 0 ? GOOD : BAD);
   monthTable(s, M, 5.68, 8.45, [
     { name: "2024", values: A.lh_all["2024"] },
     { name: "2025", values: A.lh_all["2025"] },
@@ -569,9 +570,10 @@ function finSlide(eyebrow, title, sub, f26, m26, m25, m24) {
   const r26t = h1of(rev26), r25t = h25.revenue;
   tile(s, 6.7, 4.6, 2.9, 1.32, "REVENUE H1 2026", fmtMn(r26t),
     fmtDelta(grow(r26t, r25t)) + " vs H1 2025", grow(r26t, r25t) >= 0 ? GOOD : BAD);
-  tile(s, 9.83, 4.6, 2.9, 1.32, "NPAT H1 2026", fmtMn(npat26),
-    (npat26 - h25.npat >= 0 ? "+" : "") + fmtMn(npat26 - h25.npat).replace("\u2212", "\u2212") + " vs H1 2025 (" + fmtMn(h25.npat) + ")",
-    npat26 - h25.npat >= 0 ? GOOD : BAD);
+  const ebit26 = h1of(m26.ebit);
+  tile(s, 9.83, 4.6, 2.9, 1.32, "EBIT H1 2026", fmtMn(ebit26),
+    (ebit26 - h25.ebit >= 0 ? "+" : "") + fmtMn(ebit26 - h25.ebit) + " vs H1 2025 (" + fmtMn(h25.ebit) + ")",
+    ebit26 - h25.ebit >= 0 ? GOOD : BAD);
   note(s, M, 6.95, 11.9, "GOP = gross operating profit (\u2248 EBITDA). MF budget = Mitsui Fudosan budget. "
     + "All figures are Jan\u2013Jun sums of the monthly P&L blocks in the result sheets; budget rows exist for OPEX, GOP and EBIT only "
     + "(revenue, GOP margin and NPAT show \u2014). JV expense derived as EBIT \u2212 GOP. Source: result FY24/FY25/FY26 sheets (official record).");
