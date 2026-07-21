@@ -7,6 +7,12 @@ language.
 
 ---
 
+## 2026-07-20 — Deck: two-comparison tile lines split into per-sign colors
+Mae caught that "x vs budget · y vs LY" lines used one color for both parts.
+tile() now takes multi-color runs (subRuns helper); each delta is green/red
+by its own sign on the exec-summary and all performance-slide tiles.
+58 delta segments verified. Files: output deck + build_deck.js.
+
 ## 2026-07-20 — Deck: sign-based tile colors + EBIT summary box
 Per Mae: every key-data box's bottom +/- line is now green when better, red
 when worse (arrivals tiles were partly hardcoded); financial slides' summary

@@ -52,8 +52,21 @@ function tile(slide, x, y, w, h, label, big, sub, subColor) {
     fontFace: F, fontSize: 10.5, color: MUT, bold: true });
   slide.addText(big, { x: x + 0.16, y: y + 0.34, w: w - 0.32, h: 0.52, margin: 0,
     fontFace: F, fontSize: 24, color: NAVY, bold: true });
-  if (sub) slide.addText(sub, { x: x + 0.16, y: y + 0.84, w: w - 0.32, h: h - 0.9,
-    margin: 0, fontFace: F, fontSize: 10.5, color: subColor || MUT });
+  if (sub) {
+    // sub may be a plain string (single color) or an array of
+    // {text, color} runs so each comparison gets its own green/red
+    const content = Array.isArray(sub)
+      ? sub.map((r) => ({ text: r.text, options: { color: r.color || MUT } }))
+      : sub;
+    slide.addText(content, { x: x + 0.16, y: y + 0.84, w: w - 0.32, h: h - 0.9,
+      margin: 0, fontFace: F, fontSize: 10.5, color: subColor || MUT });
+  }
+}
+// two-comparison sub-line: each delta colored by its own sign
+function subRuns(txt1, v1, txt2, v2) {
+  return [{ text: txt1, color: v1 >= 0 ? GOOD : BAD },
+          { text: " \u00b7 ", color: MUT },
+          { text: txt2, color: v2 >= 0 ? GOOD : BAD }];
 }
 
 function note(slide, x, y, w, text) {
@@ -120,13 +133,21 @@ const PF = { act: ytdOf(data.portfolio.act), bg: ytdOf(data.portfolio.bg),
   const g = (o) => (o >= 0 ? GOOD : BAD);
   const r1 = [
     ["THAILAND ARRIVALS (MOTS)", fmtM(A.mots.ytd["2026"]), fmtDelta(grow(A.mots.ytd["2026"], A.mots.ytd["2025"])) + " vs 2025 YTD"],
-    ["CHINESE ARRIVALS", fmtM(A.chinese.ytd["2026"]), fmtDelta(grow(A.chinese.ytd["2026"], A.chinese.ytd["2025"])) + " vs 2025 · still " + fmtPct(A.chinese.ytd["2026"] / A.chinese.ytd["2019"], 0) + " of 2019"],
+    ["CHINESE ARRIVALS", fmtM(A.chinese.ytd["2026"]),
+     [{ text: fmtDelta(grow(A.chinese.ytd["2026"], A.chinese.ytd["2025"])) + " vs 2025", color: grow(A.chinese.ytd["2026"], A.chinese.ytd["2025"]) >= 0 ? GOOD : BAD },
+      { text: " \u00b7 still " + fmtPct(A.chinese.ytd["2026"] / A.chinese.ytd["2019"], 0) + " of 2019", color: MUT }]],
     ["INDIA ARRIVALS", fmtM(A.india.ytd["2026"]), fmtDelta(grow(A.india.ytd["2026"], A.india.ytd["2025"])) + " vs 2025 — record high"],
   ];
   const r2 = [
-    ["PORTFOLIO OCCUPANCY YTD", fmtPct(PF.act.occ), fmtDelta(PF.act.occ - PF.bg.occ, 1).replace("%", " pts") + " vs budget · " + fmtDelta(PF.act.occ - PF.ly.occ, 1).replace("%", " pts") + " vs LY"],
-    ["PORTFOLIO ADR YTD", fmtTHB(PF.act.adr), fmtDelta(grow(PF.act.adr, PF.bg.adr)) + " vs budget · " + fmtDelta(grow(PF.act.adr, PF.ly.adr)) + " vs LY"],
-    ["PORTFOLIO REVPAR YTD", fmtTHB(PF.act.revpar), fmtDelta(grow(PF.act.revpar, PF.bg.revpar)) + " vs budget · " + fmtDelta(grow(PF.act.revpar, PF.ly.revpar)) + " vs LY"],
+    ["PORTFOLIO OCCUPANCY YTD", fmtPct(PF.act.occ), subRuns(
+       fmtDelta(PF.act.occ - PF.bg.occ, 1).replace("%", " pts") + " vs budget", PF.act.occ - PF.bg.occ,
+       fmtDelta(PF.act.occ - PF.ly.occ, 1).replace("%", " pts") + " vs LY", PF.act.occ - PF.ly.occ)],
+    ["PORTFOLIO ADR YTD", fmtTHB(PF.act.adr), subRuns(
+       fmtDelta(grow(PF.act.adr, PF.bg.adr)) + " vs budget", grow(PF.act.adr, PF.bg.adr),
+       fmtDelta(grow(PF.act.adr, PF.ly.adr)) + " vs LY", grow(PF.act.adr, PF.ly.adr))],
+    ["PORTFOLIO REVPAR YTD", fmtTHB(PF.act.revpar), subRuns(
+       fmtDelta(grow(PF.act.revpar, PF.bg.revpar)) + " vs budget", grow(PF.act.revpar, PF.bg.revpar),
+       fmtDelta(grow(PF.act.revpar, PF.ly.revpar)) + " vs LY", grow(PF.act.revpar, PF.ly.revpar))],
   ];
   r1.forEach((t, i) => tile(s, M + i * (tw + 0.3), 1.72, tw, th, t[0], t[1], t[2],
     [grow(A.mots.ytd["2026"], A.mots.ytd["2025"]), grow(A.chinese.ytd["2026"], A.chinese.ytd["2025"]),
@@ -394,15 +415,15 @@ function perfSlide(eyebrow, sectionTitle, subtitle, actArr, bgArr, lyArr, ly24Ar
       rowH: 0.24, valign: "middle" });
   }
   const rows = [
-    ["OCCUPANCY · YTD", fmtPct(ytd.act.occ),
-      fmtDelta(ytd.act.occ - ytd.bg.occ).replace("%", " pts") + " vs budget · " + fmtDelta(ytd.act.occ - ytd.ly.occ).replace("%", " pts") + " vs LY",
-      ytd.act.occ >= ytd.bg.occ ? GOOD : BAD],
-    ["ADR · YTD", fmtTHB(ytd.act.adr),
-      fmtDelta(grow(ytd.act.adr, ytd.bg.adr)) + " vs budget · " + fmtDelta(grow(ytd.act.adr, ytd.ly.adr)) + " vs LY",
-      ytd.act.adr >= ytd.bg.adr ? GOOD : BAD],
-    ["REVPAR · YTD", fmtTHB(ytd.act.revpar),
-      fmtDelta(grow(ytd.act.revpar, ytd.bg.revpar)) + " vs budget · " + fmtDelta(grow(ytd.act.revpar, ytd.ly.revpar)) + " vs LY",
-      ytd.act.revpar >= ytd.bg.revpar ? GOOD : BAD],
+    ["OCCUPANCY · YTD", fmtPct(ytd.act.occ), subRuns(
+      fmtDelta(ytd.act.occ - ytd.bg.occ).replace("%", " pts") + " vs budget", ytd.act.occ - ytd.bg.occ,
+      fmtDelta(ytd.act.occ - ytd.ly.occ).replace("%", " pts") + " vs LY", ytd.act.occ - ytd.ly.occ)],
+    ["ADR · YTD", fmtTHB(ytd.act.adr), subRuns(
+      fmtDelta(grow(ytd.act.adr, ytd.bg.adr)) + " vs budget", grow(ytd.act.adr, ytd.bg.adr),
+      fmtDelta(grow(ytd.act.adr, ytd.ly.adr)) + " vs LY", grow(ytd.act.adr, ytd.ly.adr))],
+    ["REVPAR · YTD", fmtTHB(ytd.act.revpar), subRuns(
+      fmtDelta(grow(ytd.act.revpar, ytd.bg.revpar)) + " vs budget", grow(ytd.act.revpar, ytd.bg.revpar),
+      fmtDelta(grow(ytd.act.revpar, ytd.ly.revpar)) + " vs LY", grow(ytd.act.revpar, ytd.ly.revpar))],
   ];
   let ty = 2.0;
   rows.forEach((t) => { tile(s, 8.85, ty, 3.85, 1.38, t[0], t[1], t[2], t[3]); ty += 1.54; });
