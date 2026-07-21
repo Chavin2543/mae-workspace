@@ -7,6 +7,12 @@ language.
 
 ---
 
+## 2026-07-20 — Deck restructured into property chapters (management comment)
+Management wants the story per property: deck now runs Arrivals · Market ·
+Portfolio (perf+P&L) · then one chapter per hotel (SR9, AES, LYF, SP), each
+with performance, P&L, segmentation and nationality slides together.
+44 slides; content unchanged, order+sections reworked in build_deck.js.
+
 ## 2026-07-20 — New: Q2 2026 one-slide summary (MF Asia format)
 Per Mae: built output/Thailand_SA_Q2-2026_summary.pptx — overview bullets +
 blue table (Occ, ADR, short-stay revenue share, nationality YTD) for the four

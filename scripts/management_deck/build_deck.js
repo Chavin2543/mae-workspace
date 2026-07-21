@@ -92,7 +92,7 @@ function divider(num, title, items) {
     margin: 0, fontFace: F, fontSize: 15, color: GOLD, bold: true, charSpacing: 3 });
   s.addText("Performance Report — H1 2026", { x: M, y: 2.55, w: 12.2, h: 1.05,
     margin: 0, fontFace: F, fontSize: 48, color: "FFFFFF", bold: true });
-  s.addText("Tourist arrivals · Market (STR) · Performance vs budget · Financial performance · Segmentation & nationality",
+  s.addText("Tourist arrivals · Market (STR) · Portfolio · By property: performance · P&L · segmentation · nationality",
     { x: M, y: 3.7, w: 11.5, h: 0.4, margin: 0, fontFace: F, fontSize: 15, color: "AFC0E8" });
   s.addText("Somerset Rama 9 (SR9)  ·  Ascott Embassy Sathorn (AES)  ·  lyf Sukhumvit 8 (LYF)  ·  Somerset Pattaya (SP)",
     { x: M, y: 6.35, w: 11.5, h: 0.35, margin: 0, fontFace: F, fontSize: 12, color: "7C8BC0" });
@@ -346,11 +346,10 @@ strSlide("pattaya", "Pattaya", "Monthly compset performance, 2024–2026 (Jan–
 // ============================================================
 // SECTION 3 — PERFORMANCE VS BUDGET
 // ============================================================
-divider("3", "Performance vs Budget", "Portfolio and each property — Occ, ADR, RevPAR · monthly & YTD");
 
-function perfSlide(sectionTitle, subtitle, actArr, bgArr, lyArr, ly24Arr, ytd, noteText) {
+function perfSlide(eyebrow, sectionTitle, subtitle, actArr, bgArr, lyArr, ly24Arr, ytd, noteText) {
   const s = pres.addSlide();
-  header(s, "Section 3 · Performance vs budget", sectionTitle, subtitle);
+  header(s, eyebrow, sectionTitle, subtitle);
   const n = actArr.length;
   const lbl = MONTHS.slice(0, n);
   s.addChart([
@@ -410,10 +409,12 @@ function perfSlide(sectionTitle, subtitle, actArr, bgArr, lyArr, ly24Arr, ytd, n
 }
 
 // portfolio
-perfSlide("Portfolio — all four properties", "Weighted by room inventory (1,406 keys) · YTD = Jan–Jun 2026",
+function portfolioPerfSlide(eyebrow) {
+  perfSlide(eyebrow, "Portfolio — all four properties", "Weighted by room inventory (1,406 keys) · YTD = Jan–Jun 2026",
   data.portfolio.act, data.portfolio.bg, data.portfolio.ly, data.portfolio.ly24, PF,
   "Portfolio RevPAR is ~4% behind budget, driven mainly by rate (ADR −3.4%); occupancy is near plan (−0.7 pts). Vs last year RevPAR is broadly flat. "
   + "April was the softest month — driven by AES (−16% RevPAR vs budget, ≈half the gap) and LYF (occupancy 50% vs 83% budgeted), not really the market: the Bangkok compset was broadly flat vs last year (only Pattaya was genuinely softer, affecting SP).");
+}
 
 // per property
 const DAYS24 = [31, 29, 31, 30, 31, 30]; // 2024 leap year
@@ -432,7 +433,7 @@ const PROP_NOTES = {
   LYF: "LYF: strong Q1 above budget, then April dropped sharply (occupancy −32 pts vs budget) — recovering since May.",
   SP: "SP: ahead of budget in Jan–Feb high season; Mar–Jun broadly on plan in a softer Pattaya market.",
 };
-for (const key of ["SR9", "AES", "LYF", "SP"]) {
+function propPerfSlide(key, eyebrow) {
   const p = data.perf[key];
   const act = [], bg = [], ly = [], ly24 = [];
   for (let i = 0; i < 6; i++) {
@@ -441,7 +442,7 @@ for (const key of ["SR9", "AES", "LYF", "SP"]) {
     ly.push({ occ: p.ly_occ[i], adr: p.ly_adr[i], revpar: p.ly_revpar[i] });
     ly24.push({ occ: p.ly24_occ[i], adr: p.ly24_adr[i], revpar: p.ly24_revpar[i] });
   }
-  perfSlide(p.name + " (" + key + ")", p.rooms + " keys · monthly + YTD Jan–Jun vs budget, 2025 and 2024",
+  perfSlide(eyebrow, p.name + " (" + key + ")", p.rooms + " keys · monthly + YTD Jan–Jun vs budget, 2025 and 2024",
     act, bg, ly, ly24, { act: propYtd(p, ""), bg: propYtd(p, "bg_"), ly: propYtd(p, "ly_"),
                          ly24: propYtd(p, "ly24_", DAYS24) },
     PROP_NOTES[key]);
@@ -453,15 +454,12 @@ for (const key of ["SR9", "AES", "LYF", "SP"]) {
 // ============================================================
 // SECTION 4 — FINANCIAL PERFORMANCE
 // ============================================================
-divider("4", "Financial Performance",
-  "Revenue \u00b7 OPEX \u00b7 GOP (EBITDA) \u00b7 EBIT \u2014 portfolio and each property, H1 2026 vs budget");
-
 const fmtMn = (v) => (v < 0 ? "\u2212" : "") + "\u0e3f" + Math.abs(v / 1e6).toFixed(1) + "M";
 const h1of = (arr) => arr.slice(0, 6).reduce((t, v) => t + (v || 0), 0);
 
-function finSlide(title, sub, f26, m26, m25, m24) {
+function finSlide(eyebrow, title, sub, f26, m26, m25, m24) {
   const s = pres.addSlide();
-  header(s, "Section 4 \u00b7 Financial performance", title, sub);
+  header(s, eyebrow, title, sub);
   const rev26 = m26.revenue.slice(0, 6), rev25 = m25.revenue.slice(0, 6);
   s.addChart(pres.ChartType.bar, [
     { name: "2024", labels: MONTHS.slice(0, 6), values: m24.revenue.slice(0, 6) },
@@ -580,29 +578,28 @@ function finSlide(title, sub, f26, m26, m25, m24) {
   return s;
 }
 
-{
-  const F26 = data.fin["2026"];
-  const FM26 = data.fin_monthly["2026"], FM25 = data.fin_monthly["2025"], FM24 = data.fin_monthly["2024"];
-  // 4-property portfolio prior-year monthly = sum of the properties
-  const pfSum = (FM) => {
-    const pf = {};
-    for (const met of ["revenue", "opex", "gop", "ebit", "npat"]) {
-      pf[met] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((i) =>
-        ["SR9", "AES", "LYF", "SP"].reduce((t, k) => t + (FM[k][met][i] || 0), 0));
-    }
-    return pf;
-  };
-  const pf25 = pfSum(FM25), pf24 = pfSum(FM24);
-  finSlide("Portfolio \u2014 P&L, H1 2026", "All four properties \u00b7 YTD Jan\u2013Jun vs MF budget \u00b7 monthly P&L and H1 2025/2024 comparison",
-    F26.PF, FM26.PF, pf25, pf24);
-  for (const key of ["SR9", "AES", "LYF", "SP"]) {
-    finSlide(data.perf[key].name + " (" + key + ") \u2014 P&L, H1 2026",
-      "YTD Jan\u2013Jun vs MF budget \u00b7 monthly P&L and H1 2025/2024 comparison",
-      F26[key], FM26[key], FM25[key], FM24[key]);
+const F26 = data.fin["2026"];
+const FM26 = data.fin_monthly["2026"], FM25 = data.fin_monthly["2025"], FM24 = data.fin_monthly["2024"];
+// 4-property portfolio prior-year monthly = sum of the properties
+const pfSum = (FM) => {
+  const pf = {};
+  for (const met of ["revenue", "opex", "gop", "ebit", "npat"]) {
+    pf[met] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((i) =>
+      ["SR9", "AES", "LYF", "SP"].reduce((t, k) => t + (FM[k][met][i] || 0), 0));
   }
+  return pf;
+};
+const pf25 = pfSum(FM25), pf24 = pfSum(FM24);
+function portfolioFinSlide(eyebrow) {
+  finSlide(eyebrow, "Portfolio \u2014 P&L, H1 2026", "All four properties \u00b7 YTD Jan\u2013Jun vs MF budget \u00b7 monthly P&L and H1 2025/2024 comparison",
+    F26.PF, FM26.PF, pf25, pf24);
+}
+function propFinSlide(key, eyebrow) {
+  finSlide(eyebrow, data.perf[key].name + " (" + key + ") \u2014 P&L, H1 2026",
+    "YTD Jan\u2013Jun vs MF budget \u00b7 monthly P&L and H1 2025/2024 comparison",
+    F26[key], FM26[key], FM25[key], FM24[key]);
 }
 
-divider("5", "Segmentation & Nationality", "Room nights by segment and guest nationality — each property, monthly & YTD");
 
 const SEG_SHORT = {
   "Corporate SS": "Corporate SS", "Corporate LS": "Corporate LS",
@@ -615,11 +612,11 @@ const SEG_SHORT = {
   "Employee Travel": "Employee", "Corporate Group with Banque": "Corp Grp Banque",
 };
 
-for (const key of ["SR9", "AES", "LYF", "SP"]) {
+function segSlides(key, eyebrow) {
   const p = data.perf[key];
   const segs = data.seg[key].filter((r) => r.ytd > 0);
   const s = pres.addSlide();
-  header(s, "Section 5 · Segmentation", p.name + " (" + key + ") — room nights by segment",
+  header(s, eyebrow, p.name + " (" + key + ") — room nights by segment",
     "Monthly mix Jan–Jun 2026 (left) and YTD share (right)");
   s.addChart(pres.ChartType.bar,
     segs.map((r, i) => ({ name: SEG_SHORT[r.label] || r.label, labels: MONTHS.slice(0, 6), values: r.m })),
@@ -648,7 +645,7 @@ for (const key of ["SR9", "AES", "LYF", "SP"]) {
   // second slide: monthly numbers table by segment
   {
     const s2 = pres.addSlide();
-    header(s2, "Section 5 \u00b7 Segmentation", p.name + " (" + key + ") \u2014 segmentation, monthly numbers",
+    header(s2, eyebrow, p.name + " (" + key + ") \u2014 segmentation, monthly numbers",
       "Room nights by segment per month (2026) \u00b7 YTD, mix and revenue");
     const zebra = (i) => ({ color: i % 2 ? PANEL : "FFFFFF" });
     const hc = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: NAVY }, align: "center" } });
@@ -685,14 +682,14 @@ for (const key of ["SR9", "AES", "LYF", "SP"]) {
 }
 
 // nationality slides — room-night counts, 2026 and 2025
-for (const key of ["SR9", "AES", "LYF", "SP"]) {
+function natSlide(key, eyebrow) {
   const p = data.perf[key];
   const n26 = data.nat_rn[key]["2026"];
   const n25 = data.nat_rn[key]["2025"];
   const by25 = {};
   n25.forEach((e) => { by25[e.label] = e; });
   const s = pres.addSlide();
-  header(s, "Section 5 \u00b7 Nationality", p.name + " (" + key + ") \u2014 guest nationality (room nights)",
+  header(s, eyebrow, p.name + " (" + key + ") \u2014 guest nationality (room nights)",
     "Top 10 nationalities \u00b7 H1 room nights 2026 vs 2025 (left) \u00b7 monthly room nights by year (right)");
   s.addChart(pres.ChartType.bar, [
     { name: "2025 H1", labels: n26.map((c) => c.label), values: n26.map((c) => (by25[c.label] ? by25[c.label].h1 : 0)) },
@@ -734,7 +731,7 @@ for (const key of ["SR9", "AES", "LYF", "SP"]) {
   // second slide: YTD mix pies (2025 vs 2026) + change table
   {
     const s2 = pres.addSlide();
-    header(s2, "Section 5 \u00b7 Nationality", p.name + " (" + key + ") \u2014 nationality mix & change (YTD)",
+    header(s2, eyebrow, p.name + " (" + key + ") \u2014 nationality mix & change (YTD)",
       "Share of top-10 room nights, H1 2025 vs H1 2026 \u00b7 change by nationality");
     const union = n26.map((e) => e.label);
     n25.forEach((e) => { if (union.indexOf(e.label) < 0) union.push(e.label); });
@@ -782,6 +779,26 @@ for (const key of ["SR9", "AES", "LYF", "SP"]) {
       + "Change table follows the 2026 top-10; \u2018new\u2019 = outside 2025\u2019s top-10. Same nationality = same colour in both pies.");
   }
 }
+
+// ============================================================
+// COMPOSITION — portfolio chapter, then one chapter per property
+// (management request, Jul 2026: tell the story by property, merging
+//  performance / financial / segmentation / nationality)
+// ============================================================
+divider("3", "Portfolio", "All four properties — performance vs budget · P&L");
+portfolioPerfSlide("Section 3 · Portfolio");
+portfolioFinSlide("Section 3 · Portfolio");
+["SR9", "AES", "LYF", "SP"].forEach((key, idx) => {
+  const num = String(4 + idx);
+  const p = data.perf[key];
+  divider(num, p.name + " (" + key + ")",
+    "Performance vs budget · P&L · Segmentation · Guest nationality");
+  const eb = "Section " + num + " · " + p.name + " (" + key + ")";
+  propPerfSlide(key, eb);
+  propFinSlide(key, eb);
+  segSlides(key, eb);
+  natSlide(key, eb);
+});
 
 // ============================================================
 // SOURCES / NOTES
