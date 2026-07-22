@@ -7,6 +7,12 @@ language.
 
 ---
 
+## 2026-07-22 — June arrivals completed on both sheets (Arrival too)
+Per Mae: filled June 2026 into every remaining block — Arrival sheet (MOTS
+total, China, India, America, EU, EU+USA formula) and the Summary-arrival
+Middle East block. AOT + Bangkok/Pattaya city blocks left (different
+sources, noted in audit). Caches restored after save; all reads verified.
+
 ## 2026-07-22 — Workbook cache repair + deck reads result sheets directly
 The June-arrivals save had blanked ~8.6k stored formula results (openpyxl
 drops external-link/shared caches). Rebuilt from git + new
