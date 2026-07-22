@@ -117,14 +117,38 @@ for key, b in FY24_BLOCK.items():
     perf[key]["ly24_adr"] = row(r24s, b + 14, 4, 12)
     perf[key]["ly24_revpar"] = row(r24s, b + 17, 4, 12)
 
-# corrections for stale formula caches after the surgical patch (Excel has
-# not recalculated): AES Jan-2026 occ root lives on the AES tab; Jan revpar
-# is occ*adr everywhere.
-perf["AES"]["occ"][0] = round(wb["AES"]["C8"].value, 4)
-for key in PROPS:
-    p_ = perf[key]
-    if isinstance(p_["occ"][0], (int, float)) and isinstance(p_["adr"][0], (int, float)):
-        p_["revpar"][0] = round(p_["occ"][0] * p_["adr"][0], 2)
+# Result sheets are the priority source (Mae, Jul 2026): monthly Occ/ADR/
+# RevPAR actuals (2026 + 2025) and the MF budget come straight from result
+# FY26/FY25. ADR basis is INCL BREAKFAST (Mae's ruling): in FY26 that is
+# the separate "ADR BF" row (SR9/AES/SP; LYF has no breakfast product so
+# its plain ADR row is the basis); FY25/FY24 plain ADR rows already
+# include breakfast (recon Jul 2026). RevPAR recomputed = Occ x ADR(BF),
+# matching how the Summary tab derived it. The Summary tab is kept only
+# for room-revenue rows and as a cross-check.
+r26s, r25s = wb["result FY26"], wb["result FY25"]
+R26_BLOCK = {"SR9": 34, "AES": 57, "LYF": 80, "SP": 103}
+R25_BLOCK = {"SR9": 34, "AES": 78, "LYF": 100, "SP": 122}  # ATB (56) excluded
+def adr_bf_row(ws, b):
+    for r in range(b, b + 25):
+        if str(ws.cell(r, 2).value or "").strip() == "ADR BF":
+            return r
+    return b + 14  # no ADR BF row -> plain ADR (LYF)
+for key, b in R26_BLOCK.items():
+    assert str(r26s.cell(b, 2).value).strip().upper() == key, (key, r26s.cell(b, 2).value)
+    occ = row(r26s, b + 11, 4, 12)
+    adr = row(r26s, adr_bf_row(r26s, b), 4, 12)
+    perf[key]["occ"] = occ
+    perf[key]["adr"] = adr
+    perf[key]["revpar"] = [round(o * a, 2) if isinstance(o, (int, float)) and isinstance(a, (int, float)) else None
+                           for o, a in zip(occ, adr)]
+    perf[key]["bg_occ"] = row(r26s, b + 7, 4, 12)     # MF Projection rows
+    perf[key]["bg_adr"] = row(r26s, b + 8, 4, 12)
+    perf[key]["bg_revpar"] = row(r26s, b + 9, 4, 12)
+for key, b in R25_BLOCK.items():
+    assert str(r25s.cell(b, 2).value).strip().upper() == key, (key, r25s.cell(b, 2).value)
+    perf[key]["ly_occ"] = row(r25s, b + 11, 4, 12)
+    perf[key]["ly_adr"] = row(r25s, b + 14, 4, 12)
+    perf[key]["ly_revpar"] = row(r25s, b + 17, 4, 12)
 data["perf"] = perf
 
 # ---------- financials: monthly P&L blocks ONLY (Mae, Jul 2026) ----------
@@ -133,7 +157,6 @@ data["perf"] = perf
 # lines. Everything below comes from the monthly blocks (label col R,
 # months T..AE = Jan..Dec): actual rows plus the real budget rows
 # (Ascott BP / MF Projection) which exist for OPEX, GOP, % GOP, EBIT only.
-r26s, r25s = wb["result FY26"], wb["result FY25"]
 LABELS = {"Total Revenue": "revenue", "OPEX": "opex", "GOP": "gop",
           "% GOP Margin": "margin", "EBIT": "ebit", "NPAT": "npat",
           "Ascott BP OPEX": "opex_bp", "MF Projection OPEX": "opex_mf",

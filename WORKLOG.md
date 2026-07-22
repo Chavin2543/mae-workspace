@@ -7,6 +7,14 @@ language.
 
 ---
 
+## 2026-07-22 — Workbook cache repair + deck reads result sheets directly
+The June-arrivals save had blanked ~8.6k stored formula results (openpyxl
+drops external-link/shared caches). Rebuilt from git + new
+scripts/restore_formula_caches.py; rule in CLAUDE.md + decision logged.
+Deck Occ/ADR/RevPAR now come straight from result FY26/FY25 (ADR BF basis,
+MF Projection budget) — only visible change: SR9 Jan occ 87.71%→87.02%
+(official). Verified all months vs result sheets.
+
 ## 2026-07-22 — June 2026 arrivals filled (Total/China/India/ME/long-haul)
 Mae uploaded the MOTS June nationality file (filed in data/source/). Filled
 June into Summary-arrival (total, China, India, Europe, America, LH formula)

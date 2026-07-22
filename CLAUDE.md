@@ -249,6 +249,14 @@ URL within a session; pass the previous artifact URL from new sessions).
 - Ask Mae before touching tabs other than the one being reconciled.
 - Every automated edit to a workbook must leave an audit trail (audit sheet
   and/or report committed to the repo).
+- **After ANY openpyxl save of a delivered workbook, restore formula caches**
+  (Mae's data loss near-miss, Jul 2026): openpyxl writes external-link and
+  shared formulas with an empty `<v/>`, so every such cell reads blank via
+  `data_only=True` afterwards (Excel still recalcs on open, but our scripts
+  and checks break). Fix: `python3 scripts/restore_formula_caches.py
+  <last-good.xlsx from git> <just-saved.xlsx>` — then verify a known formula
+  cell reads back non-empty. Cells whose inputs changed keep a stale cache
+  until Excel recalculates (same as a surgical patch; note it in the audit).
 - Keep fonts/formats of edited cells as found; write plain values, not styles.
 - Commit messages: `Reconcile <scope> vs <source> (<month year>)` for
   reconciliations; `task: start|done <slug>`, `docs: log decision <slug>`,
