@@ -7,6 +7,13 @@ language.
 
 ---
 
+## 2026-07-22 — Arrivals YTD extended to H1 (Jan-Jun) in workbook + deck
+Per Mae: every Jan-May YTD sum now covers Jan-Jun — 24 formulas widened,
+9 hardcoded totals became real =SUM formulas, labels renamed to H1; caches
+carry correct H1 values. Deck arrivals section now shows Jan-Jun with
+"June preliminary" flags (MOTS YTD -4.9% vs LY). ME confirmed filled on
+both sheets (52,702); only AOT + city blocks await other sources.
+
 ## 2026-07-22 — June arrivals completed on both sheets (Arrival too)
 Per Mae: filled June 2026 into every remaining block — Arrival sheet (MOTS
 total, China, India, America, EU, EU+USA formula) and the Summary-arrival

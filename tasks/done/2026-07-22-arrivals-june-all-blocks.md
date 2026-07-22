@@ -22,3 +22,11 @@ H131 (283,297), India W123 (163,378), America AL131 (90,980), EU AL139
 pass table + not-filled list: AOT block and Bangkok/Pattaya city blocks
 use different sources; the Jan-Mar MOTS table is quarterly by design).
 Caches restored (8,578) per the new rule; read-back all ✓.
+
+Third pass (same day): all Jan-May YTD sums extended to H1 (Jan-Jun) —
+24 SUM formulas widened one column, 9 hardcoded totals (India, ME, LH)
+converted to real =SUM(Jan:Jun) formulas, 23 labels renamed to H1; correct
+H1 values written into the formula caches (34 + 3 LH chain cells). Deck
+updated to match: arrivals arrays 6 months, all YTD tiles/labels now
+Jan-Jun with "June preliminary" flags; MOTS YTD -4.9% vs LY (June missing
+4 days drags it). STR stays Jan-May (its data really ends in May).

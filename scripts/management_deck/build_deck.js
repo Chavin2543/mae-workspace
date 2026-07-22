@@ -109,7 +109,7 @@ function divider(num, title, items) {
     { x: M, y: 3.7, w: 11.5, h: 0.4, margin: 0, fontFace: F, fontSize: 15, color: "AFC0E8" });
   s.addText("Somerset Rama 9 (SR9)  ·  Ascott Embassy Sathorn (AES)  ·  lyf Sukhumvit 8 (LYF)  ·  Somerset Pattaya (SP)",
     { x: M, y: 6.35, w: 11.5, h: 0.35, margin: 0, fontFace: F, fontSize: 12, color: "7C8BC0" });
-  s.addText("Data through June 2026 (arrivals & STR through May) · Prepared July 2026",
+  s.addText("Data through June 2026 (June arrivals preliminary · STR through May) · Prepared July 2026",
     { x: M, y: 6.72, w: 11.5, h: 0.35, margin: 0, fontFace: F, fontSize: 11, color: "7C8BC0" });
 }
 
@@ -128,7 +128,7 @@ const PF = { act: ytdOf(data.portfolio.act), bg: ytdOf(data.portfolio.bg),
 {
   const s = pres.addSlide();
   header(s, "Executive summary", "H1 2026 at a glance",
-    "Arrivals YTD = Jan–May vs same period 2025 · Portfolio YTD = Jan–Jun vs budget");
+    "Arrivals YTD = Jan–Jun vs same period 2025 (June preliminary) · Portfolio YTD = Jan–Jun vs budget");
   const tw = (W - 2 * M - 0.6) / 3, th = 1.42;
   const g = (o) => (o >= 0 ? GOOD : BAD);
   const r1 = [
@@ -230,13 +230,13 @@ function arrivalSlide(title, subtitle, series, ytdTiles, noteText, valFmt) {
 }
 
 // MOTS
-arrivalSlide("Total international arrivals (MOTS)", "Monthly arrivals, all nationalities — 2026 data through May",
+arrivalSlide("Total international arrivals (MOTS)", "Monthly arrivals, all nationalities — 2026 through June (June preliminary: 4 days missing)",
   [{ name: "2024", values: A.mots["2024"], color: ICE },
    { name: "2025", values: A.mots["2025"], color: SKY },
    { name: "2026", values: A.mots["2026"], color: NAVY }],
-  [["YTD JAN–MAY 2026", fmtM(A.mots.ytd["2026"]), fmtDelta(grow(A.mots.ytd["2026"], A.mots.ytd["2025"])) + " vs 2025 (" + fmtM(A.mots.ytd["2025"]) + ")", grow(A.mots.ytd["2026"], A.mots.ytd["2025"]) >= 0 ? GOOD : BAD],
-   ["YTD JAN–MAY 2025", fmtM(A.mots.ytd["2025"]), fmtDelta(grow(A.mots.ytd["2025"], A.mots.ytd["2024"])) + " vs 2024", grow(A.mots.ytd["2025"], A.mots.ytd["2024"]) >= 0 ? GOOD : BAD],
-   ["VS PRE-COVID (2019)", fmtPct(A.mots.ytd["2026"] / 16746308, 0), "of Jan–May 2019 level", MUT]],
+  [["YTD JAN–JUN 2026", fmtM(A.mots.ytd["2026"]), fmtDelta(grow(A.mots.ytd["2026"], A.mots.ytd["2025"])) + " vs 2025 (" + fmtM(A.mots.ytd["2025"]) + ")", grow(A.mots.ytd["2026"], A.mots.ytd["2025"]) >= 0 ? GOOD : BAD],
+   ["YTD JAN–JUN 2025", fmtM(A.mots.ytd["2025"]), fmtDelta(grow(A.mots.ytd["2025"], A.mots.ytd["2024"])) + " vs 2024", grow(A.mots.ytd["2025"], A.mots.ytd["2024"]) >= 0 ? GOOD : BAD],
+   ["VS PRE-COVID (2019)", fmtPct(A.mots.ytd["2026"] / A.mots_full["2019"].m.slice(0, 6).reduce((a, b) => a + (b || 0), 0), 0), "of Jan–Jun 2019 level", MUT]],
   "Source: Ministry of Tourism & Sports (MOTS). 2026 slightly below 2025 — January was weak (−12% vs Jan 2025), February–May broadly flat.");
 
 // MOTS monthly detail table (like the Summary sheet)
@@ -252,39 +252,39 @@ arrivalSlide("Total international arrivals (MOTS)", "Monthly arrivals, all natio
   monthTable(s, M, 1.8, W - 2 * M, series, 12,
     { fontSize: 8, rowH: 0.31, labelW: 1.0, totalW: 1.05, corner: "Year", totalLabel: "Total" });
   note(s, M, 5.65, 11.9,
-    "2026 total = Jan\u2013May. \u201826 vs 25\u2019 row compares each month; the Total cell compares Jan\u2013May of both years (\u22122.3%). "
+    "2026 total = Jan\u2013Jun (June preliminary \u2014 4 days missing). \u201826 vs 25\u2019 row compares each month; the Total cell compares Jan\u2013Jun of both years. "
     + "2019 total highlighted = pre-COVID peak; 2020\u20132021 grayed = COVID years.");
 }
 
 // Chinese
-arrivalSlide("Chinese arrivals", "Jan–May by year — 2019 shown as pre-COVID reference",
+arrivalSlide("Chinese arrivals", "Jan–Jun by year — 2019 shown as pre-COVID reference",
   [{ name: "2019", values: A.chinese["2019"], color: GREY },
    { name: "2024", values: A.chinese["2024"], color: ICE },
    { name: "2025", values: A.chinese["2025"], color: SKY },
    { name: "2026", values: A.chinese["2026"], color: NAVY }],
-  [["YTD JAN–MAY 2026", fmtM(A.chinese.ytd["2026"]), fmtDelta(grow(A.chinese.ytd["2026"], A.chinese.ytd["2025"])) + " vs 2025", grow(A.chinese.ytd["2026"], A.chinese.ytd["2025"]) >= 0 ? GOOD : BAD],
-   ["VS 2019 LEVEL", fmtPct(A.chinese.ytd["2026"] / A.chinese.ytd["2019"], 0), "of pre-COVID Jan–May", MUT],
-   ["VS 2024 LEVEL", fmtPct(A.chinese.ytd["2026"] / A.chinese.ytd["2024"], 0), "of Jan–May 2024", MUT]],
+  [["YTD JAN–JUN 2026", fmtM(A.chinese.ytd["2026"]), fmtDelta(grow(A.chinese.ytd["2026"], A.chinese.ytd["2025"])) + " vs 2025", grow(A.chinese.ytd["2026"], A.chinese.ytd["2025"]) >= 0 ? GOOD : BAD],
+   ["VS 2019 LEVEL", fmtPct(A.chinese.ytd["2026"] / A.chinese.ytd["2019"], 0), "of pre-COVID Jan–Jun", MUT],
+   ["VS 2024 LEVEL", fmtPct(A.chinese.ytd["2026"] / A.chinese.ytd["2024"], 0), "of Jan–Jun 2024", MUT]],
   "Chinese demand is recovering vs a weak 2025 (safety concerns faded) but is still only ~48% of pre-COVID volume.");
 
 // India
-arrivalSlide("India arrivals", "Jan–May by year — India keeps setting record highs",
+arrivalSlide("India arrivals", "Jan–Jun by year — India keeps setting record highs",
   [{ name: "2024", values: A.india["2024"], color: ICE },
    { name: "2025", values: A.india["2025"], color: SKY },
    { name: "2026", values: A.india["2026"], color: NAVY }],
-  [["YTD JAN–MAY 2026", fmtM(A.india.ytd["2026"]), fmtDelta(grow(A.india.ytd["2026"], A.india.ytd["2025"])) + " vs 2025", grow(A.india.ytd["2026"], A.india.ytd["2025"]) >= 0 ? GOOD : BAD],
-   ["YTD JAN–MAY 2025", fmtM(A.india.ytd["2025"]), fmtDelta(grow(A.india.ytd["2025"], A.india.ytd["2024"])) + " vs 2024", grow(A.india.ytd["2025"], A.india.ytd["2024"]) >= 0 ? GOOD : BAD],
+  [["YTD JAN–JUN 2026", fmtM(A.india.ytd["2026"]), fmtDelta(grow(A.india.ytd["2026"], A.india.ytd["2025"])) + " vs 2025", grow(A.india.ytd["2026"], A.india.ytd["2025"]) >= 0 ? GOOD : BAD],
+   ["YTD JAN–JUN 2025", fmtM(A.india.ytd["2025"]), fmtDelta(grow(A.india.ytd["2025"], A.india.ytd["2024"])) + " vs 2024", grow(A.india.ytd["2025"], A.india.ytd["2024"]) >= 0 ? GOOD : BAD],
    ["TREND", "3rd year", "of consecutive YTD growth", GOOD]],
   "India is the strongest growth market: +24% in January alone; Apr–May flat against a high 2025 base.");
 
 // Middle East
-arrivalSlide("Middle East arrivals", "Jan–May by year — 2019 shown as pre-COVID reference",
+arrivalSlide("Middle East arrivals", "Jan–Jun by year — 2019 shown as pre-COVID reference",
   [{ name: "2019", values: A.mideast["2019"], color: GREY },
    { name: "2024", values: A.mideast["2024"], color: ICE },
    { name: "2025", values: A.mideast["2025"], color: SKY },
    { name: "2026", values: A.mideast["2026"], color: NAVY }],
-  [["YTD JAN–MAY 2026", fmtM(A.mideast.ytd["2026"]), fmtDelta(grow(A.mideast.ytd["2026"], A.mideast.ytd["2025"])) + " vs 2025", grow(A.mideast.ytd["2026"], A.mideast.ytd["2025"]) >= 0 ? GOOD : BAD],
-   ["VS 2019 LEVEL", fmtPct(A.mideast.ytd["2026"] / A.mideast.ytd["2019"], 0), "of pre-COVID Jan–May", MUT],
+  [["YTD JAN–JUN 2026", fmtM(A.mideast.ytd["2026"]), fmtDelta(grow(A.mideast.ytd["2026"], A.mideast.ytd["2025"])) + " vs 2025", grow(A.mideast.ytd["2026"], A.mideast.ytd["2025"]) >= 0 ? GOOD : BAD],
+   ["VS 2019 LEVEL", fmtPct(A.mideast.ytd["2026"] / A.mideast.ytd["2019"], 0), "of pre-COVID Jan–Jun", MUT],
    ["WORST MONTH", "Apr −57%", "vs April 2025", BAD]],
   "Middle East volumes dropped sharply from February — regional war effect. Watch for recovery in H2.", "#,##0");
 
@@ -292,7 +292,7 @@ arrivalSlide("Middle East arrivals", "Jan–May by year — 2019 shown as pre-CO
 {
   const s = pres.addSlide();
   header(s, "Section 1 · Tourist arrivals", "Long-haul arrivals (EU + USA)",
-    "Monthly arrivals Jan–May — Europe (left) and USA (right)");
+    "Monthly arrivals Jan–Jun — Europe (left) and USA (right)");
   const mk = (key, x, ttl) => s.addChart(pres.ChartType.bar, [
     { name: "2024", labels: MONTHS.slice(0, 5), values: A[key]["2024"] },
     { name: "2025", labels: MONTHS.slice(0, 5), values: A[key]["2025"] },
@@ -831,7 +831,7 @@ portfolioFinSlide("Section 3 · Portfolio");
   header(s, "Appendix", "Sources & definitions");
   s.addText([
     { text: "Data sources", options: { bold: true, color: NAVY, fontSize: 14, breakLine: true, paraSpaceAfter: 6 } },
-    { text: "Arrivals: Ministry of Tourism & Sports (MOTS) and AOT statistics, as compiled in the Segment Half-year workbook (tabs Arrival / Summary-1). 2026 data through May.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
+    { text: "Arrivals: Ministry of Tourism & Sports (MOTS) and AOT statistics, as compiled in the Segment Half-year workbook (tabs Arrival / Summary-1). 2026 data through June; June is preliminary (a system error dropped 4 days).", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "STR / compset: Bangkok and Pattaya competitive-set Occ, ADR, RevPAR from the Compset tab (ADR excludes breakfast).", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "Property performance: monthly Occ/ADR/RevPAR actuals, MF budget and prior years read directly from the result FY24/FY25/FY26 sheets (official record); property ADR includes breakfast (LYF has none). Segment data reconciled to each property's source system, July 2026.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "Segmentation: property tabs (2026 Jan–Jun). Nationality: room nights by nationality from each property tab — H1 2026 and 2025 (each year's own top-10).", options: { bullet: true, breakLine: true, paraSpaceAfter: 10 } },
