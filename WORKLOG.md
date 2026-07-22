@@ -7,6 +7,12 @@ language.
 
 ---
 
+## 2026-07-22 — June 2026 arrivals filled (Total/China/India/ME/long-haul)
+Mae uploaded the MOTS June nationality file (filed in data/source/). Filled
+June into Summary-arrival (total, China, India, Europe, America, LH formula)
+and Arrival (Middle East) — 7 cells, audit sheet "Recon arrivals Jun 2026".
+June is preliminary ("Jun (-4)"); ME Jan-Mar revisions noted, not applied.
+
 ## 2026-07-20 — Deck: two-comparison tile lines split into per-sign colors
 Mae caught that "x vs budget · y vs LY" lines used one color for both parts.
 tile() now takes multi-color runs (subRuns helper); each delta is green/red
