@@ -11,7 +11,9 @@ language.
 Mae uploaded the MOTS June nationality file (filed in data/source/). Filled
 June into Summary-arrival (total, China, India, Europe, America, LH formula)
 and Arrival (Middle East) — 7 cells, audit sheet "Recon arrivals Jun 2026".
-June is preliminary ("Jun (-4)"); ME Jan-Mar revisions noted, not applied.
+"Jun (-4)" = 4 days lost to a system error: cells keep reported figures;
+audit sheet carries the pro-rated full-June estimates (total ~2.12M,
+range 2.12-2.27M). ME Jan-Mar revisions noted, not applied.
 
 ## 2026-07-20 — Deck: two-comparison tile lines split into per-sign colors
 Mae caught that "x vs budget · y vs LY" lines used one color for both parts.
