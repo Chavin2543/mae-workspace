@@ -109,7 +109,7 @@ function divider(num, title, items) {
     { x: M, y: 3.7, w: 11.5, h: 0.4, margin: 0, fontFace: F, fontSize: 15, color: "AFC0E8" });
   s.addText("Somerset Rama 9 (SR9)  ·  Ascott Embassy Sathorn (AES)  ·  lyf Sukhumvit 8 (LYF)  ·  Somerset Pattaya (SP)",
     { x: M, y: 6.35, w: 11.5, h: 0.35, margin: 0, fontFace: F, fontSize: 12, color: "7C8BC0" });
-  s.addText("Data through June 2026 (June arrivals preliminary · STR through May) · Prepared July 2026",
+  s.addText("Data through June 2026 (June arrivals preliminary · STR: Bangkok Jan–May, Pattaya Jan–Jun re-based) · Prepared July 2026",
     { x: M, y: 6.72, w: 11.5, h: 0.35, margin: 0, fontFace: F, fontSize: 11, color: "7C8BC0" });
 }
 
@@ -138,13 +138,19 @@ const PF = { act: ytdOf(data.portfolio.act), bg: ytdOf(data.portfolio.bg),
       { text: " \u00b7 still " + fmtPct(A.chinese.ytd["2026"] / A.chinese.ytd["2019"], 0) + " of 2019", color: MUT }]],
     ["INDIA ARRIVALS", fmtM(A.india.ytd["2026"]), fmtDelta(grow(A.india.ytd["2026"], A.india.ytd["2025"])) + " vs 2025 — record high"],
   ];
+  // EBIT is the key index (management, Jul 2026)
+  const _h1 = (arr) => arr.slice(0, 6).reduce((t, v) => t + (v || 0), 0);
+  const _pf25 = (met) => ["SR9", "AES", "LYF", "SP"].reduce((t, k) => t + _h1(data.fin_monthly["2025"][k][met]), 0);
+  const _money = (v) => (v < 0 ? "−" : "") + "฿" + Math.abs(v / 1e6).toFixed(1) + "M";
+  const _rev26 = _h1(data.fin_monthly["2026"].PF.revenue), _rev25 = _pf25("revenue");
+  const _ebit26 = _h1(data.fin_monthly["2026"].PF.ebit), _ebit25 = _pf25("ebit");
   const r2 = [
-    ["PORTFOLIO OCCUPANCY YTD", fmtPct(PF.act.occ), subRuns(
-       fmtDelta(PF.act.occ - PF.bg.occ, 1).replace("%", " pts") + " vs budget", PF.act.occ - PF.bg.occ,
-       fmtDelta(PF.act.occ - PF.ly.occ, 1).replace("%", " pts") + " vs LY", PF.act.occ - PF.ly.occ)],
-    ["PORTFOLIO ADR YTD", fmtTHB(PF.act.adr), subRuns(
-       fmtDelta(grow(PF.act.adr, PF.bg.adr)) + " vs budget", grow(PF.act.adr, PF.bg.adr),
-       fmtDelta(grow(PF.act.adr, PF.ly.adr)) + " vs LY", grow(PF.act.adr, PF.ly.adr))],
+    ["PORTFOLIO REVENUE H1", _money(_rev26),
+     [{ text: fmtDelta(grow(_rev26, _rev25)) + " vs H1 2025", color: grow(_rev26, _rev25) >= 0 ? GOOD : BAD },
+      { text: " (" + _money(_rev25) + " LY)", color: MUT }]],
+    ["PORTFOLIO EBIT H1", _money(_ebit26),
+     [{ text: (_ebit26 - _ebit25 >= 0 ? "+" : "") + _money(_ebit26 - _ebit25) + " vs H1 2025", color: _ebit26 - _ebit25 >= 0 ? GOOD : BAD },
+      { text: " · margin " + fmtPct(_ebit26 / _rev26), color: MUT }]],
     ["PORTFOLIO REVPAR YTD", fmtTHB(PF.act.revpar), subRuns(
        fmtDelta(grow(PF.act.revpar, PF.bg.revpar)) + " vs budget", grow(PF.act.revpar, PF.bg.revpar),
        fmtDelta(grow(PF.act.revpar, PF.ly.revpar)) + " vs LY", grow(PF.act.revpar, PF.ly.revpar))],
@@ -152,13 +158,14 @@ const PF = { act: ytdOf(data.portfolio.act), bg: ytdOf(data.portfolio.bg),
   r1.forEach((t, i) => tile(s, M + i * (tw + 0.3), 1.72, tw, th, t[0], t[1], t[2],
     [grow(A.mots.ytd["2026"], A.mots.ytd["2025"]), grow(A.chinese.ytd["2026"], A.chinese.ytd["2025"]),
      grow(A.india.ytd["2026"], A.india.ytd["2025"])][i] >= 0 ? GOOD : BAD));
-  r2.forEach((t, i) => tile(s, M + i * (tw + 0.3), 3.3, tw, th, t[0], t[1], t[2],
-    [PF.act.occ - PF.bg.occ, grow(PF.act.adr, PF.bg.adr), grow(PF.act.revpar, PF.bg.revpar)][i] >= 0 ? GOOD : BAD));
+  r2.forEach((t, i) => tile(s, M + i * (tw + 0.3), 3.3, tw, th, t[0], t[1], t[2]));
   s.addText([
     { text: "Key messages", options: { bold: true, color: NAVY, fontSize: 14, breakLine: true, paraSpaceAfter: 6 } },
-    { text: "Market demand is mixed: total arrivals are slightly below last year, but China (+18%), India (+8%) and long-haul are holding the recovery together — Middle East is down on the war effect.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
+    { text: "EBIT is holding: H1 EBIT ฿143.2M vs ฿147.1M last year (−2.6%) despite rate pressure — cost discipline (OPEX −2.1% vs LY) protected profitability.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
+    { text: "Rate, not volume, is the 2026 challenge: occupancy is near plan but ADR runs ~3% under budget across the portfolio — see \u2018The ADR challenge\u2019 in Section 2.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
+    { text: "Market demand is mixed: total arrivals are below last year (June preliminary), with China (+18%), India and long-haul holding the recovery together — Middle East is down on the war effect.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "Portfolio RevPAR is " + fmtDelta(grow(PF.act.revpar, PF.bg.revpar)) + " vs budget on " + fmtPct(PF.act.occ) + " occupancy — rate (ADR, −3.4%) is the main gap; occupancy is close to plan.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
-    { text: "The market is softening — Bangkok and Pattaya compset RevPAR are both below last year — and the portfolio is holding up slightly better than the market (−0.6% vs LY).", options: { bullet: true } },
+    { text: "The Bangkok compset is discounting (ADR down vs LY, occupancy up); the re-based Pattaya STR shows a broadly level market — the portfolio is holding up in line with the market (−0.6% RevPAR vs LY).", options: { bullet: true } },
   ], { x: M, y: 4.95, w: W - 2 * M, h: 1.9, margin: 0, fontFace: F, fontSize: 12.5, color: INK });
 }
 
@@ -362,8 +369,81 @@ function strSlide(cityKey, cityName, subtitle, noteText) {
 }
 strSlide("bangkok", "Bangkok", "Monthly compset performance, 2024–2026 (Jan–May) — ADR excludes breakfast",
   "Bangkok market: occupancy holding above last year, but rate is down — the market is buying occupancy with price.");
-strSlide("pattaya", "Pattaya", "Monthly compset performance, 2024–2026 (Jan–May)",
-  "Pattaya market: strong high season (Jan–Feb) then softening from March; rates broadly below 2025.");
+// Pattaya re-based to the CoStar submarket report (Jun 2026): 2025 derived
+// from reported % change; the old 2019/2024 compset rows are not comparable.
+{
+  const s = pres.addSlide();
+  header(s, "Section 2 · Market (STR)", "Pattaya market — Occ / ADR / RevPAR",
+    "STR submarket basis (re-based Jun 2026) · Jan–Jun · 2025 derived from reported % change · prior years not comparable");
+  const pn = data.str.pattaya_new;
+  const defs = [["Occupancy (%)", "occ", "#,##0\"%\""], ["ADR (THB)", "adr", "#,##0"], ["RevPAR (THB)", "revpar", "#,##0"]];
+  defs.forEach((def, i) => {
+    const [ttl, key, fmt] = def;
+    s.addChart(pres.ChartType.bar, [
+      { name: "2025", labels: MONTHS.slice(0, 6), values: pn[key + "_ly"] },
+      { name: "2026", labels: MONTHS.slice(0, 6), values: pn[key] },
+    ], Object.assign({}, axStyle, {
+      x: M + i * 4.15, y: 2.0, w: 3.95, h: 4.35, chartColors: [SKY, NAVY],
+      showLegend: true, legendPos: "b", valAxisNumFmt: fmt,
+      showValue: true, dataLabelPosition: "outEnd", dataLabelFontSize: 7.5,
+      dataLabelFontFace: F, dataLabelColor: MUT,
+      dataLabelFormatCode: key === "occ" ? "0" : "#,##0",
+      showTitle: true, title: ttl, titleFontSize: 13, titleColor: NAVY, titleFontFace: F,
+    }));
+  });
+  s.addText("H1 2026 vs 2025 (STR report):   Occ " + fmtDelta(pn.ytd.occ_chg / 100) + "   ·   ADR " + fmtDelta(pn.ytd.adr_chg / 100)
+    + "   ·   RevPAR " + fmtDelta(pn.ytd.revpar_chg / 100),
+    { x: M, y: 6.45, w: 11.9, h: 0.3, margin: 0, fontFace: F, fontSize: 12.5, bold: true,
+      color: pn.ytd.revpar_chg >= 0 ? GOOD : BAD });
+  note(s, M, 6.78, 11.9, "Re-based series (CoStar submarket, Jun 2026 report): the Pattaya market is broadly level vs 2025 — "
+    + "occupancy eases through Q2 as normal seasonality, while rate holds (Jun ADR +4.0%). Source: Pattaya STR Jun 2026 (submarket).xls.");
+}
+
+// ---------- The ADR challenge (draft v2 — TBC items pending data) ----------
+{
+  const s = pres.addSlide();
+  header(s, "Section 2 · Market (STR)", "The ADR challenge — rate is the story of 2026",
+    "Occupancy is holding, rate is not · left = what the data shows, right = why we believe it is happening · TBC items await data");
+  const avg5 = (a) => a.slice(0, 5).reduce((x, y) => x + (y || 0), 0) / 5;
+  const bkAdr = grow(avg5(data.str.bangkok.adr["2026"]), avg5(data.str.bangkok.adr["2025"]));
+  const FMe = data.fin_monthly;
+  const h1s = (arr) => arr.slice(0, 6).reduce((t, v) => t + (v || 0), 0);
+  // portfolio Chinese room-night share, 2026 vs 2025
+  let chn26 = 0, chn25 = 0, rn26 = 0, rn25 = 0;
+  for (const k of ["SR9", "AES", "LYF", "SP"]) {
+    const p = data.perf[k];
+    const c26 = data.nat_rn[k]["2026"].find((e) => e.label === "China");
+    const c25 = data.nat_rn[k]["2025"].find((e) => e.label === "China");
+    chn26 += c26 ? c26.h1 : 0; chn25 += c25 ? c25.h1 : 0;
+    rn26 += data.seg[k].reduce((t, r) => t + r.ytd, 0);
+    for (let i = 0; i < 6; i++) rn25 += p.ly_occ[i] * p.rooms * DAYS[i];
+  }
+  const panel = (x, ttl, color, items) => {
+    s.addShape("roundRect", { x, y: 1.85, w: 5.99, h: 4.95, rectRadius: 0.06,
+      fill: { color: PANEL }, line: { color: "E2E7F2", width: 0.75 } });
+    s.addText(ttl, { x: x + 0.22, y: 2.0, w: 5.55, h: 0.35, margin: 0,
+      fontFace: F, fontSize: 14.5, bold: true, color });
+    s.addText(items.map((t) => ({ text: t, options: { bullet: true, breakLine: true, paraSpaceAfter: 7,
+      color: t.includes("[TBC") ? MUT : INK, italic: t.includes("[TBC") } })),
+      { x: x + 0.22, y: 2.45, w: 5.55, h: 4.2, margin: 0, fontFace: F, fontSize: 11.5, valign: "top" });
+  };
+  panel(M, "FACTS — what the data shows", NAVY, [
+    "Portfolio ADR H1 " + fmtTHB(PF.act.adr) + ": " + fmtDelta(grow(PF.act.adr, PF.bg.adr)) + " vs MF budget and " + fmtDelta(grow(PF.act.adr, PF.ly.adr)) + " vs 2025 — while occupancy is near plan (" + fmtDelta(PF.act.occ - PF.bg.occ, 1).replace("%", " pts") + ").",
+    "The whole Bangkok market is discounting: compset ADR " + fmtDelta(bkAdr) + " vs 2025 (Jan–May) with occupancy up — hotels are buying volume with rate.",
+    "Middle East arrivals " + fmtDelta(grow(A.mideast.ytd["2026"], A.mideast.ytd["2025"]), 0) + " H1 (a high-rate, long-stay segment) and total arrivals " + fmtDelta(grow(A.mots.ytd["2026"], A.mots.ytd["2025"])) + " vs 2025 (June preliminary).",
+    "Guest mix is shifting to price-sensitive source markets: Chinese share of portfolio room nights " + fmtPct(chn26 / rn26, 0) + " H1 2026 vs " + fmtPct(chn25 / rn25, 0) + " in 2025; SEA share also rising (LYF).",
+    "Re-based Pattaya STR: market rate broadly flat (H1 ADR " + fmtDelta(data.str.pattaya_new.ytd.adr_chg / 100) + ") — the ADR pressure is concentrated in Bangkok.",
+    "Visitor spending power: [TBC — MOTS/BoT average spend per head data to be added]",
+  ]);
+  panel(6.74, "HYPOTHESES — why we believe it is happening", GOLD, [
+    "Price war triggered by the Middle East conflict: flight cancellations removed high-spend demand and hotels chased the remaining volume with discounts (reported by all three Bangkok properties).",
+    "Spending power: Chinese and SEA leisure guests book entry-level rooms and shorter stays; a strong THB makes Thailand more expensive in guests' home currencies. [TBC — FX / spend-per-trip evidence]",
+    "Booking behaviour changed: guests book further in advance and last-minute premium demand has faded (SR9) — less late-yield upside on peak dates.",
+    "Channel mix dilution: OTA flash deals and wholesale rates lift occupancy but cap ADR (LYF ADR ranks 5/5 in its compset; Trip.com flash deal discontinued).",
+    "New supply: additional rooms in Bangkok keep pressure on rates. [TBC — 2025–26 new openings in Rama 9 / Sathorn to quantify]",
+  ]);
+  note(s, M, 6.95, 11.9, "Draft v2 for discussion — computed figures come from the result sheets, STR and MOTS data in this workbook; [TBC] items to be confirmed by management.");
+}
 
 // ============================================================
 // SECTION 3 — PERFORMANCE VS BUDGET
@@ -435,7 +515,7 @@ function portfolioPerfSlide(eyebrow) {
   perfSlide(eyebrow, "Portfolio — all four properties", "Weighted by room inventory (1,406 keys) · YTD = Jan–Jun 2026",
   data.portfolio.act, data.portfolio.bg, data.portfolio.ly, data.portfolio.ly24, PF,
   "Portfolio RevPAR is ~4% behind budget, driven mainly by rate (ADR −3.4%); occupancy is near plan (−0.7 pts). Vs last year RevPAR is broadly flat. "
-  + "April was the softest month — driven by AES (−16% RevPAR vs budget, ≈half the gap) and LYF (occupancy 50% vs 83% budgeted), not really the market: the Bangkok compset was broadly flat vs last year (only Pattaya was genuinely softer, affecting SP).");
+  + "April was the softest month — driven by AES (−16% RevPAR vs budget, ≈half the gap) and LYF (occupancy 50% vs 83% budgeted), not really the market: the Bangkok compset was broadly flat vs last year, and the re-based Pattaya STR shows a level market — the April miss was property-specific.");
 }
 
 // per property
@@ -453,7 +533,7 @@ const PROP_NOTES = {
   SR9: "SR9 runs close to budget all year; Feb outperformed strongly, May–Jun slightly behind on rate.",
   AES: "AES: February was exceptional (92% occupancy, well above budget); April–May fell behind budget in a softer Bangkok market.",
   LYF: "LYF: strong Q1 above budget, then April dropped sharply (occupancy −32 pts vs budget) — recovering since May.",
-  SP: "SP: ahead of budget in Jan–Feb high season; Mar–Jun broadly on plan in a softer Pattaya market.",
+  SP: "SP: ahead of budget in Jan–Feb high season; Mar–Jun broadly on plan — the re-based Pattaya STR shows a level market.",
 };
 function propPerfSlide(key, eyebrow) {
   const p = data.perf[key];
@@ -808,17 +888,17 @@ function natSlide(key, eyebrow) {
 // (management request, Jul 2026: tell the story by property, merging
 //  performance / financial / segmentation / nationality)
 // ============================================================
-divider("3", "Portfolio", "All four properties — performance vs budget · P&L");
-portfolioPerfSlide("Section 3 · Portfolio");
+divider("3", "Portfolio", "All four properties — P&L (EBIT) · performance vs budget");
 portfolioFinSlide("Section 3 · Portfolio");
+portfolioPerfSlide("Section 3 · Portfolio");
 ["SR9", "AES", "LYF", "SP"].forEach((key, idx) => {
   const num = String(4 + idx);
   const p = data.perf[key];
   divider(num, p.name + " (" + key + ")",
-    "Performance vs budget · P&L · Segmentation · Guest nationality");
+    "P&L (EBIT) · Performance vs budget · Segmentation · Guest nationality");
   const eb = "Section " + num + " · " + p.name + " (" + key + ")";
-  propPerfSlide(key, eb);
   propFinSlide(key, eb);
+  propPerfSlide(key, eb);
   segSlides(key, eb);
   natSlide(key, eb);
 });
@@ -832,7 +912,7 @@ portfolioFinSlide("Section 3 · Portfolio");
   s.addText([
     { text: "Data sources", options: { bold: true, color: NAVY, fontSize: 14, breakLine: true, paraSpaceAfter: 6 } },
     { text: "Arrivals: Ministry of Tourism & Sports (MOTS) and AOT statistics, as compiled in the Segment Half-year workbook (tabs Arrival / Summary-1). 2026 data through June; June is preliminary (a system error dropped 4 days).", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
-    { text: "STR / compset: Bangkok and Pattaya competitive-set Occ, ADR, RevPAR from the Compset tab (ADR excludes breakfast).", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
+    { text: "STR / compset: Bangkok competitive-set Occ, ADR, RevPAR from the Compset tab (Jan–May, ADR excludes breakfast). Pattaya re-based to the CoStar submarket report of June 2026 — 2025 derived from reported % change; earlier Pattaya rows are not comparable.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "Property performance: monthly Occ/ADR/RevPAR actuals, MF budget and prior years read directly from the result FY24/FY25/FY26 sheets (official record); property ADR includes breakfast (LYF has none). Segment data reconciled to each property's source system, July 2026.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "Segmentation: property tabs (2026 Jan–Jun). Nationality: room nights by nationality from each property tab — H1 2026 and 2025 (each year's own top-10).", options: { bullet: true, breakLine: true, paraSpaceAfter: 10 } },
     { text: "Definitions & notes", options: { bold: true, color: NAVY, fontSize: 14, breakLine: true, paraSpaceAfter: 6 } },
