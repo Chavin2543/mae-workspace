@@ -206,6 +206,26 @@ URL within a session; pass the previous artifact URL from new sessions).
   revenue Online Jan/Feb/Mar + ASR Jan low by ~93,027 THB total
   (H1 38,106,441 vs LS8 38,199,467). Listed in the audit sheet notes.
 
+## Task anatomy: Monthly FS review (questions → answers)
+
+Every month Mae checks each property's financial statement and questions the
+odd items. The loop, per property (skills in order):
+
+1. **Flag** big month-over-month gaps — `mmr-variance-review`
+   (LYF ±20k THB, others ±50k).
+2. **Mae keys shorthand notes** on the flagged cells (manual).
+3. **Write questions** from her notes — `note-to-question` /
+   `mmr-variance-review` Phase C; Mae emails them to the property.
+4. **Mark the answers** — when the property replies by email, the
+   `answer-note` skill writes each answer as an Excel note on that account's
+   row in that month's column (`scripts/mark_answer_note.py`, append-only,
+   labelled `Ans <PROPERTY> (email <date>)`). Work on the review copy in
+   `output/`, never `data/source/`. Decision:
+   `docs/decisions/2026-07-23-fs-answer-notes.md`.
+
+Answers arrive as pasted/uploaded email text until Mae connects the Gmail
+connector in claude.ai settings; after that Claude can read replies directly.
+
 ## General rules for this repo
 
 - **Git branch: always work on `main` only (Mae's rule, Jul 2026 — "always").**

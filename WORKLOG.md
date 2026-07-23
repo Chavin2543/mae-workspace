@@ -7,6 +7,12 @@ language.
 
 ---
 
+## 2026-07-23 — New workflow: property email answers → Excel notes
+Per Mae: when a property answers her monthly FS questions by email, the answer
+is marked as an Excel note on that account's row in that month's column.
+New `answer-note` skill + `scripts/mark_answer_note.py` (append-only, tested);
+decision logged, CLAUDE.md documents the full questions→answers loop.
+
 ## 2026-07-22 — Arrivals YTD extended to H1 (Jan-Jun) in workbook + deck
 Per Mae: every Jan-May YTD sum now covers Jan-Jun — 24 formulas widened,
 9 hardcoded totals became real =SUM formulas, labels renamed to H1; caches
