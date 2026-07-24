@@ -165,7 +165,7 @@ const PF = { act: ytdOf(data.portfolio.act), bg: ytdOf(data.portfolio.bg),
     { text: "Rate, not volume, is the 2026 challenge: occupancy is near plan but ADR runs ~3% under budget across the portfolio — see \u2018The ADR challenge\u2019 in Section 2.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "Market demand is mixed: total arrivals are below last year (June preliminary), with China (+18%), India and long-haul holding the recovery together — Middle East is down on the war effect.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "Portfolio RevPAR is " + fmtDelta(grow(PF.act.revpar, PF.bg.revpar)) + " vs budget on " + fmtPct(PF.act.occ) + " occupancy — rate (ADR, −3.4%) is the main gap; occupancy is close to plan.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
-    { text: "Re-based STR: both markets held rate in H1 (Bangkok ADR −1.2%, occ +2.6 pts; Pattaya ADR +0.9%) while our serviced-apartment compset discounted — the rate battle is in our segment, not the whole city.", options: { bullet: true } },
+    { text: "Re-based STR: the markets AND our direct compsets held rate in H1, while our four hotels cut ADR ~5–10% and bought occupancy (all above compset) — the rate gap is our pricing/mix trade, not market-forced.", options: { bullet: true } },
   ], { x: M, y: 4.95, w: W - 2 * M, h: 1.9, margin: 0, fontFace: F, fontSize: 12.5, color: INK });
 }
 
@@ -431,20 +431,61 @@ strMarketSlide("pattaya_new", "Pattaya",
   panel(M, "FACTS — what the data shows", NAVY, [
     "Portfolio ADR H1 " + fmtTHB(PF.act.adr) + ": " + fmtDelta(grow(PF.act.adr, PF.bg.adr)) + " vs MF budget and " + fmtDelta(grow(PF.act.adr, PF.ly.adr)) + " vs 2025 — while occupancy is near plan (" + fmtDelta(PF.act.occ - PF.bg.occ, 1).replace("%", " pts") + ").",
     "Re-based STR: the broad markets HELD rate in H1 — Bangkok ADR " + fmtDelta(data.str.bangkok_new.ytd.adr_chg / 100) + " (occ +" + data.str.bangkok_new.ytd.occ_chg.toFixed(1) + " pts), Pattaya ADR " + fmtDelta(data.str.pattaya_new.ytd.adr_chg / 100) + " — while our portfolio ADR fell " + fmtDelta(grow(PF.act.adr, PF.ly.adr)) + ".",
-    "Our direct serviced-apartment compset ADR is " + fmtDelta(bkAdr) + " (Jan–May — June compset report pending) — the discounting is concentrated in our segment, not the whole Bangkok market.",
+    (() => { const cs = data.str.compsets;
+      return "Our direct compsets ALSO held rate (H1 ADR: SR9 set " + fmtDelta(cs.SR9.adr.ytd.comp_chg / 100) + ", AES set " + fmtDelta(cs.AES.adr.ytd.comp_chg / 100)
+        + ", LYF set " + fmtDelta(cs.LYF.adr.ytd.comp_chg / 100) + ", SP set " + fmtDelta(cs.SP.adr.ytd.comp_chg / 100)
+        + ") — while OUR hotels cut ADR " + fmtDelta(cs.SR9.adr.ytd.my_chg / 100) + " / " + fmtDelta(cs.AES.adr.ytd.my_chg / 100)
+        + " / " + fmtDelta(cs.LYF.adr.ytd.my_chg / 100) + " / " + fmtDelta(cs.SP.adr.ytd.my_chg / 100)
+        + " and won occupancy vs every compset (STR basis, Jan–Jun)."; })(),
     "Middle East arrivals " + fmtDelta(grow(A.mideast.ytd["2026"], A.mideast.ytd["2025"]), 0) + " H1 (a high-rate, long-stay segment) and total arrivals " + fmtDelta(grow(A.mots.ytd["2026"], A.mots.ytd["2025"])) + " vs 2025 (June preliminary).",
     "Guest mix is shifting to price-sensitive source markets: Chinese share of portfolio room nights " + fmtPct(chn26 / rn26, 0) + " H1 2026 vs " + fmtPct(chn25 / rn25, 0) + " in 2025; SEA share also rising (LYF).",
 
     "Visitor spending power: [TBC — MOTS/BoT average spend per head data to be added]",
   ]);
   panel(6.74, "HYPOTHESES — why we believe it is happening", GOLD, [
-    "A price war inside our segment: serviced-apartment competitors discounted hard after Middle East / European demand fell, and we matched them to protect occupancy — while the broader hotel market held rate (reported by all three Bangkok properties).",
+    "Rate-for-volume strategy: STR shows we discounted far deeper than our compsets and bought occupancy share (MPI above 100 at all four hotels) — was the occupancy gain worth the rate given up? [key question for the GMs]",
+    "Mix dilution: losing high-rate Middle East / European long-stay and refilling with Chinese/SEA leisure lowers our achieved ADR even without price cuts — our compsets carry less of that exposure, so their ADR held.",
     "Spending power: Chinese and SEA leisure guests book entry-level rooms and shorter stays; a strong THB makes Thailand more expensive in guests' home currencies. [TBC — FX / spend-per-trip evidence]",
     "Booking behaviour changed: guests book further in advance and last-minute premium demand has faded (SR9) — less late-yield upside on peak dates.",
     "Channel mix dilution: OTA flash deals and wholesale rates lift occupancy but cap ADR (LYF ADR ranks 5/5 in its compset; Trip.com flash deal discontinued).",
     "New supply: additional rooms in Bangkok keep pressure on rates. [TBC — 2025–26 new openings in Rama 9 / Sathorn to quantify]",
   ]);
   note(s, M, 6.95, 11.9, "Draft v2 for discussion — computed figures come from the result sheets, STR and MOTS data in this workbook; [TBC] items to be confirmed by management.");
+}
+
+// Us vs our direct compsets — H1 2026 (STR basis)
+{
+  const s = pres.addSlide();
+  header(s, "Section 2 · Market (STR)", "Us vs our compsets — H1 2026",
+    "Each hotel against its own STR competitive set · Jan–Jun · STR basis (differs from result-sheet ADR)");
+  const cs = data.str.compsets;
+  const zebra = (i) => ({ color: i % 2 ? PANEL : "FFFFFF" });
+  const hc = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: NAVY }, align: "center" } });
+  const pcCell = (v, i, invert) => ({ text: fmtDelta(v / 100), options: { align: "right", bold: true,
+    color: (invert ? v <= 0 : v >= 0) ? GOOD : BAD, fill: zebra(i) } });
+  const rows = [[hc("H1 2026 (STR)"), hc("Occ — us"), hc("Occ chg us"), hc("Occ chg comps"), hc("ADR — us"), hc("ADR chg us"), hc("ADR chg comps"), hc("RevPAR chg us"), hc("RevPAR chg comps"), hc("Occ rank")]];
+  ["SR9", "AES", "LYF", "SP"].forEach((k, i) => {
+    const c = cs[k];
+    rows.push([
+      { text: k, options: { bold: true, color: INK, fill: zebra(i) } },
+      { text: c.occ.ytd.my.toFixed(1) + "%", options: { align: "right", color: INK, fill: zebra(i) } },
+      pcCell(c.occ.ytd.my_chg, i), pcCell(c.occ.ytd.comp_chg, i),
+      { text: "฿" + Math.round(c.adr.ytd.my).toLocaleString("en-US"), options: { align: "right", color: INK, fill: zebra(i) } },
+      pcCell(c.adr.ytd.my_chg, i), pcCell(c.adr.ytd.comp_chg, i),
+      pcCell(c.revpar.ytd.my_chg, i), pcCell(c.revpar.ytd.comp_chg, i),
+      { text: c.occ.ytd.rank, options: { align: "center", color: NAVY, bold: true, fill: zebra(i) } },
+    ]);
+  });
+  s.addTable(rows, { x: M, y: 2.1, w: 12.13, colW: [1.1, 1.2, 1.25, 1.45, 1.25, 1.25, 1.45, 1.5, 1.63, 1.05],
+    fontFace: F, fontSize: 10.5, border: { type: "solid", color: "E2E7F2", pt: 0.5 },
+    rowH: 0.42, valign: "middle" });
+  s.addText([
+    { text: "What the table says", options: { bold: true, color: NAVY, fontSize: 13.5, breakLine: true, paraSpaceAfter: 5 } },
+    { text: "Every compset held its rate (−2.8% to +1.5%) — our four hotels cut ADR −4.9% to −10.0%.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
+    { text: "In exchange we won occupancy: all four hotels grew occupancy faster than (or held above) their compsets — SR9 ranks 2/6, AES 2/6, LYF 2/5, SP 3/6.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
+    { text: "So the H1 rate loss was OUR trade, not market-forced — the discussion for H2 is whether to defend the occupancy or rebuild the rate.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
+  ], { x: M, y: 4.35, w: 12.1, h: 2.2, margin: 0, fontFace: F, fontSize: 12, color: INK, valign: "top" });
+  note(s, M, 6.85, 11.9, "Source: CoStar per-property compset reports, June 2026 (SR9/LYF/SP primary comp set; AES secondary comp set). STR ADR basis differs from the result-sheet ADR (breakfast/net treatment) — use % changes, not absolute levels, for comparison.");
 }
 
 // ============================================================
@@ -914,7 +955,7 @@ portfolioPerfSlide("Section 3 · Portfolio");
   s.addText([
     { text: "Data sources", options: { bold: true, color: NAVY, fontSize: 14, breakLine: true, paraSpaceAfter: 6 } },
     { text: "Arrivals: Ministry of Tourism & Sports (MOTS) and AOT statistics, as compiled in the Segment Half-year workbook (tabs Arrival / Summary-1). 2026 data through June; June is preliminary (a system error dropped 4 days).", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
-    { text: "STR: Bangkok and Pattaya both re-based to the CoStar market/submarket reports of June 2026 (Jan–Jun; 2025 derived from reported % change; earlier compset rows not comparable). The direct serviced-apartment compset series (Compset tab, Jan–May) is retained for the segment comparison on the ADR slide.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
+    { text: "STR: Bangkok and Pattaya both re-based to the CoStar market/submarket reports of June 2026 (Jan–Jun; 2025 derived from reported % change; earlier compset rows not comparable). Per-property competitive sets: CoStar compset reports June 2026 (SR9/LYF/SP primary, AES secondary), Jan–Jun, used on the ADR-challenge and Us-vs-compsets slides. The old Compset tab series (Jan–May) is retained for history.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "Property performance: monthly Occ/ADR/RevPAR actuals, MF budget and prior years read directly from the result FY24/FY25/FY26 sheets (official record); property ADR includes breakfast (LYF has none). Segment data reconciled to each property's source system, July 2026.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "Segmentation: property tabs (2026 Jan–Jun). Nationality: room nights by nationality from each property tab — H1 2026 and 2025 (each year's own top-10).", options: { bullet: true, breakLine: true, paraSpaceAfter: 10 } },
     { text: "Definitions & notes", options: { bold: true, color: NAVY, fontSize: 14, breakLine: true, paraSpaceAfter: 6 } },

@@ -104,6 +104,28 @@ data["str"]["pattaya_new"] = read_str_report(
 data["str"]["bangkok_new"] = read_str_report(
     "/home/user/mae-workspace/data/source/Bangkok STR Jun 2026 (submarket).xls")
 
+# Per-property direct compset reports (CoStar "Monthly" layout, Jun 2026):
+# My Prop vs Comp Set — occ c3/c4, %chg c5/c6, MPI c7, rank c8; ADR c10/c11,
+# %chg c12/c13; RevPAR c17/c18, %chg c19/c20. Row 13 = YTD (H1).
+def read_compset_report(path):
+    sh = xlrd.open_workbook(path).sheet_by_index(0)
+    def month_rows(cy, cc):
+        return ([round(sh.cell_value(r, cy), 2) for r in range(7, 13)],
+                [round(sh.cell_value(r, cc), 2) for r in range(7, 13)])
+    out = {"compset_names": str(sh.cell_value(2, 1))}
+    for met, c0 in [("occ", 3), ("adr", 10), ("revpar", 17)]:
+        my, comp = month_rows(c0, c0 + 1)
+        my_chg, comp_chg = month_rows(c0 + 2, c0 + 3)
+        out[met] = {"my": my, "comp": comp, "my_chg": my_chg, "comp_chg": comp_chg,
+                    "ytd": {"my": sh.cell_value(13, c0), "comp": sh.cell_value(13, c0 + 1),
+                            "my_chg": sh.cell_value(13, c0 + 2), "comp_chg": sh.cell_value(13, c0 + 3)}}
+    out["occ"]["ytd"]["rank"] = str(sh.cell_value(13, 8))
+    return out
+
+data["str"]["compsets"] = {
+    k: read_compset_report(f"/home/user/mae-workspace/data/source/{k} STR compset Jun 2026.xls")
+    for k in ("SR9", "AES", "LYF", "SP")}
+
 # ---------- Section 3: performance vs budget (Summary) ----------
 sm = wb["Summary"]
 PROPS = {
