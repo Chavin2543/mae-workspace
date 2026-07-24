@@ -80,24 +80,29 @@ data["str"] = {
     },
 }
 
-# Pattaya STR re-based (Jun 2026): CoStar submarket report replaces the old
-# compset series — not comparable with the 2019/2024 rows above. 2025 is
-# derived from the report's % change column.
+# Bangkok + Pattaya STR re-based (Jun 2026): CoStar market/submarket reports
+# replace the old compset series — not comparable with the 2019/2024 rows
+# above. 2025 is derived from the reports' % change columns.
 import xlrd
-_str_wb = xlrd.open_workbook(
+
+def read_str_report(path):
+    sh = xlrd.open_workbook(path).sheet_by_name("Standard Monthly")
+    out = {"occ": [], "adr": [], "revpar": [], "occ_ly": [], "adr_ly": [], "revpar_ly": []}
+    for r in range(6, 12):  # Jan..Jun 2026
+        for met, cty, cchg in [("occ", 3, 4), ("adr", 6, 7), ("revpar", 9, 10)]:
+            ty, chg = sh.cell_value(r, cty), sh.cell_value(r, cchg)
+            out[met].append(round(ty, 2))
+            out[met + "_ly"].append(round(ty / (1 + chg / 100), 2))
+    out["ytd"] = {"occ": sh.cell_value(12, 3), "adr": sh.cell_value(12, 6),
+                  "revpar": sh.cell_value(12, 9),
+                  "occ_chg": sh.cell_value(12, 4), "adr_chg": sh.cell_value(12, 7),
+                  "revpar_chg": sh.cell_value(12, 10)}
+    return out
+
+data["str"]["pattaya_new"] = read_str_report(
     "/home/user/mae-workspace/data/source/Pattaya STR Jun 2026 (submarket).xls")
-_sh = _str_wb.sheet_by_name("Standard Monthly")
-_pn = {"occ": [], "adr": [], "revpar": [], "occ_ly": [], "adr_ly": [], "revpar_ly": []}
-for _r in range(6, 12):  # Jan..Jun 2026
-    for met, cty, cchg in [("occ", 3, 4), ("adr", 6, 7), ("revpar", 9, 10)]:
-        ty, chg = _sh.cell_value(_r, cty), _sh.cell_value(_r, cchg)
-        _pn[met].append(round(ty, 2))
-        _pn[met + "_ly"].append(round(ty / (1 + chg / 100), 2))
-_pn["ytd"] = {"occ": _sh.cell_value(12, 3), "adr": _sh.cell_value(12, 6),
-              "revpar": _sh.cell_value(12, 9),
-              "occ_chg": _sh.cell_value(12, 4), "adr_chg": _sh.cell_value(12, 7),
-              "revpar_chg": _sh.cell_value(12, 10)}
-data["str"]["pattaya_new"] = _pn
+data["str"]["bangkok_new"] = read_str_report(
+    "/home/user/mae-workspace/data/source/Bangkok STR Jun 2026 (submarket).xls")
 
 # ---------- Section 3: performance vs budget (Summary) ----------
 sm = wb["Summary"]

@@ -109,7 +109,7 @@ function divider(num, title, items) {
     { x: M, y: 3.7, w: 11.5, h: 0.4, margin: 0, fontFace: F, fontSize: 15, color: "AFC0E8" });
   s.addText("Somerset Rama 9 (SR9)  ·  Ascott Embassy Sathorn (AES)  ·  lyf Sukhumvit 8 (LYF)  ·  Somerset Pattaya (SP)",
     { x: M, y: 6.35, w: 11.5, h: 0.35, margin: 0, fontFace: F, fontSize: 12, color: "7C8BC0" });
-  s.addText("Data through June 2026 (June arrivals preliminary · STR: Bangkok Jan–May, Pattaya Jan–Jun re-based) · Prepared July 2026",
+  s.addText("Data through June 2026 (June arrivals preliminary · STR: Bangkok & Pattaya re-based, Jan–Jun) · Prepared July 2026",
     { x: M, y: 6.72, w: 11.5, h: 0.35, margin: 0, fontFace: F, fontSize: 11, color: "7C8BC0" });
 }
 
@@ -165,7 +165,7 @@ const PF = { act: ytdOf(data.portfolio.act), bg: ytdOf(data.portfolio.bg),
     { text: "Rate, not volume, is the 2026 challenge: occupancy is near plan but ADR runs ~3% under budget across the portfolio — see \u2018The ADR challenge\u2019 in Section 2.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "Market demand is mixed: total arrivals are below last year (June preliminary), with China (+18%), India and long-haul holding the recovery together — Middle East is down on the war effect.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "Portfolio RevPAR is " + fmtDelta(grow(PF.act.revpar, PF.bg.revpar)) + " vs budget on " + fmtPct(PF.act.occ) + " occupancy — rate (ADR, −3.4%) is the main gap; occupancy is close to plan.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
-    { text: "The Bangkok compset is discounting (ADR down vs LY, occupancy up); the re-based Pattaya STR shows a broadly level market — the portfolio is holding up in line with the market (−0.6% RevPAR vs LY).", options: { bullet: true } },
+    { text: "Re-based STR: both markets held rate in H1 (Bangkok ADR −1.2%, occ +2.6 pts; Pattaya ADR +0.9%) while our serviced-apartment compset discounted — the rate battle is in our segment, not the whole city.", options: { bullet: true } },
   ], { x: M, y: 4.95, w: W - 2 * M, h: 1.9, margin: 0, fontFace: F, fontSize: 12.5, color: INK });
 }
 
@@ -367,15 +367,11 @@ function strSlide(cityKey, cityName, subtitle, noteText) {
   note(s, M, 6.78, 11.9, noteText);
   return s;
 }
-strSlide("bangkok", "Bangkok", "Monthly compset performance, 2024–2026 (Jan–May) — ADR excludes breakfast",
-  "Bangkok market: occupancy holding above last year, but rate is down — the market is buying occupancy with price.");
-// Pattaya re-based to the CoStar submarket report (Jun 2026): 2025 derived
-// from reported % change; the old 2019/2024 compset rows are not comparable.
-{
+function strMarketSlide(dataKey, cityName, noteText) {
   const s = pres.addSlide();
-  header(s, "Section 2 · Market (STR)", "Pattaya market — Occ / ADR / RevPAR",
-    "STR submarket basis (re-based Jun 2026) · Jan–Jun · 2025 derived from reported % change · prior years not comparable");
-  const pn = data.str.pattaya_new;
+  header(s, "Section 2 · Market (STR)", cityName + " market — Occ / ADR / RevPAR",
+    "STR market basis (re-based Jun 2026) · Jan–Jun · 2025 derived from reported % change · prior years not comparable");
+  const pn = data.str[dataKey];
   const defs = [["Occupancy (%)", "occ", "#,##0\"%\""], ["ADR (THB)", "adr", "#,##0"], ["RevPAR (THB)", "revpar", "#,##0"]];
   defs.forEach((def, i) => {
     const [ttl, key, fmt] = def;
@@ -395,9 +391,14 @@ strSlide("bangkok", "Bangkok", "Monthly compset performance, 2024–2026 (Jan–
     + "   ·   RevPAR " + fmtDelta(pn.ytd.revpar_chg / 100),
     { x: M, y: 6.45, w: 11.9, h: 0.3, margin: 0, fontFace: F, fontSize: 12.5, bold: true,
       color: pn.ytd.revpar_chg >= 0 ? GOOD : BAD });
-  note(s, M, 6.78, 11.9, "Re-based series (CoStar submarket, Jun 2026 report): the Pattaya market is broadly level vs 2025 — "
-    + "occupancy eases through Q2 as normal seasonality, while rate holds (Jun ADR +4.0%). Source: Pattaya STR Jun 2026 (submarket).xls.");
+  note(s, M, 6.78, 11.9, noteText);
 }
+strMarketSlide("bangkok_new", "Bangkok",
+  "Re-based series (CoStar market report, Jun 2026): the broad Bangkok market held rate in H1 (ADR −1.2%) and grew occupancy (+2.6 pts) — "
+  + "the deep discounting sits in our direct serviced-apartment compset, not the whole market. Source: Bangkok STR Jun 2026 (submarket).xls.");
+strMarketSlide("pattaya_new", "Pattaya",
+  "Re-based series (CoStar submarket report, Jun 2026): the Pattaya market is broadly level vs 2025 — occupancy eases through Q2 as normal "
+  + "seasonality, while rate holds (Jun ADR +4.0%). Source: Pattaya STR Jun 2026 (submarket).xls.");
 
 // ---------- The ADR challenge (draft v2 — TBC items pending data) ----------
 {
@@ -429,14 +430,15 @@ strSlide("bangkok", "Bangkok", "Monthly compset performance, 2024–2026 (Jan–
   };
   panel(M, "FACTS — what the data shows", NAVY, [
     "Portfolio ADR H1 " + fmtTHB(PF.act.adr) + ": " + fmtDelta(grow(PF.act.adr, PF.bg.adr)) + " vs MF budget and " + fmtDelta(grow(PF.act.adr, PF.ly.adr)) + " vs 2025 — while occupancy is near plan (" + fmtDelta(PF.act.occ - PF.bg.occ, 1).replace("%", " pts") + ").",
-    "The whole Bangkok market is discounting: compset ADR " + fmtDelta(bkAdr) + " vs 2025 (Jan–May) with occupancy up — hotels are buying volume with rate.",
+    "Re-based STR: the broad markets HELD rate in H1 — Bangkok ADR " + fmtDelta(data.str.bangkok_new.ytd.adr_chg / 100) + " (occ +" + data.str.bangkok_new.ytd.occ_chg.toFixed(1) + " pts), Pattaya ADR " + fmtDelta(data.str.pattaya_new.ytd.adr_chg / 100) + " — while our portfolio ADR fell " + fmtDelta(grow(PF.act.adr, PF.ly.adr)) + ".",
+    "Our direct serviced-apartment compset ADR is " + fmtDelta(bkAdr) + " (Jan–May) — the discounting is concentrated in our segment, not the whole Bangkok market.",
     "Middle East arrivals " + fmtDelta(grow(A.mideast.ytd["2026"], A.mideast.ytd["2025"]), 0) + " H1 (a high-rate, long-stay segment) and total arrivals " + fmtDelta(grow(A.mots.ytd["2026"], A.mots.ytd["2025"])) + " vs 2025 (June preliminary).",
     "Guest mix is shifting to price-sensitive source markets: Chinese share of portfolio room nights " + fmtPct(chn26 / rn26, 0) + " H1 2026 vs " + fmtPct(chn25 / rn25, 0) + " in 2025; SEA share also rising (LYF).",
-    "Re-based Pattaya STR: market rate broadly flat (H1 ADR " + fmtDelta(data.str.pattaya_new.ytd.adr_chg / 100) + ") — the ADR pressure is concentrated in Bangkok.",
+
     "Visitor spending power: [TBC — MOTS/BoT average spend per head data to be added]",
   ]);
   panel(6.74, "HYPOTHESES — why we believe it is happening", GOLD, [
-    "Price war triggered by the Middle East conflict: flight cancellations removed high-spend demand and hotels chased the remaining volume with discounts (reported by all three Bangkok properties).",
+    "A price war inside our segment: serviced-apartment competitors discounted hard after Middle East / European demand fell, and we matched them to protect occupancy — while the broader hotel market held rate (reported by all three Bangkok properties).",
     "Spending power: Chinese and SEA leisure guests book entry-level rooms and shorter stays; a strong THB makes Thailand more expensive in guests' home currencies. [TBC — FX / spend-per-trip evidence]",
     "Booking behaviour changed: guests book further in advance and last-minute premium demand has faded (SR9) — less late-yield upside on peak dates.",
     "Channel mix dilution: OTA flash deals and wholesale rates lift occupancy but cap ADR (LYF ADR ranks 5/5 in its compset; Trip.com flash deal discontinued).",
@@ -515,7 +517,7 @@ function portfolioPerfSlide(eyebrow) {
   perfSlide(eyebrow, "Portfolio — all four properties", "Weighted by room inventory (1,406 keys) · YTD = Jan–Jun 2026",
   data.portfolio.act, data.portfolio.bg, data.portfolio.ly, data.portfolio.ly24, PF,
   "Portfolio RevPAR is ~4% behind budget, driven mainly by rate (ADR −3.4%); occupancy is near plan (−0.7 pts). Vs last year RevPAR is broadly flat. "
-  + "April was the softest month — driven by AES (−16% RevPAR vs budget, ≈half the gap) and LYF (occupancy 50% vs 83% budgeted), not really the market: the Bangkok compset was broadly flat vs last year, and the re-based Pattaya STR shows a level market — the April miss was property-specific.");
+  + "April was the softest month — driven by AES (−16% RevPAR vs budget, ≈half the gap) and LYF (occupancy 50% vs 83% budgeted), not really the market: the re-based Bangkok market actually grew RevPAR in April (+3.0%) and Pattaya was level — the April miss was property-specific.");
 }
 
 // per property
@@ -912,7 +914,7 @@ portfolioPerfSlide("Section 3 · Portfolio");
   s.addText([
     { text: "Data sources", options: { bold: true, color: NAVY, fontSize: 14, breakLine: true, paraSpaceAfter: 6 } },
     { text: "Arrivals: Ministry of Tourism & Sports (MOTS) and AOT statistics, as compiled in the Segment Half-year workbook (tabs Arrival / Summary-1). 2026 data through June; June is preliminary (a system error dropped 4 days).", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
-    { text: "STR / compset: Bangkok competitive-set Occ, ADR, RevPAR from the Compset tab (Jan–May, ADR excludes breakfast). Pattaya re-based to the CoStar submarket report of June 2026 — 2025 derived from reported % change; earlier Pattaya rows are not comparable.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
+    { text: "STR: Bangkok and Pattaya both re-based to the CoStar market/submarket reports of June 2026 (Jan–Jun; 2025 derived from reported % change; earlier compset rows not comparable). The direct serviced-apartment compset series (Compset tab, Jan–May) is retained for the segment comparison on the ADR slide.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "Property performance: monthly Occ/ADR/RevPAR actuals, MF budget and prior years read directly from the result FY24/FY25/FY26 sheets (official record); property ADR includes breakfast (LYF has none). Segment data reconciled to each property's source system, July 2026.", options: { bullet: true, breakLine: true, paraSpaceAfter: 4 } },
     { text: "Segmentation: property tabs (2026 Jan–Jun). Nationality: room nights by nationality from each property tab — H1 2026 and 2025 (each year's own top-10).", options: { bullet: true, breakLine: true, paraSpaceAfter: 10 } },
     { text: "Definitions & notes", options: { bold: true, color: NAVY, fontSize: 14, breakLine: true, paraSpaceAfter: 6 } },
