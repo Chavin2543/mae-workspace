@@ -226,6 +226,17 @@ odd items. The loop, per property (skills in order):
 Answers arrive as pasted/uploaded email text until Mae connects the Gmail
 connector in claude.ai settings; after that Claude can read replies directly.
 
+## Task anatomy: Payment vouchers → approval-email tables
+
+Recurring (set up Jul 2026), skill: **`payment-approval-table`**. Mae uploads
+~4 payment vouchers (Ananda system format), each a different company. Read
+every voucher, then reply in chat with **one copy-pasteable table per
+company** — columns No. / Detail / Payment Voucher, where Detail is three
+lines: `Description:` (Thai tax shorthand expanded, BE years converted),
+`Pay to:`, `Amount: <n> THB`. The Payment Voucher column is a placeholder —
+Mae pastes the voucher picture into the email herself. Uploaded PDF vouchers
+are filed in `data/pdf/`; the tables themselves live only in chat.
+
 ## General rules for this repo
 
 - **Git branch: always work on `main` only (Mae's rule, Jul 2026 — "always").**
