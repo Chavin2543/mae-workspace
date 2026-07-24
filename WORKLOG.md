@@ -7,6 +7,13 @@ language.
 
 ---
 
+## 2026-07-24 — New skill: payment vouchers → approval-email tables
+Per Mae: she uploads ~4 payment vouchers (different companies) and gets one
+copy-pasteable table per company (No. / Detail / Payment Voucher; Description,
+Pay to, Amount) for her approval email. New `payment-approval-table` skill;
+task anatomy added to CLAUDE.md. Format confirmed against the AMH Ratchada
+VAT voucher sample.
+
 ## 2026-07-23 — New workflow: property email answers → Excel notes
 Per Mae: when a property answers her monthly FS questions by email, the answer
 is marked as an Excel note on that account's row in that month's column.
