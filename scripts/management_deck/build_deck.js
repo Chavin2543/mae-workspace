@@ -431,7 +431,7 @@ strMarketSlide("pattaya_new", "Pattaya",
   panel(M, "FACTS — what the data shows", NAVY, [
     "Portfolio ADR H1 " + fmtTHB(PF.act.adr) + ": " + fmtDelta(grow(PF.act.adr, PF.bg.adr)) + " vs MF budget and " + fmtDelta(grow(PF.act.adr, PF.ly.adr)) + " vs 2025 — while occupancy is near plan (" + fmtDelta(PF.act.occ - PF.bg.occ, 1).replace("%", " pts") + ").",
     "Re-based STR: the broad markets HELD rate in H1 — Bangkok ADR " + fmtDelta(data.str.bangkok_new.ytd.adr_chg / 100) + " (occ +" + data.str.bangkok_new.ytd.occ_chg.toFixed(1) + " pts), Pattaya ADR " + fmtDelta(data.str.pattaya_new.ytd.adr_chg / 100) + " — while our portfolio ADR fell " + fmtDelta(grow(PF.act.adr, PF.ly.adr)) + ".",
-    "Our direct serviced-apartment compset ADR is " + fmtDelta(bkAdr) + " (Jan–May) — the discounting is concentrated in our segment, not the whole Bangkok market.",
+    "Our direct serviced-apartment compset ADR is " + fmtDelta(bkAdr) + " (Jan–May — June compset report pending) — the discounting is concentrated in our segment, not the whole Bangkok market.",
     "Middle East arrivals " + fmtDelta(grow(A.mideast.ytd["2026"], A.mideast.ytd["2025"]), 0) + " H1 (a high-rate, long-stay segment) and total arrivals " + fmtDelta(grow(A.mots.ytd["2026"], A.mots.ytd["2025"])) + " vs 2025 (June preliminary).",
     "Guest mix is shifting to price-sensitive source markets: Chinese share of portfolio room nights " + fmtPct(chn26 / rn26, 0) + " H1 2026 vs " + fmtPct(chn25 / rn25, 0) + " in 2025; SEA share also rising (LYF).",
 
