@@ -1,5 +1,12 @@
 // Management performance deck — Mitsui Thailand hotel portfolio, H1 2026
 // All charts are native PowerPoint charts (fully editable).
+//
+// *** STOP — DO NOT RE-RUN THIS SCRIPT OVER THE DELIVERED DECK (Jul 25, 2026) ***
+// output/Portfolio_Performance_Report_H1-2026.pptx is now Mae's HAND-EDITED
+// master (50 slides: she added Bangkok/Pattaya "Tourist Arrivals + Spending
+// power" slides and moved "Us vs our compsets" before the ADR slide).
+// Regenerating would DESTROY her edits. Future changes: surgical python-pptx
+// edits on the pptx itself. This script is kept for reference/history only.
 const pptxgen = require("pptxgenjs");
 const data = require("./deck_data.json");
 
