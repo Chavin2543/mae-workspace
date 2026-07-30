@@ -7,6 +7,13 @@ language.
 
 ---
 
+## 2026-07-30 — Compset sheet: H1 (Jan-Jun) column with live formulas
+Per Mae: column N of the Compset sheet now carries an "H1 (Jan-Jun)" column —
+180 formulas across every block (Bangkok, Rachada, Sathorn, Nana, SP, Pattaya).
+Occ/RevPar are day-weighted, ADR is room-night-weighted (same math as the deck
+slides); partial years stay blank. Caches restored + patched; verified SP comp
+ADR H1 = 4,214 matching slide 18. File: the results-checked master workbook.
+
 ## 2026-07-24 — New skill: payment vouchers → approval-email tables
 Per Mae: she uploads ~4 payment vouchers (different companies) and gets one
 copy-pasteable table per company (No. / Detail / Payment Voucher; Description,
