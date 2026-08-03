@@ -7,6 +7,12 @@ language.
 
 ---
 
+## 2026-08-03 — Payment approval tables (AMH Sathorn + AMH Ratchada)
+Ran payment-approval-table on 2 vouchers: AMH Sathorn KP 2600000032 (land &
+building tax 2026, 3,262,250.00 THB to T C Sathorn Condo) and AMH Ratchada
+KP 2600000040 (IAR/BI/PV insurance premiums Jun 26–Jun 27, 1,384,670.58 THB
+to Rabbit Care Broker). Tables delivered in chat; PDFs filed in data/pdf/.
+
 ## 2026-08-03 — Deck v11 reshaped with Mae (ADR story + slimmer slides)
 Adopted Mae's v11 as master, then per her comments: performance pages show
 actual/MF Projection/actual-2025 side by side; new ADR-by-segment slides
