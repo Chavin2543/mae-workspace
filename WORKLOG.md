@@ -7,6 +7,14 @@ language.
 
 ---
 
+## 2026-08-03 — STR summary: Bangkok overall now a full series (2024-2026)
+- Mae uploaded Bangkok whole-market monthly data 2024-2025; filed as
+  data/source/STR Bangkok market monthly 2024-2025.xls (no 2023 data exists).
+- Bangkok overall joined everywhere as a gray dashed reference line: monthly
+  tabs + charts, H1 tables (H1 2024/2025/2026, 2023 shown as em-dash), YTD
+  block %chg now filled, report tiles/charts/tables. All calculated from raw
+  monthly rows per the standing decision.
+
 ## 2026-08-03 — STR summary: added "26 vs 24" change column
 - Overview H1 tables now have five %-change columns (24v23, 25v24, 26v25,
   26v24, 26v23); report change section shows "vs H1 2024" and "vs H1 2023"
