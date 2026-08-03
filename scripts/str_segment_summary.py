@@ -31,8 +31,11 @@ SEGMENTS = [
     ("Upper Midscale", ["STR Bangkok Upper Midscale monthly 2023-2025.xls",
                         "STR Bangkok Upper Midscale YTD Jun 2026.xls"]),
 ]
-# whole-market reference (2026 YTD only) — used in the YTD comparison, not the class charts
-BANGKOK_FILE = "STR Bangkok market YTD Jun 2026.xls"
+# whole-market reference: monthly 2024-2025 + 2026 H1 (no 2023 data)
+BANGKOK_NAME = "Bangkok overall"
+BANGKOK_COLOR = "898781"   # muted gray — reference line, not a class
+BANGKOK_FILES = ["STR Bangkok market monthly 2024-2025.xls",
+                 "STR Bangkok market YTD Jun 2026.xls"]
 YTD_KEY = "YTD2026"   # totals/totals_chg key for the "YTD 2026" row (Jan-Jun vs same period 2025)
 # validated dataviz categorical slots 1-4 (light)
 COLORS = {"Luxury": "2A78D6", "Upper Upscale": "EB6834",
@@ -117,8 +120,26 @@ def load_all():
 
 
 def load_bangkok():
-    """Whole Bangkok market (all classes) — YTD 2026 reference."""
-    return read_segment(os.path.join(SRC, BANGKOK_FILE))
+    """Whole Bangkok market (all classes): monthly 2024-2025 + 2026 H1."""
+    merged = None
+    for fn in BANGKOK_FILES:
+        part = read_segment(os.path.join(SRC, fn))
+        if merged is None:
+            merged = part
+        else:
+            merged["monthly"] += part["monthly"]
+            merged["totals"].update(part["totals"])
+            merged["totals_chg"].update(part["totals_chg"])
+    return merged
+
+
+def h1_stats_or_none(d, year):
+    """h1_stats, or None when that year's months aren't in the data
+    (Bangkok overall has no 2023)."""
+    try:
+        return h1_stats(d, year)
+    except AssertionError:
+        return None
 
 
 # ---------- styling helpers ----------
@@ -131,7 +152,7 @@ BORDER = Border(left=thin, right=thin, top=thin, bottom=thin)
 CENTER = Alignment(horizontal="center")
 
 
-def write_metric_sheet(wb, title, metric_idx, months, data, numfmt, is_pct):
+def write_metric_sheet(wb, title, metric_idx, months, data, numfmt, is_pct, bkk=None):
     ws = wb.create_sheet(title)
     ws.sheet_view.showGridLines = False
     # header
@@ -141,11 +162,16 @@ def write_metric_sheet(wb, title, metric_idx, months, data, numfmt, is_pct):
                 "Figures are 'This Year' actuals.")
     ws["A2"].font = Font(italic=True, size=9, color="808080")
 
+    ncols = len(SEGMENTS) + (1 if bkk else 0)
+    bkk_by_month = {m[0]: m for m in bkk["monthly"]} if bkk else {}
     hrow = 4
     ws.cell(hrow, 1, "Month").font = HDR_FONT
     ws.cell(hrow, 1).fill = HDR_FILL
     for j, (seg, _) in enumerate(SEGMENTS):
         c = ws.cell(hrow, 2 + j, seg)
+        c.font = HDR_FONT; c.fill = HDR_FILL; c.alignment = CENTER
+    if bkk:
+        c = ws.cell(hrow, 2 + len(SEGMENTS), BANGKOK_NAME)
         c.font = HDR_FONT; c.fill = HDR_FILL; c.alignment = CENTER
     ws.cell(hrow, 1).alignment = CENTER
 
@@ -159,12 +185,20 @@ def write_metric_sheet(wb, title, metric_idx, months, data, numfmt, is_pct):
             cell.number_format = numfmt
             cell.border = BORDER
             cell.alignment = CENTER
+        if bkk:
+            cell = ws.cell(r, 2 + len(SEGMENTS))
+            m = bkk_by_month.get(month)
+            if m is not None:
+                cell.value = round(m[metric_idx + 1], 2)
+                cell.number_format = numfmt
+            cell.border = BORDER
+            cell.alignment = CENTER
     last = hrow + len(months)
     ws.freeze_panes = ws.cell(hrow + 1, 2)
 
     # column widths
     ws.column_dimensions["A"].width = 12
-    for j in range(len(SEGMENTS)):
+    for j in range(ncols):
         ws.column_dimensions[get_column_letter(2 + j)].width = 15
 
     # ---- native line chart ----
@@ -177,7 +211,7 @@ def write_metric_sheet(wb, title, metric_idx, months, data, numfmt, is_pct):
     chart.x_axis.title = "Month"
     chart.x_axis.delete = False
     chart.y_axis.delete = False
-    data_ref = Reference(ws, min_col=2, max_col=1 + len(SEGMENTS),
+    data_ref = Reference(ws, min_col=2, max_col=1 + ncols,
                          min_row=hrow, max_row=last)
     cats = Reference(ws, min_col=1, min_row=hrow + 1, max_row=last)
     chart.add_data(data_ref, titles_from_data=True)
@@ -187,14 +221,20 @@ def write_metric_sheet(wb, title, metric_idx, months, data, numfmt, is_pct):
         s.smooth = False
         s.graphicalProperties.line.solidFill = COLORS[seg]
         s.graphicalProperties.line.width = 28000  # EMU ~2.2pt
-    ws.add_chart(chart, f"{get_column_letter(3 + len(SEGMENTS))}4")
+    if bkk:
+        s = chart.series[len(SEGMENTS)]
+        s.smooth = False
+        s.graphicalProperties.line.solidFill = BANGKOK_COLOR
+        s.graphicalProperties.line.width = 28000
+        s.graphicalProperties.line.prstDash = "dash"
+    ws.add_chart(chart, f"{get_column_letter(3 + ncols)}4")
     return ws
 
 
 PCT_FMT = '+0.0"%";-0.0"%";0.0"%"'
 
 
-def write_overview(wb, data):
+def write_overview(wb, data, bkk=None):
     ws = wb.create_sheet("Overview", 0)
     ws.sheet_view.showGridLines = False
     ws["A1"] = "Bangkok STR — market class comparison: H1 (Jan–Jun) of each year"
@@ -202,10 +242,16 @@ def write_overview(wb, data):
     ws["A2"] = ("First-half (Jan–Jun) averages by market class, 2023–2026, with % change. "
                 "Occupancy = %, ADR & RevPAR = THB. ALL years calculated from STR monthly "
                 "data (Occ/RevPAR day-weighted, ADR room-night-weighted) — STR's own YTD "
-                "rows are not used (Mae's decision, 2026-08-03).")
+                "rows are not used (Mae's decision, 2026-08-03). Bangkok overall = whole "
+                "market, data starts 2024.")
     ws["A2"].font = Font(italic=True, size=9, color="808080")
 
     h1 = {seg: {y: h1_stats(data[seg], y) for y in H1_YEARS} for seg, _ in SEGMENTS}
+    table_rows = [(seg, h1[seg], SEG_FONTS[seg]) for seg, _ in SEGMENTS]
+    if bkk is not None:
+        table_rows.append((BANGKOK_NAME,
+                           {y: h1_stats_or_none(bkk, y) for y in H1_YEARS},
+                           Font(bold=True, color="595959")))
     year_heads = [f"H1 {y}" for y in H1_YEARS]
     chg_heads = ["24 vs 23", "25 vs 24", "26 vs 25", "26 vs 24", "26 vs 23"]
     metrics = [("Occupancy (%)", 0, "0.0"), ("ADR (THB)", 1, "#,##0"),
@@ -220,30 +266,36 @@ def write_overview(wb, data):
         for k, head in enumerate(year_heads + chg_heads):
             c = ws.cell(hr, 2 + k, head)
             c.font = HDR_FONT; c.fill = HDR_FILL; c.alignment = CENTER
-        for j, (seg, _) in enumerate(SEGMENTS):
+        for j, (label, hy, font) in enumerate(table_rows):
             r = hr + 1 + j
-            ws.cell(r, 1, seg).font = SEG_FONTS[seg]
+            ws.cell(r, 1, label).font = font
             ws.cell(r, 1).border = BORDER
-            vals = [h1[seg][y][midx] for y in H1_YEARS]
+            vals = [hy[y][midx] if hy[y] is not None else None for y in H1_YEARS]
             for k, v in enumerate(vals):
-                c = ws.cell(r, 2 + k, round(v, 1 if midx == 0 else 0))
-                c.number_format = nf; c.border = BORDER; c.alignment = CENTER
-            chgs = [(vals[1] / vals[0] - 1) * 100, (vals[2] / vals[1] - 1) * 100,
-                    (vals[3] / vals[2] - 1) * 100, (vals[3] / vals[1] - 1) * 100,
-                    (vals[3] / vals[0] - 1) * 100]
-            for k, v in enumerate(chgs):
-                c = ws.cell(r, 6 + k, round(v, 1))
-                c.number_format = PCT_FMT; c.border = BORDER; c.alignment = CENTER
-                c.font = Font(color="006300" if v >= 0 else "C00000")
+                c = ws.cell(r, 2 + k)
+                if v is not None:   # empty cell (not text) so charts show a gap
+                    c.value = round(v, 1 if midx == 0 else 0)
+                    c.number_format = nf
+                c.border = BORDER; c.alignment = CENTER
+            pairs = [(1, 0), (2, 1), (3, 2), (3, 1), (3, 0)]  # 24v23,25v24,26v25,26v24,26v23
+            for k, (a, b) in enumerate(pairs):
+                c = ws.cell(r, 6 + k)
+                c.border = BORDER; c.alignment = CENTER
+                if vals[a] is None or vals[b] is None:
+                    c.value = "—"; c.font = Font(color="808080")
+                else:
+                    v = (vals[a] / vals[b] - 1) * 100
+                    c.value = round(v, 1); c.number_format = PCT_FMT
+                    c.font = Font(color="006300" if v >= 0 else "C00000")
 
-        # H1-by-year line chart: series = segments (table rows), categories = years
+        # H1-by-year line chart: series = table rows, categories = years
         chart = LineChart()
         chart.title = f"{mtitle} — H1 average by year"
         chart.height = 7.2
         chart.width = 13.5
         chart.x_axis.delete = False
         chart.y_axis.delete = False
-        data_ref = Reference(ws, min_col=1, max_col=5, min_row=hr, max_row=hr + len(SEGMENTS))
+        data_ref = Reference(ws, min_col=1, max_col=5, min_row=hr, max_row=hr + len(table_rows))
         cats = Reference(ws, min_col=2, max_col=5, min_row=hr)
         chart.add_data(data_ref, from_rows=True, titles_from_data=True)
         chart.set_categories(cats)
@@ -252,6 +304,12 @@ def write_overview(wb, data):
             s.smooth = False
             s.graphicalProperties.line.solidFill = COLORS[seg]
             s.graphicalProperties.line.width = 28000
+        if bkk is not None:
+            s = chart.series[len(SEGMENTS)]
+            s.smooth = False
+            s.graphicalProperties.line.solidFill = BANGKOK_COLOR
+            s.graphicalProperties.line.width = 28000
+            s.graphicalProperties.line.prstDash = "dash"
         ws.add_chart(chart, f"L{base}")
 
     ws.column_dimensions["A"].width = 18
@@ -304,7 +362,13 @@ def make_payload(data, months, bkk=None):
                "colors": COLORS, "data": {}, "totals": {}, "totals_chg": {}}
     if bkk is not None:
         # calculated from its monthly rows only (no STR YTD row, per decision)
-        payload["bangkok"] = {"h1_2026": [round(v, 2) for v in h1_stats(bkk, "2026")]}
+        bkk_by_month = {m[0]: m for m in bkk["monthly"]}
+        payload["bangkok"] = {
+            "monthly": [[round(v, 2) for v in bkk_by_month[mo][1:]]
+                        if mo in bkk_by_month else None for mo in months],
+            "h1": {y: ([round(v, 2) for v in h] if (h := h1_stats_or_none(bkk, y)) else None)
+                   for y in H1_YEARS},
+        }
     for seg, _ in SEGMENTS:
         payload["data"][seg] = {
             "occ": [round(m[1], 2) for m in data[seg]["monthly"]],
@@ -326,11 +390,11 @@ def build(out):
     bkk = load_bangkok()
     wb = Workbook()
     wb.remove(wb.active)
-    ov = write_overview(wb, data)
+    ov = write_overview(wb, data, bkk)
     write_ytd_block(ov, data, bkk, base=4 + 3 * 16)
-    write_metric_sheet(wb, "Occupancy", 0, months, data, "0.0", True)
-    write_metric_sheet(wb, "ADR", 1, months, data, "#,##0", False)
-    write_metric_sheet(wb, "RevPAR", 2, months, data, "#,##0", False)
+    write_metric_sheet(wb, "Occupancy", 0, months, data, "0.0", True, bkk)
+    write_metric_sheet(wb, "ADR", 1, months, data, "#,##0", False, bkk)
+    write_metric_sheet(wb, "RevPAR", 2, months, data, "#,##0", False, bkk)
     os.makedirs(os.path.dirname(out), exist_ok=True)
     wb.save(out)
     return out, make_payload(data, months, bkk)

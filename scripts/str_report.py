@@ -106,7 +106,7 @@ TEMPLATE = r"""<!doctype html>
   </header>
 
   <div class="tiles" id="tiles"></div>
-  <p class="tiles-note">YTD 2026 = Jan–Jun, calculated from monthly data · arrows compare with H1 2025 (calculated) · Bangkok overall has no 2025 monthly data, so no arrows · ตัวเลขคำนวณเองจากข้อมูลรายเดือน</p>
+  <p class="tiles-note">YTD 2026 = Jan–Jun, calculated from monthly data · arrows compare with H1 2025 (calculated) · ตัวเลขคำนวณเองจากข้อมูลรายเดือน</p>
 
   <div class="card">
     <h2>Change H1 2023 → H1 2026</h2>
@@ -167,11 +167,14 @@ function tileHtml(label, dotCss, t, g){
     <div class="kv"><span>ADR</span><span><b>${fmt(t[1])}</b> ${arrow(g&&g[1])}</span></div>
     <div class="kv"><span>RevPAR</span><span><b>${fmt(t[2])}</b> ${arrow(g&&g[2])}</span></div>`;
 }
+const BKK="Bangkok overall", MIDX={occ:0,adr:1,revpar:2};
 function tiles(){
   const el=document.getElementById("tiles"); el.innerHTML="";
   if(D.bangkok){
+    const t=D.bangkok.h1["2026"], p=D.bangkok.h1["2025"];
+    const g=p?[0,1,2].map(i=>(t[i]/p[i]-1)*100):null;
     const d=document.createElement("div"); d.className="tile";
-    d.innerHTML=tileHtml("Bangkok overall","var(--muted)",D.bangkok.h1_2026,null);
+    d.innerHTML=tileHtml(BKK,"var(--muted)",t,g);
     el.appendChild(d);
   }
   SEGS.forEach(s=>{
@@ -190,6 +193,11 @@ function legend(id){
     sp.innerHTML=`<span class="dot" style="background:var(${CVAR[s]})"></span>${s}`;
     el.appendChild(sp);
   });
+  if(D.bangkok){
+    const sp=document.createElement("span");
+    sp.innerHTML=`<span class="dot" style="background:var(--muted)"></span>${BKK} (from 2024)`;
+    el.appendChild(sp);
+  }
 }
 
 // ---- change section: H1-by-year mini line charts + 26 vs 23 arrows ----
@@ -198,8 +206,10 @@ function ychart(host, mi, decimals, unit){
   const W=320,H=190,mL=46,mR=16,mT=12,mB=26;
   const iw=W-mL-mR, ih=H-mT-mB;
   const series=SEGS.map(s=>({name:s,vals:YEARS.map(y=>D.h1[s][y][mi])}));
+  if(D.bangkok) series.push({name:BKK,bkk:true,
+    vals:YEARS.map(y=>D.bangkok.h1[y]?D.bangkok.h1[y][mi]:null)});
   let lo=Infinity,hi=-Infinity;
-  series.forEach(se=>se.vals.forEach(v=>{lo=Math.min(lo,v);hi=Math.max(hi,v);}));
+  series.forEach(se=>se.vals.forEach(v=>{if(v!=null){lo=Math.min(lo,v);hi=Math.max(hi,v);}}));
   const pad=(hi-lo)*0.12||1; lo-=pad; hi+=pad;
   const X=i=>mL+iw*i/(YEARS.length-1);
   const Y=v=>mT+ih-(v-lo)/(hi-lo)*ih;
@@ -218,13 +228,19 @@ function ychart(host, mi, decimals, unit){
     const tk=add("text",{class:"tk",x:X(i),y:mT+ih+17,"text-anchor":"middle"});
     tk.setAttribute("font-weight","700"); tk.textContent=y;
   });
-  const dots=[];
+  const colOf=se=>se.bkk?cssv("--muted"):cssv(CVAR[se.name]);
   series.forEach(se=>{
-    const col=cssv(CVAR[se.name]);
-    let d="";
-    se.vals.forEach((v,i)=>{ d+=(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)+" "; });
-    add("path",{class:"ln",d,stroke:col});
+    const col=colOf(se);
+    let d="",pen=false;
     se.vals.forEach((v,i)=>{
+      if(v==null){pen=false;return;}
+      d+=(pen?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)+" "; pen=true;
+    });
+    const attrs={class:"ln",d,stroke:col};
+    if(se.bkk) attrs["stroke-dasharray"]="5 4";
+    add("path",attrs);
+    se.vals.forEach((v,i)=>{
+      if(v==null) return;
       add("circle",{cx:X(i),cy:Y(v),r:3.4,fill:col,class:"mk"});
     });
   });
@@ -237,7 +253,8 @@ function ychart(host, mi, decimals, unit){
     i=Math.max(0,Math.min(YEARS.length-1,i));
     let rows=`<div class="tt">H1 ${YEARS[i]}</div>`;
     series.forEach(se=>{
-      rows+=`<div class="row"><span><span class="dot" style="background:${cssv(CVAR[se.name])}"></span>${se.name}</span><b>${fmt(se.vals[i],decimals)}${unit==="%"?"%":""}</b></div>`;
+      if(se.vals[i]==null) return;
+      rows+=`<div class="row"><span><span class="dot" style="background:${colOf(se)}"></span>${se.name}</span><b>${fmt(se.vals[i],decimals)}${unit==="%"?"%":""}</b></div>`;
     });
     tip.innerHTML=rows; tip.style.opacity=1;
     let tx=ev.clientX+16; if(tx+180>window.innerWidth) tx=ev.clientX-190;
@@ -269,6 +286,15 @@ function changeSection(){
         cell(D.h1[s]["2024"][mi])+cell(D.h1[s]["2023"][mi]);
       p.appendChild(d);
     });
+    if(D.bangkok){
+      const v26=D.bangkok.h1["2026"][mi], v24=D.bangkok.h1["2024"][mi];
+      const pct=(v26/v24-1)*100, up=pct>=0;
+      const d=document.createElement("div"); d.className="delta";
+      d.innerHTML=`<span><span class="dot" style="background:var(--muted)"></span>${BKK}</span>
+        <b class="${up?"up":"dn"}">${up?"▲":"▼"} ${fmt(Math.abs(pct),1)}%</b>
+        <b style="color:var(--muted)">—</b>`;
+      p.appendChild(d);
+    }
     grid.appendChild(p);
   });
 }
@@ -285,6 +311,11 @@ function ytables(){
       YEARS.forEach(y=>{ html+=`<td>${fmt(D.h1[s][y][mi],dec)}</td>`; });
       html+="</tr>";
     });
+    if(D.bangkok){
+      html+=`<tr><td class="seg"><span class="dot" style="display:inline-block;background:var(--muted)"></span> ${BKK}</td>`;
+      YEARS.forEach(y=>{ html+=`<td>${D.bangkok.h1[y]?fmt(D.bangkok.h1[y][mi],dec):"—"}</td>`; });
+      html+="</tr>";
+    }
     html+="</table></details>";
   });
   host.innerHTML=html;
@@ -296,8 +327,10 @@ function chart(hostId, key, decimals, unit){
   const W=980,H=340,mL=58,mR=118,mT=14,mB=42;
   const iw=W-mL-mR, ih=H-mT-mB;
   const series=SEGS.map(s=>({name:s,vals:D.data[s][key]}));
+  if(D.bangkok) series.push({name:BKK,bkk:true,
+    vals:D.bangkok.monthly.map(m=>m?m[MIDX[key]]:null)});
   let lo=Infinity,hi=-Infinity;
-  series.forEach(se=>se.vals.forEach(v=>{lo=Math.min(lo,v);hi=Math.max(hi,v);}));
+  series.forEach(se=>se.vals.forEach(v=>{if(v!=null){lo=Math.min(lo,v);hi=Math.max(hi,v);}}));
   const pad=(hi-lo)*0.08||1; lo-=pad; hi+=pad;
   if(key==="occ"){lo=Math.max(0,Math.floor(lo/10)*10);hi=Math.min(100,Math.ceil(hi/10)*10);}
   const n=MON.length;
@@ -333,16 +366,22 @@ function chart(hostId, key, decimals, unit){
   });
   // crosshair
   const cross=add("line",{class:"cross",y1:mT,y2:mT+ih,x1:mL,x2:mL});
-  // lines
+  // lines (pen-up over missing months, e.g. Bangkok overall before 2024)
+  const colOf=se=>se.bkk?cssv("--muted"):cssv(CVAR[se.name]);
   series.forEach(se=>{
-    const col=cssv(CVAR[se.name]);
-    let d="";
-    se.vals.forEach((v,i)=>{ d+=(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)+" "; });
-    add("path",{class:"ln",d,stroke:col});
+    const col=colOf(se);
+    let d="",pen=false;
+    se.vals.forEach((v,i)=>{
+      if(v==null){pen=false;return;}
+      d+=(pen?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)+" "; pen=true;
+    });
+    const attrs={class:"ln",d,stroke:col};
+    if(se.bkk) attrs["stroke-dasharray"]="6 4";
+    add("path",attrs);
   });
   // end direct labels — de-collided vertically (min 13px apart)
   const li=n-1;
-  let ends=series.map(se=>({name:se.name,col:cssv(CVAR[se.name]),y:Y(se.vals[li])}))
+  let ends=series.map(se=>({name:se.name,col:colOf(se),y:Y(se.vals[li])}))
                  .sort((a,b)=>a.y-b.y);
   const GAP=13;
   for(let i=1;i<ends.length;i++)
@@ -358,8 +397,9 @@ function chart(hostId, key, decimals, unit){
   const tip=document.getElementById("tip");
   const dots=[];
   series.forEach(se=>{
-    const col=cssv(CVAR[se.name]);
+    const col=colOf(se);
     se.vals.forEach((v,i)=>{
+      if(v==null) return;
       const c=add("circle",{cx:X(i),cy:Y(v),r:0,fill:col,class:"mk"});
       dots.push({i,c});
     });
@@ -372,7 +412,8 @@ function chart(hostId, key, decimals, unit){
     let rows=`<div class="tt">${MON[i]}</div>`;
     series.forEach(se=>{
       const val=se.vals[i], u=unit==="%"?"%":"";
-      rows+=`<div class="row"><span><span class="dot" style="background:${cssv(CVAR[se.name])}"></span>${se.name}</span><b>${fmt(val,decimals)}${u}</b></div>`;
+      if(val==null) return;
+      rows+=`<div class="row"><span><span class="dot" style="background:${colOf(se)}"></span>${se.name}</span><b>${fmt(val,decimals)}${u}</b></div>`;
     });
     tip.innerHTML=rows; tip.style.opacity=1;
     let tx=px+16, ty=py-10;
