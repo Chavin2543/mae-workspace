@@ -105,7 +105,7 @@ TEMPLATE = r"""<!doctype html>
   </header>
 
   <div class="tiles" id="tiles"></div>
-  <p class="tiles-note">YTD 2026 = Jan–Jun · arrows compare with the same period of 2025 (STR % Chg) · ปี 2026 นับ ม.ค.–มิ.ย. เทียบช่วงเดียวกันของปีก่อน</p>
+  <p class="tiles-note">YTD 2026 = Jan–Jun, calculated from monthly data · arrows compare with H1 2025 (calculated) · Bangkok overall has no 2025 monthly data, so no arrows · ตัวเลขคำนวณเองจากข้อมูลรายเดือน</p>
 
   <div class="card">
     <h2>Change H1 2023 → H1 2026</h2>
@@ -139,11 +139,13 @@ TEMPLATE = r"""<!doctype html>
 
   <footer>
     Source: STR Monthly Performance Data (CoStar), Bangkok market classes,
-    Jan 2023 – Jun 2026. Figures are &ldquo;This Year&rdquo; actuals as reported by STR.
-    H1 2023–2025 averages are day-weighted from STR monthly data; H1 2026 is STR's
-    own YTD row (exact even where market room supply changed). Tile arrows are STR's
-    YTD % Chg vs Jan–Jun 2025. &ldquo;Bangkok overall&rdquo; is STR's whole Bangkok
-    market (all classes). Generated 2026-08-03.
+    Jan 2023 – Jun 2026. Monthly figures are &ldquo;This Year&rdquo; actuals as
+    reported by STR. ALL H1/YTD averages — every year including 2026 — are
+    calculated from the monthly data (Occ/RevPAR day-weighted, ADR
+    room-night-weighted); STR's own pre-computed YTD rows are not used
+    (Mae's decision, 2026-08-03 — they differ for Luxury and Bangkok overall).
+    &ldquo;Bangkok overall&rdquo; is STR's whole Bangkok market (all classes).
+    Generated 2026-08-03.
   </footer>
 </div>
 <div class="tip" id="tip"></div>
@@ -156,26 +158,26 @@ const cssv = v => getComputedStyle(document.documentElement).getPropertyValue(v)
 const fmt = (n,d=0)=>n.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
 const MON = D.months;
 
-// ---- KPI tiles: YTD 2026 (Jan-Jun) with STR's % chg vs same period 2025 ----
-const YTD="YTD2026";
+// ---- KPI tiles: H1 2026 calculated from monthly data; arrows vs calculated H1 2025 ----
 function tileHtml(label, dotCss, t, g){
-  const arrow=(v)=>`<b class="${v>=0?"up":"dn"}" style="font-size:.72rem">${v>=0?"▲":"▼"}${fmt(Math.abs(v),1)}%</b>`;
+  const arrow=(v)=>v==null?"":`<b class="${v>=0?"up":"dn"}" style="font-size:.72rem">${v>=0?"▲":"▼"}${fmt(Math.abs(v),1)}%</b>`;
   return `<div class="seg"><span class="dot" style="background:${dotCss}"></span>${label}</div>
-    <div class="kv"><span>Occ YTD</span><span><b>${fmt(t[0],1)}%</b> ${arrow(g[0])}</span></div>
-    <div class="kv"><span>ADR</span><span><b>${fmt(t[1])}</b> ${arrow(g[1])}</span></div>
-    <div class="kv"><span>RevPAR</span><span><b>${fmt(t[2])}</b> ${arrow(g[2])}</span></div>`;
+    <div class="kv"><span>Occ YTD</span><span><b>${fmt(t[0],1)}%</b> ${arrow(g&&g[0])}</span></div>
+    <div class="kv"><span>ADR</span><span><b>${fmt(t[1])}</b> ${arrow(g&&g[1])}</span></div>
+    <div class="kv"><span>RevPAR</span><span><b>${fmt(t[2])}</b> ${arrow(g&&g[2])}</span></div>`;
 }
 function tiles(){
   const el=document.getElementById("tiles"); el.innerHTML="";
   if(D.bangkok){
     const d=document.createElement("div"); d.className="tile";
-    d.innerHTML=tileHtml("Bangkok overall","var(--muted)",
-      D.bangkok.totals[YTD], D.bangkok.totals_chg[YTD]);
+    d.innerHTML=tileHtml("Bangkok overall","var(--muted)",D.bangkok.h1_2026,null);
     el.appendChild(d);
   }
   SEGS.forEach(s=>{
+    const t=D.h1[s]["2026"], p=D.h1[s]["2025"];
+    const g=[0,1,2].map(i=>(t[i]/p[i]-1)*100);
     const d=document.createElement("div"); d.className="tile";
-    d.innerHTML=tileHtml(s,`var(${CVAR[s]})`,D.totals[s][YTD],D.totals_chg[s][YTD]);
+    d.innerHTML=tileHtml(s,`var(${CVAR[s]})`,t,g);
     el.appendChild(d);
   });
 }

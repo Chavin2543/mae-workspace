@@ -50,12 +50,10 @@ H1_DAYS = {"Jan": 31, "Feb": 28, "Mar": 31, "Apr": 30, "May": 31, "Jun": 30}
 
 
 def h1_stats(d, year):
-    """Day-weighted H1 aggregate from monthly rows (Occ/RevPAR day-weighted,
-    ADR room-night-weighted — same math as the management deck).
-    For 2026, prefer STR's own YTD row (exact even when market supply
-    changed mid-year, which day-weighting cannot see)."""
-    if year == "2026" and YTD_KEY in d["totals"]:
-        return d["totals"][YTD_KEY]
+    """H1 aggregate calculated from the raw monthly rows for EVERY year,
+    2026 included: Occ/RevPAR day-weighted, ADR room-night-weighted
+    (revenue ÷ occupied). STR's own YTD rows are deliberately not used —
+    Mae's decision, docs/decisions/2026-08-03-str-ytd-calculate-ourselves.md."""
     rows = [m for m in d["monthly"]
             if m[0].endswith(year) and m[0].split()[0] in H1_DAYS]
     assert len(rows) == 6, f"H1 {year}: expected 6 months, got {len(rows)}"
@@ -202,8 +200,9 @@ def write_overview(wb, data):
     ws["A1"] = "Bangkok STR — market class comparison: H1 (Jan–Jun) of each year"
     ws["A1"].font = Font(bold=True, size=15, color="1F3864")
     ws["A2"] = ("First-half (Jan–Jun) averages by market class, 2023–2026, with % change. "
-                "Occupancy = %, ADR & RevPAR = THB. H1 2023–2025 are day-weighted from STR "
-                "monthly data; H1 2026 is STR's own YTD row.")
+                "Occupancy = %, ADR & RevPAR = THB. ALL years calculated from STR monthly "
+                "data (Occ/RevPAR day-weighted, ADR room-night-weighted) — STR's own YTD "
+                "rows are not used (Mae's decision, 2026-08-03).")
     ws["A2"].font = Font(italic=True, size=9, color="808080")
 
     h1 = {seg: {y: h1_stats(data[seg], y) for y in H1_YEARS} for seg, _ in SEGMENTS}
@@ -261,9 +260,11 @@ def write_overview(wb, data):
 
 
 def write_ytd_block(ws, data, bkk, base):
-    """'YTD 2026 (Jan-Jun)' comparison table: Bangkok overall + the 4 classes.
-    % Chg columns are STR's own (vs same period 2025)."""
-    ws.cell(base, 1, "YTD 2026 (Jan–Jun) vs same period 2025").font = \
+    """'YTD 2026 (Jan-Jun)' table: Bangkok overall + the 4 classes, all
+    calculated from the raw monthly rows (Mae's decision — STR's own YTD rows
+    are not used). % columns compare with our calculated H1 2025; Bangkok
+    overall has no 2025 monthly data, so its % cells stay em-dash."""
+    ws.cell(base, 1, "YTD 2026 (Jan–Jun) — calculated from monthly data, vs calculated H1 2025").font = \
         Font(bold=True, size=12, color="1F3864")
     hr = base + 1
     heads = ["Market", "Occ YTD", "% Chg", "ADR YTD", "% Chg", "RevPAR YTD", "% Chg"]
@@ -277,24 +278,32 @@ def write_ytd_block(ws, data, bkk, base):
         r = hr + 1 + j
         ws.cell(r, 1, label).font = font
         ws.cell(r, 1).border = BORDER
-        vals = d["totals"][YTD_KEY]
-        chgs = d["totals_chg"][YTD_KEY]
+        vals = h1_stats(d, "2026")
+        try:
+            prev = h1_stats(d, "2025")
+            chgs = [(vals[m] / prev[m] - 1) * 100 for m in range(3)]
+        except AssertionError:
+            chgs = None   # no 2025 monthly data (Bangkok overall)
         for m in range(3):
             c = ws.cell(r, 2 + m * 2, round(vals[m], 1 if m == 0 else 0))
             c.number_format = fmts[m]; c.border = BORDER; c.alignment = CENTER
-            c2 = ws.cell(r, 3 + m * 2, round(chgs[m], 1))
-            c2.number_format = PCT_FMT; c2.border = BORDER; c2.alignment = CENTER
-            c2.font = Font(color="006300" if chgs[m] >= 0 else "C00000")
+            c2 = ws.cell(r, 3 + m * 2)
+            c2.border = BORDER; c2.alignment = CENTER
+            if chgs is None:
+                c2.value = "—"
+                c2.font = Font(color="808080")
+            else:
+                c2.value = round(chgs[m], 1)
+                c2.number_format = PCT_FMT
+                c2.font = Font(color="006300" if chgs[m] >= 0 else "C00000")
 
 
 def make_payload(data, months, bkk=None):
     payload = {"months": months, "segments": [s for s, _ in SEGMENTS],
                "colors": COLORS, "data": {}, "totals": {}, "totals_chg": {}}
     if bkk is not None:
-        payload["bangkok"] = {
-            "totals": {y: [round(v, 2) for v in t] for y, t in bkk["totals"].items()},
-            "totals_chg": {y: [round(v, 2) for v in t] for y, t in bkk["totals_chg"].items()},
-        }
+        # calculated from its monthly rows only (no STR YTD row, per decision)
+        payload["bangkok"] = {"h1_2026": [round(v, 2) for v in h1_stats(bkk, "2026")]}
     for seg, _ in SEGMENTS:
         payload["data"][seg] = {
             "occ": [round(m[1], 2) for m in data[seg]["monthly"]],

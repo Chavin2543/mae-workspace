@@ -7,6 +7,14 @@ language.
 
 ---
 
+## 2026-08-03 — STR summary: all YTD figures now calculated from raw monthly data
+- Mae's decision (docs/decisions/2026-08-03-str-ytd-calculate-ourselves.md):
+  she does not trust STR's pre-computed YTD 2026 row, so every H1/YTD figure -
+  every year including 2026 - is calculated from the monthly rows
+  (Occ/RevPar day-weighted, ADR room-night-weighted). STR YTD rows unused.
+- Effect: Luxury H1-26 now 66.8/7,082/4,729 (was STR's 67.2/6,845/4,600);
+  Bangkok overall 70.5/3,952/2,787, no vs-2025 arrows (no 2025 monthly data).
+
 ## 2026-08-03 — STR summary: comparison switched to H1-only (Mae's fix)
 - Mae: 2026 was missing from the Overview change view, and she compares H1
   (Jan-Jun) of each year only. Change view + bottom tables now use H1 2023,
