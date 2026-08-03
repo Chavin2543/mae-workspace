@@ -108,8 +108,8 @@ TEMPLATE = r"""<!doctype html>
   <p class="tiles-note">YTD 2026 = Jan–Jun · arrows compare with the same period of 2025 (STR % Chg) · ปี 2026 นับ ม.ค.–มิ.ย. เทียบช่วงเดียวกันของปีก่อน</p>
 
   <div class="card">
-    <h2>Change 2023 → 2025</h2>
-    <p class="sub">ค่าเฉลี่ยรายปีของแต่ละระดับ และ % เปลี่ยนแปลงปี 2025 เทียบปี 2023</p>
+    <h2>Change H1 2023 → H1 2026</h2>
+    <p class="sub">ครึ่งปีแรก (ม.ค.–มิ.ย.) ของแต่ละปี · ลูกศร = H1 2026 เทียบ H1 2023</p>
     <div class="legend" id="ylg"></div>
     <div class="ygrid" id="ygrid"></div>
   </div>
@@ -132,16 +132,18 @@ TEMPLATE = r"""<!doctype html>
   </div>
 
   <div class="card">
-    <h2>Yearly averages</h2>
-    <p class="sub">ค่าเฉลี่ยรายปี (STR &ldquo;Total&rdquo;)</p>
+    <h2>H1 (Jan–Jun) averages by year</h2>
+    <p class="sub">ค่าเฉลี่ยครึ่งปีแรกของแต่ละปี</p>
     <div id="ytables"></div>
   </div>
 
   <footer>
     Source: STR Monthly Performance Data (CoStar), Bangkok market classes,
-    Jan 2023 – Jun 2026. Figures are &ldquo;This Year&rdquo; actuals as reported by STR;
-    YTD 2026 % Chg compares Jan–Jun 2026 with Jan–Jun 2025. &ldquo;Bangkok overall&rdquo;
-    is STR's whole Bangkok market (all classes). Generated 2026-08-03.
+    Jan 2023 – Jun 2026. Figures are &ldquo;This Year&rdquo; actuals as reported by STR.
+    H1 2023–2025 averages are day-weighted from STR monthly data; H1 2026 is STR's
+    own YTD row (exact even where market room supply changed). Tile arrows are STR's
+    YTD % Chg vs Jan–Jun 2025. &ldquo;Bangkok overall&rdquo; is STR's whole Bangkok
+    market (all classes). Generated 2026-08-03.
   </footer>
 </div>
 <div class="tip" id="tip"></div>
@@ -187,12 +189,12 @@ function legend(id){
   });
 }
 
-// ---- change section: yearly mini line charts + 25 vs 23 arrows ----
-const YEARS=["2023","2024","2025"];
+// ---- change section: H1-by-year mini line charts + 26 vs 23 arrows ----
+const YEARS=["2023","2024","2025","2026"];
 function ychart(host, mi, decimals, unit){
   const W=320,H=190,mL=46,mR=16,mT=12,mB=26;
   const iw=W-mL-mR, ih=H-mT-mB;
-  const series=SEGS.map(s=>({name:s,vals:YEARS.map(y=>D.totals[s][y][mi])}));
+  const series=SEGS.map(s=>({name:s,vals:YEARS.map(y=>D.h1[s][y][mi])}));
   let lo=Infinity,hi=-Infinity;
   series.forEach(se=>se.vals.forEach(v=>{lo=Math.min(lo,v);hi=Math.max(hi,v);}));
   const pad=(hi-lo)*0.12||1; lo-=pad; hi+=pad;
@@ -230,7 +232,7 @@ function ychart(host, mi, decimals, unit){
     const sx=(ev.clientX-r.left)/r.width*W;
     let i=Math.round((sx-mL)/(iw/(YEARS.length-1)));
     i=Math.max(0,Math.min(YEARS.length-1,i));
-    let rows=`<div class="tt">${YEARS[i]}</div>`;
+    let rows=`<div class="tt">H1 ${YEARS[i]}</div>`;
     series.forEach(se=>{
       rows+=`<div class="row"><span><span class="dot" style="background:${cssv(CVAR[se.name])}"></span>${se.name}</span><b>${fmt(se.vals[i],decimals)}${unit==="%"?"%":""}</b></div>`;
     });
@@ -251,8 +253,8 @@ function changeSection(){
     p.innerHTML=`<h3>${en}</h3><p class="u">${th}</p>`;
     ychart(p,mi,dec,unit);
     SEGS.forEach(s=>{
-      const v23=D.totals[s]["2023"][mi], v25=D.totals[s]["2025"][mi];
-      const pct=(v25/v23-1)*100, up=pct>=0;
+      const v23=D.h1[s]["2023"][mi], v26=D.h1[s]["2026"][mi];
+      const pct=(v26/v23-1)*100, up=pct>=0;
       const d=document.createElement("div"); d.className="delta";
       d.innerHTML=`<span><span class="dot" style="background:var(${CVAR[s]})"></span>${s}</span>
         <b class="${up?"up":"dn"}">${up?"▲":"▼"} ${fmt(Math.abs(pct),1)}%</b>`;
@@ -267,10 +269,11 @@ function ytables(){
   const metrics=[["Occupancy (%)",0,1],["ADR (THB)",1,0],["RevPAR (THB)",2,0]];
   let html="";
   metrics.forEach(([name,mi,dec])=>{
-    html+=`<details ${mi===0?"open":""}><summary>${name}</summary><table><tr><th>Market class</th><th>2023</th><th>2024</th><th>2025</th><th>YTD 2026 (Jan–Jun)</th></tr>`;
+    html+=`<details ${mi===0?"open":""}><summary>${name}</summary><table><tr><th>Market class</th>`+
+      YEARS.map(y=>`<th>H1 ${y}</th>`).join("")+`</tr>`;
     SEGS.forEach(s=>{
       html+=`<tr><td class="seg"><span class="dot" style="display:inline-block;background:var(${CVAR[s]})"></span> ${s}</td>`;
-      ["2023","2024","2025",YTD].forEach(y=>{ html+=`<td>${fmt(D.totals[s][y][mi],dec)}</td>`; });
+      YEARS.forEach(y=>{ html+=`<td>${fmt(D.h1[s][y][mi],dec)}</td>`; });
       html+="</tr>";
     });
     html+="</table></details>";

@@ -7,6 +7,14 @@ language.
 
 ---
 
+## 2026-08-03 — STR summary: comparison switched to H1-only (Mae's fix)
+- Mae: 2026 was missing from the Overview change view, and she compares H1
+  (Jan-Jun) of each year only. Change view + bottom tables now use H1 2023,
+  H1 2024, H1 2025, H1 2026 everywhere (2026 fully included).
+- H1 2023-2025 are day-weighted from monthly data; H1 2026 uses STR's own YTD
+  row -- for Luxury the day-weighted calc differs (ADR 7,082 vs official 6,845;
+  supply changed mid-year), so the official row wins. Noted in both outputs.
+
 ## 2026-08-03 — STR summary extended with 2026 YTD (Jan-Jun) + Bangkok overall
 - Mae uploaded five YTD 2026 STR files: the four classes + a new whole-market
   "Bangkok" file. Filed as data/source/STR Bangkok * YTD Jun 2026.xls.
