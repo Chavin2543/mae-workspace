@@ -7,6 +7,11 @@ language.
 
 ---
 
+## 2026-08-03 — STR summary: added "26 vs 24" change column
+- Overview H1 tables now have five %-change columns (24v23, 25v24, 26v25,
+  26v24, 26v23); report change section shows "vs H1 2024" and "vs H1 2023"
+  arrow columns per metric.
+
 ## 2026-08-03 — STR summary: all YTD figures now calculated from raw monthly data
 - Mae's decision (docs/decisions/2026-08-03-str-ytd-calculate-ourselves.md):
   she does not trust STR's pre-computed YTD 2026 row, so every H1/YTD figure -

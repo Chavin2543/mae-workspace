@@ -75,10 +75,11 @@
   .ygrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:6px}
   .ypanel h3{font-size:.92rem;margin:4px 0 2px}
   .ypanel .u{color:var(--muted);font-size:.75rem;margin:0 0 4px}
-  .delta{display:flex;justify-content:space-between;align-items:center;
+  .delta{display:grid;grid-template-columns:1fr 70px 70px;align-items:center;
     font-size:.79rem;padding:2.5px 0;color:var(--ink2)}
   .delta span{display:flex;align-items:center;gap:6px}
-  .delta b{font-variant-numeric:tabular-nums}
+  .delta b{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+  .delta .dh{text-align:right;color:var(--muted);font-size:.72rem;font-weight:600}
   b.up{color:var(--good)} b.dn{color:var(--bad)}
   .tiles-note{color:var(--muted);font-size:.75rem;margin:-14px 0 18px}
 </style>
@@ -97,7 +98,7 @@
 
   <div class="card">
     <h2>Change H1 2023 → H1 2026</h2>
-    <p class="sub">ครึ่งปีแรก (ม.ค.–มิ.ย.) ของแต่ละปี · ลูกศร = H1 2026 เทียบ H1 2023</p>
+    <p class="sub">ครึ่งปีแรก (ม.ค.–มิ.ย.) ของแต่ละปี · ลูกศร = H1 2026 เทียบ H1 2024 และ H1 2023</p>
     <div class="legend" id="ylg"></div>
     <div class="ygrid" id="ygrid"></div>
   </div>
@@ -242,12 +243,18 @@ function changeSection(){
     const p=document.createElement("div"); p.className="ypanel";
     p.innerHTML=`<h3>${en}</h3><p class="u">${th}</p>`;
     ychart(p,mi,dec,unit);
+    const hd=document.createElement("div"); hd.className="delta";
+    hd.innerHTML=`<span></span><span class="dh">vs H1 2024</span><span class="dh">vs H1 2023</span>`;
+    p.appendChild(hd);
     SEGS.forEach(s=>{
-      const v23=D.h1[s]["2023"][mi], v26=D.h1[s]["2026"][mi];
-      const pct=(v26/v23-1)*100, up=pct>=0;
+      const v26=D.h1[s]["2026"][mi];
+      const cell=(base)=>{
+        const pct=(v26/base-1)*100, up=pct>=0;
+        return `<b class="${up?"up":"dn"}">${up?"▲":"▼"} ${fmt(Math.abs(pct),1)}%</b>`;
+      };
       const d=document.createElement("div"); d.className="delta";
-      d.innerHTML=`<span><span class="dot" style="background:var(${CVAR[s]})"></span>${s}</span>
-        <b class="${up?"up":"dn"}">${up?"▲":"▼"} ${fmt(Math.abs(pct),1)}%</b>`;
+      d.innerHTML=`<span><span class="dot" style="background:var(${CVAR[s]})"></span>${s}</span>`+
+        cell(D.h1[s]["2024"][mi])+cell(D.h1[s]["2023"][mi]);
       p.appendChild(d);
     });
     grid.appendChild(p);

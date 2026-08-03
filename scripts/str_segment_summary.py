@@ -207,7 +207,7 @@ def write_overview(wb, data):
 
     h1 = {seg: {y: h1_stats(data[seg], y) for y in H1_YEARS} for seg, _ in SEGMENTS}
     year_heads = [f"H1 {y}" for y in H1_YEARS]
-    chg_heads = ["24 vs 23", "25 vs 24", "26 vs 25", "26 vs 23"]
+    chg_heads = ["24 vs 23", "25 vs 24", "26 vs 25", "26 vs 24", "26 vs 23"]
     metrics = [("Occupancy (%)", 0, "0.0"), ("ADR (THB)", 1, "#,##0"),
                ("RevPAR (THB)", 2, "#,##0")]
     BLOCK = 16  # rows per metric block, leaves room for the chart at the right
@@ -229,7 +229,8 @@ def write_overview(wb, data):
                 c = ws.cell(r, 2 + k, round(v, 1 if midx == 0 else 0))
                 c.number_format = nf; c.border = BORDER; c.alignment = CENTER
             chgs = [(vals[1] / vals[0] - 1) * 100, (vals[2] / vals[1] - 1) * 100,
-                    (vals[3] / vals[2] - 1) * 100, (vals[3] / vals[0] - 1) * 100]
+                    (vals[3] / vals[2] - 1) * 100, (vals[3] / vals[1] - 1) * 100,
+                    (vals[3] / vals[0] - 1) * 100]
             for k, v in enumerate(chgs):
                 c = ws.cell(r, 6 + k, round(v, 1))
                 c.number_format = PCT_FMT; c.border = BORDER; c.alignment = CENTER
@@ -251,10 +252,10 @@ def write_overview(wb, data):
             s.smooth = False
             s.graphicalProperties.line.solidFill = COLORS[seg]
             s.graphicalProperties.line.width = 28000
-        ws.add_chart(chart, f"K{base}")
+        ws.add_chart(chart, f"L{base}")
 
     ws.column_dimensions["A"].width = 18
-    for k in range(8):
+    for k in range(9):
         ws.column_dimensions[get_column_letter(2 + k)].width = 11
     return ws
 
