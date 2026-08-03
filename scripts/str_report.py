@@ -1,0 +1,321 @@
+#!/usr/bin/env python3
+"""Build the bilingual (EN/TH) visual HTML report for the STR by-segment
+summary. Reads the JSON payload emitted by str_segment_summary.py and writes a
+self-contained, theme-aware page with three interactive line charts
+(Occupancy, ADR, RevPAR) comparing the four Bangkok market classes.
+
+Usage:
+  python3 scripts/str_report.py --json scripts/.str_payload.json \
+      --out output/STR_Bangkok_by_segment_2023-2025_report.html
+"""
+import argparse, json
+
+TEMPLATE = r"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bangkok STR — market class comparison</title>
+<style>
+  :root{
+    color-scheme: light dark;
+    --plane:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e;
+    --muted:#898781; --grid:#e1e0d9; --axis:#c3c2b7; --ring:rgba(11,11,11,.10);
+    --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
+  }
+  @media (prefers-color-scheme: dark){ :root:where(:not([data-theme="light"])){
+    --plane:#0d0d0d; --surface:#1a1a19; --ink:#fff; --ink2:#c3c2b7;
+    --muted:#898781; --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; }}
+  :root[data-theme="dark"]{
+    --plane:#0d0d0d; --surface:#1a1a19; --ink:#fff; --ink2:#c3c2b7;
+    --muted:#898781; --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--plane);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5}
+  .wrap{max-width:1040px;margin:0 auto;padding:28px 20px 64px}
+  header h1{font-size:1.5rem;margin:0 0 4px}
+  header p{margin:2px 0;color:var(--ink2);font-size:.9rem}
+  .th{color:var(--muted)}
+  .toggle{float:right;border:1px solid var(--ring);background:var(--surface);
+    color:var(--ink2);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:.8rem}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:12px;margin:22px 0}
+  .tile{background:var(--surface);border:1px solid var(--ring);border-radius:12px;
+    padding:14px 16px}
+  .tile .seg{font-weight:700;font-size:.82rem;margin-bottom:8px;display:flex;
+    align-items:center;gap:7px}
+  .dot{width:11px;height:11px;border-radius:3px;flex:none}
+  .tile .kv{display:flex;justify-content:space-between;font-size:.82rem;
+    color:var(--ink2);padding:2px 0}
+  .tile .kv b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .card{background:var(--surface);border:1px solid var(--ring);border-radius:14px;
+    padding:18px 18px 8px;margin:20px 0}
+  .card h2{font-size:1.06rem;margin:0 0 2px}
+  .card .sub{color:var(--muted);font-size:.8rem;margin:0 0 6px}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:6px 0 4px}
+  .legend span{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--ink2)}
+  .chart{width:100%;overflow-x:auto}
+  svg{display:block;width:100%;height:auto;font-family:inherit}
+  .gl{stroke:var(--grid);stroke-width:1}
+  .ax{stroke:var(--axis);stroke-width:1}
+  .tk{fill:var(--muted);font-size:11px}
+  .lbl{font-size:11px;font-weight:600}
+  .ln{fill:none;stroke-width:2}
+  .mk{stroke:var(--surface);stroke-width:1.5}
+  .cross{stroke:var(--axis);stroke-width:1;stroke-dasharray:3 3;opacity:0}
+  .tip{position:fixed;pointer-events:none;background:var(--surface);
+    border:1px solid var(--ring);border-radius:9px;padding:9px 11px;font-size:.78rem;
+    box-shadow:0 6px 22px rgba(0,0,0,.16);opacity:0;transition:opacity .08s;z-index:9;
+    color:var(--ink);min-width:150px}
+  .tip .tt{font-weight:700;margin-bottom:5px}
+  .tip .row{display:flex;justify-content:space-between;gap:14px;padding:1px 0}
+  .tip .row span{display:flex;align-items:center;gap:6px;color:var(--ink2)}
+  .tip .row b{font-variant-numeric:tabular-nums}
+  footer{color:var(--muted);font-size:.75rem;margin-top:30px;
+    border-top:1px solid var(--grid);padding-top:12px}
+  table{border-collapse:collapse;width:100%;font-size:.8rem;margin-top:8px}
+  th,td{border:1px solid var(--grid);padding:5px 8px;text-align:center;
+    font-variant-numeric:tabular-nums}
+  th{background:var(--surface);color:var(--ink2)}
+  td.seg{text-align:left;font-weight:600}
+  details{margin-top:6px}summary{cursor:pointer;color:var(--ink2);font-size:.82rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <button class="toggle" id="tg">◐ theme</button>
+  <header>
+    <h1>Bangkok STR — market class comparison</h1>
+    <p>Occupancy, ADR and RevPAR by market class · monthly, Jan 2023 – Dec 2025</p>
+    <p class="th">เปรียบเทียบตลาดโรงแรมกรุงเทพฯ ตามระดับ (Luxury / Upper Upscale / Upscale / Upper Midscale)</p>
+  </header>
+
+  <div class="tiles" id="tiles"></div>
+
+  <div class="card">
+    <h2>Occupancy</h2>
+    <p class="sub">อัตราการเข้าพัก (%) · This Year</p>
+    <div class="legend" id="lg"></div>
+    <div class="chart" id="c_occ"></div>
+  </div>
+  <div class="card">
+    <h2>ADR — Average Daily Rate</h2>
+    <p class="sub">ราคาห้องเฉลี่ยต่อคืน (THB) · This Year</p>
+    <div class="chart" id="c_adr"></div>
+  </div>
+  <div class="card">
+    <h2>RevPAR — Revenue per Available Room</h2>
+    <p class="sub">รายได้ต่อห้องที่มีทั้งหมด (THB) · This Year</p>
+    <div class="chart" id="c_rev"></div>
+  </div>
+
+  <div class="card">
+    <h2>Yearly averages</h2>
+    <p class="sub">ค่าเฉลี่ยรายปี (STR &ldquo;Total&rdquo;)</p>
+    <div id="ytables"></div>
+  </div>
+
+  <footer>
+    Source: STR Monthly Performance Data (CoStar), Bangkok market classes,
+    Jan 2023 – Dec 2025. Figures are &ldquo;This Year&rdquo; actuals as reported by STR.
+    Built from the four uploaded .xls reports · generated 2026-08-03.
+  </footer>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const D = __PAYLOAD__;
+const SEGS = D.segments;
+const CVAR = {"Luxury":"--s1","Upper Upscale":"--s2","Upscale":"--s3","Upper Midscale":"--s4"};
+const cssv = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmt = (n,d=0)=>n.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const MON = D.months;
+
+// ---- KPI tiles: 2025 yearly average ----
+function tiles(){
+  const el=document.getElementById("tiles"); el.innerHTML="";
+  SEGS.forEach(s=>{
+    const t=D.totals[s]["2025"];
+    const d=document.createElement("div"); d.className="tile";
+    d.innerHTML=`<div class="seg"><span class="dot" style="background:var(${CVAR[s]})"></span>${s}</div>
+      <div class="kv"><span>Occ 2025</span><b>${fmt(t[0],1)}%</b></div>
+      <div class="kv"><span>ADR</span><b>${fmt(t[1])}</b></div>
+      <div class="kv"><span>RevPAR</span><b>${fmt(t[2])}</b></div>`;
+    el.appendChild(d);
+  });
+}
+// ---- legend (shared) ----
+function legend(){
+  const el=document.getElementById("lg"); el.innerHTML="";
+  SEGS.forEach(s=>{
+    const sp=document.createElement("span");
+    sp.innerHTML=`<span class="dot" style="background:var(${CVAR[s]})"></span>${s}`;
+    el.appendChild(sp);
+  });
+}
+// ---- yearly tables ----
+function ytables(){
+  const host=document.getElementById("ytables");
+  const metrics=[["Occupancy (%)",0,1],["ADR (THB)",1,0],["RevPAR (THB)",2,0]];
+  let html="";
+  metrics.forEach(([name,mi,dec])=>{
+    html+=`<details ${mi===0?"open":""}><summary>${name}</summary><table><tr><th>Market class</th><th>2023</th><th>2024</th><th>2025</th></tr>`;
+    SEGS.forEach(s=>{
+      html+=`<tr><td class="seg"><span class="dot" style="display:inline-block;background:var(${CVAR[s]})"></span> ${s}</td>`;
+      ["2023","2024","2025"].forEach(y=>{ html+=`<td>${fmt(D.totals[s][y][mi],dec)}</td>`; });
+      html+="</tr>";
+    });
+    html+="</table></details>";
+  });
+  host.innerHTML=html;
+}
+
+// ---- line chart ----
+function chart(hostId, key, decimals, unit){
+  const host=document.getElementById(hostId);
+  const W=980,H=340,mL=58,mR=118,mT=14,mB=42;
+  const iw=W-mL-mR, ih=H-mT-mB;
+  const series=SEGS.map(s=>({name:s,vals:D.data[s][key]}));
+  let lo=Infinity,hi=-Infinity;
+  series.forEach(se=>se.vals.forEach(v=>{lo=Math.min(lo,v);hi=Math.max(hi,v);}));
+  const pad=(hi-lo)*0.08||1; lo-=pad; hi+=pad;
+  if(key==="occ"){lo=Math.max(0,Math.floor(lo/10)*10);hi=Math.min(100,Math.ceil(hi/10)*10);}
+  const n=MON.length;
+  const X=i=>mL+(n<=1?iw/2:iw*i/(n-1));
+  const Y=v=>mT+ih-(v-lo)/(hi-lo)*ih;
+  const NS="http://www.w3.org/2000/svg";
+  const svg=document.createElementNS(NS,"svg");
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  svg.setAttribute("role","img");
+  const add=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);svg.appendChild(e);return e;};
+  // y grid + ticks
+  const steps=5;
+  for(let i=0;i<=steps;i++){
+    const v=lo+(hi-lo)*i/steps, y=Y(v);
+    add("line",{class:"gl",x1:mL,x2:mL+iw,y1:y,y2:y});
+    const tk=add("text",{class:"tk",x:mL-8,y:y+4,"text-anchor":"end"});
+    tk.textContent = unit==="%"?fmt(v,0)+"%":fmt(v,0);
+  }
+  // x axis ticks: every 3rd month + year marks
+  add("line",{class:"ax",x1:mL,x2:mL+iw,y1:mT+ih,y2:mT+ih});
+  MON.forEach((m,i)=>{
+    if(i%3!==0 && i!==n-1) return;
+    const x=X(i);
+    add("line",{class:"ax",x1:x,x2:x,y1:mT+ih,y2:mT+ih+4});
+    const tk=add("text",{class:"tk",x:x,y:mT+ih+17,"text-anchor":"middle"});
+    tk.textContent=m.replace(" 20","'").replace("Jan'","Jan '").split(" ")[0]+ (m.startsWith("Jan")? " "+m.split(" ")[1] : "");
+    // compact: show "Mon\nYYYY" only for Jan
+    tk.textContent=m.split(" ")[0];
+    if(m.startsWith("Jan")||i===0){
+      const yr=add("text",{class:"tk",x:x,y:mT+ih+30,"text-anchor":"middle"});
+      yr.setAttribute("font-weight","700"); yr.textContent=m.split(" ")[1];
+    }
+  });
+  // crosshair
+  const cross=add("line",{class:"cross",y1:mT,y2:mT+ih,x1:mL,x2:mL});
+  // lines
+  series.forEach(se=>{
+    const col=cssv(CVAR[se.name]);
+    let d="";
+    se.vals.forEach((v,i)=>{ d+=(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)+" "; });
+    add("path",{class:"ln",d,stroke:col});
+  });
+  // end direct labels — de-collided vertically (min 13px apart)
+  const li=n-1;
+  let ends=series.map(se=>({name:se.name,col:cssv(CVAR[se.name]),y:Y(se.vals[li])}))
+                 .sort((a,b)=>a.y-b.y);
+  const GAP=13;
+  for(let i=1;i<ends.length;i++)
+    if(ends[i].y-ends[i-1].y<GAP) ends[i].y=ends[i-1].y+GAP;
+  // keep within plot vertically
+  const overflow=ends[ends.length-1].y-(mT+ih);
+  if(overflow>0) ends.forEach(e=>e.y-=overflow);
+  ends.forEach(e=>{
+    const lab=add("text",{class:"lbl",x:X(li)+8,y:e.y+4,fill:e.col});
+    lab.textContent=e.name;
+  });
+  // hover markers layer (per point, all series) via invisible hit columns
+  const tip=document.getElementById("tip");
+  const dots=[];
+  series.forEach(se=>{
+    const col=cssv(CVAR[se.name]);
+    se.vals.forEach((v,i)=>{
+      const c=add("circle",{cx:X(i),cy:Y(v),r:0,fill:col,class:"mk"});
+      dots.push({i,c});
+    });
+  });
+  const hit=add("rect",{x:mL,y:mT,width:iw,height:ih,fill:"transparent"});
+  hit.style.cursor="crosshair";
+  function show(i,px,py){
+    cross.setAttribute("x1",X(i));cross.setAttribute("x2",X(i));cross.style.opacity=1;
+    dots.forEach(d=>d.c.setAttribute("r",d.i===i?4.5:0));
+    let rows=`<div class="tt">${MON[i]}</div>`;
+    series.forEach(se=>{
+      const val=se.vals[i], u=unit==="%"?"%":"";
+      rows+=`<div class="row"><span><span class="dot" style="background:${cssv(CVAR[se.name])}"></span>${se.name}</span><b>${fmt(val,decimals)}${u}</b></div>`;
+    });
+    tip.innerHTML=rows; tip.style.opacity=1;
+    let tx=px+16, ty=py-10;
+    if(tx+180>window.innerWidth) tx=px-190;
+    tip.style.left=tx+"px"; tip.style.top=ty+"px";
+  }
+  function hide(){cross.style.opacity=0;dots.forEach(d=>d.c.setAttribute("r",0));tip.style.opacity=0;}
+  function locate(ev){
+    const r=svg.getBoundingClientRect();
+    const sx=(ev.clientX-r.left)/r.width*W;
+    let i=Math.round((sx-mL)/(iw/(n-1)));
+    i=Math.max(0,Math.min(n-1,i));
+    show(i,ev.clientX,ev.clientY);
+  }
+  hit.addEventListener("mousemove",locate);
+  hit.addEventListener("mouseleave",hide);
+  svg.addEventListener("touchmove",e=>{if(e.touches[0]){locate(e.touches[0]);e.preventDefault();}},{passive:false});
+  svg.addEventListener("touchend",hide);
+  host.innerHTML=""; host.appendChild(svg);
+}
+
+function draw(){
+  tiles(); legend(); ytables();
+  chart("c_occ","occ",1,"%");
+  chart("c_adr","adr",0,"THB");
+  chart("c_rev","revpar",0,"THB");
+}
+draw();
+
+// theme toggle
+document.getElementById("tg").addEventListener("click",()=>{
+  const cur=document.documentElement.getAttribute("data-theme");
+  const next=cur==="dark"?"light":(cur==="light"?"dark":
+    (matchMedia("(prefers-color-scheme: dark)").matches?"light":"dark"));
+  document.documentElement.setAttribute("data-theme",next);
+  draw();
+});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",draw);
+</script>
+</body>
+</html>
+"""
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--json", default="",
+                    help="payload JSON; if omitted, built in-process from data/source")
+    ap.add_argument("--out", default="output/STR_Bangkok_by_segment_2023-2025_report.html")
+    a = ap.parse_args()
+    if a.json:
+        payload = json.load(open(a.json))
+    else:
+        from str_segment_summary import load_all, make_payload
+        data, months = load_all()
+        payload = make_payload(data, months)
+    html = TEMPLATE.replace("__PAYLOAD__", json.dumps(payload))
+    with open(a.out, "w") as f:
+        f.write(html)
+    print("wrote", a.out)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bangkok STR — market class comparison</title>
+<style>
+  :root{
+    color-scheme: light dark;
+    --plane:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e;
+    --muted:#898781; --grid:#e1e0d9; --axis:#c3c2b7; --ring:rgba(11,11,11,.10);
+    --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
+  }
+  @media (prefers-color-scheme: dark){ :root:where(:not([data-theme="light"])){
+    --plane:#0d0d0d; --surface:#1a1a19; --ink:#fff; --ink2:#c3c2b7;
+    --muted:#898781; --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; }}
+  :root[data-theme="dark"]{
+    --plane:#0d0d0d; --surface:#1a1a19; --ink:#fff; --ink2:#c3c2b7;
+    --muted:#898781; --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--plane);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5}
+  .wrap{max-width:1040px;margin:0 auto;padding:28px 20px 64px}
+  header h1{font-size:1.5rem;margin:0 0 4px}
+  header p{margin:2px 0;color:var(--ink2);font-size:.9rem}
+  .th{color:var(--muted)}
+  .toggle{float:right;border:1px solid var(--ring);background:var(--surface);
+    color:var(--ink2);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:.8rem}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:12px;margin:22px 0}
+  .tile{background:var(--surface);border:1px solid var(--ring);border-radius:12px;
+    padding:14px 16px}
+  .tile .seg{font-weight:700;font-size:.82rem;margin-bottom:8px;display:flex;
+    align-items:center;gap:7px}
+  .dot{width:11px;height:11px;border-radius:3px;flex:none}
+  .tile .kv{display:flex;justify-content:space-between;font-size:.82rem;
+    color:var(--ink2);padding:2px 0}
+  .tile .kv b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .card{background:var(--surface);border:1px solid var(--ring);border-radius:14px;
+    padding:18px 18px 8px;margin:20px 0}
+  .card h2{font-size:1.06rem;margin:0 0 2px}
+  .card .sub{color:var(--muted);font-size:.8rem;margin:0 0 6px}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:6px 0 4px}
+  .legend span{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--ink2)}
+  .chart{width:100%;overflow-x:auto}
+  svg{display:block;width:100%;height:auto;font-family:inherit}
+  .gl{stroke:var(--grid);stroke-width:1}
+  .ax{stroke:var(--axis);stroke-width:1}
+  .tk{fill:var(--muted);font-size:11px}
+  .lbl{font-size:11px;font-weight:600}
+  .ln{fill:none;stroke-width:2}
+  .mk{stroke:var(--surface);stroke-width:1.5}
+  .cross{stroke:var(--axis);stroke-width:1;stroke-dasharray:3 3;opacity:0}
+  .tip{position:fixed;pointer-events:none;background:var(--surface);
+    border:1px solid var(--ring);border-radius:9px;padding:9px 11px;font-size:.78rem;
+    box-shadow:0 6px 22px rgba(0,0,0,.16);opacity:0;transition:opacity .08s;z-index:9;
+    color:var(--ink);min-width:150px}
+  .tip .tt{font-weight:700;margin-bottom:5px}
+  .tip .row{display:flex;justify-content:space-between;gap:14px;padding:1px 0}
+  .tip .row span{display:flex;align-items:center;gap:6px;color:var(--ink2)}
+  .tip .row b{font-variant-numeric:tabular-nums}
+  footer{color:var(--muted);font-size:.75rem;margin-top:30px;
+    border-top:1px solid var(--grid);padding-top:12px}
+  table{border-collapse:collapse;width:100%;font-size:.8rem;margin-top:8px}
+  th,td{border:1px solid var(--grid);padding:5px 8px;text-align:center;
+    font-variant-numeric:tabular-nums}
+  th{background:var(--surface);color:var(--ink2)}
+  td.seg{text-align:left;font-weight:600}
+  details{margin-top:6px}summary{cursor:pointer;color:var(--ink2);font-size:.82rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <button class="toggle" id="tg">◐ theme</button>
+  <header>
+    <h1>Bangkok STR — market class comparison</h1>
+    <p>Occupancy, ADR and RevPAR by market class · monthly, Jan 2023 – Dec 2025</p>
+    <p class="th">เปรียบเทียบตลาดโรงแรมกรุงเทพฯ ตามระดับ (Luxury / Upper Upscale / Upscale / Upper Midscale)</p>
+  </header>
+
+  <div class="tiles" id="tiles"></div>
+
+  <div class="card">
+    <h2>Occupancy</h2>
+    <p class="sub">อัตราการเข้าพัก (%) · This Year</p>
+    <div class="legend" id="lg"></div>
+    <div class="chart" id="c_occ"></div>
+  </div>
+  <div class="card">
+    <h2>ADR — Average Daily Rate</h2>
+    <p class="sub">ราคาห้องเฉลี่ยต่อคืน (THB) · This Year</p>
+    <div class="chart" id="c_adr"></div>
+  </div>
+  <div class="card">
+    <h2>RevPAR — Revenue per Available Room</h2>
+    <p class="sub">รายได้ต่อห้องที่มีทั้งหมด (THB) · This Year</p>
+    <div class="chart" id="c_rev"></div>
+  </div>
+
+  <div class="card">
+    <h2>Yearly averages</h2>
+    <p class="sub">ค่าเฉลี่ยรายปี (STR &ldquo;Total&rdquo;)</p>
+    <div id="ytables"></div>
+  </div>
+
+  <footer>
+    Source: STR Monthly Performance Data (CoStar), Bangkok market classes,
+    Jan 2023 – Dec 2025. Figures are &ldquo;This Year&rdquo; actuals as reported by STR.
+    Built from the four uploaded .xls reports · generated 2026-08-03.
+  </footer>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const D = {"months": ["Jan 2023", "Feb 2023", "Mar 2023", "Apr 2023", "May 2023", "Jun 2023", "Jul 2023", "Aug 2023", "Sep 2023", "Oct 2023", "Nov 2023", "Dec 2023", "Jan 2024", "Feb 2024", "Mar 2024", "Apr 2024", "May 2024", "Jun 2024", "Jul 2024", "Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025"], "segments": ["Luxury", "Upper Upscale", "Upscale", "Upper Midscale"], "colors": {"Luxury": "2A78D6", "Upper Upscale": "EB6834", "Upscale": "1BAF7A", "Upper Midscale": "EDA100"}, "data": {"Luxury": {"occ": [67.37, 72.83, 71.4, 66.79, 61.93, 63.58, 72.18, 73.67, 63.95, 65.03, 71.67, 74.04, 72.96, 82.98, 71.16, 69.73, 67.86, 72.14, 76.2, 79.76, 64.93, 65.41, 80.74, 78.2, 76.93, 77.23, 64.67, 57.52, 57.57, 57.22, 66.57, 70.41, 57.16, 67.58, 76.99, 74.84], "adr": [7257.7, 6650.0, 6489.7, 6949.9, 6174.2, 6145.3, 6593.7, 6499.0, 6004.2, 6310.6, 6636.9, 8183.9, 7232.8, 7511.9, 6678.4, 6807.8, 6383.1, 6435.1, 6765.2, 6914.0, 6115.7, 6438.6, 7230.8, 8865.1, 8155.4, 7325.0, 6728.4, 6827.4, 6332.6, 6218.1, 6563.5, 6631.5, 5950.2, 6476.2, 6973.4, 8911.9], "revpar": [4889.1, 4843.1, 4633.9, 4641.9, 3823.4, 3907.1, 4759.5, 4788.0, 3839.6, 4103.7, 4756.4, 6059.0, 5277.0, 6233.2, 4752.3, 4747.0, 4331.3, 4642.4, 5155.2, 5514.6, 3970.7, 4211.2, 5838.2, 6932.4, 6274.1, 5657.1, 4351.2, 3927.1, 3645.6, 3558.1, 4369.3, 4669.2, 3401.0, 4376.7, 5368.8, 6669.4]}, "Upper Upscale": {"occ": [66.37, 75.51, 77.8, 71.79, 66.42, 68.75, 73.78, 74.53, 67.34, 67.28, 77.47, 79.18, 75.72, 86.3, 76.86, 73.28, 72.17, 75.75, 79.01, 77.84, 65.51, 65.45, 83.54, 79.05, 77.35, 79.45, 69.04, 61.61, 61.81, 63.09, 67.58, 70.94, 63.26, 66.69, 78.64, 76.49], "adr": [4324.8, 4201.2, 4235.4, 4309.9, 4063.4, 4084.3, 4220.4, 4222.3, 4003.6, 4070.4, 4333.0, 4906.1, 4449.9, 4711.3, 4349.0, 4374.9, 4216.8, 4256.5, 4405.2, 4556.9, 4132.4, 4174.2, 4771.4, 5305.7, 4881.3, 4680.9, 4343.3, 4265.9, 4184.0, 4068.1, 4171.0, 4168.2, 3899.0, 4096.5, 4483.6, 5153.8], "revpar": [2870.4, 3172.3, 3295.1, 3093.9, 2698.9, 2807.8, 3113.9, 3146.8, 2696.2, 2738.6, 3356.7, 3884.9, 3369.3, 4065.7, 3342.6, 3205.9, 3043.1, 3224.4, 3480.7, 3547.1, 2707.1, 2732.1, 3985.9, 4194.1, 3775.6, 3718.8, 2998.5, 2628.2, 2586.2, 2566.6, 2818.7, 2957.0, 2466.5, 2731.8, 3525.9, 3942.2]}, "Upscale": {"occ": [65.23, 71.89, 73.91, 68.09, 67.9, 70.79, 73.1, 74.45, 68.19, 67.37, 77.17, 77.86, 73.76, 82.61, 75.57, 72.68, 74.05, 76.29, 80.58, 81.53, 70.4, 70.65, 84.86, 81.09, 78.87, 79.72, 70.23, 66.43, 67.48, 68.55, 73.48, 76.92, 70.41, 72.81, 84.17, 81.23], "adr": [2863.4, 2829.5, 2890.7, 2879.8, 2745.2, 2815.4, 2974.8, 2937.7, 2747.6, 2760.4, 2984.2, 3341.6, 3027.0, 3259.6, 3000.1, 3020.6, 2910.8, 2996.9, 3138.3, 3238.9, 2913.0, 2938.5, 3413.4, 3776.6, 3479.2, 3329.9, 3091.9, 3038.3, 2877.5, 2885.6, 3010.7, 3034.7, 2773.1, 2833.5, 3125.7, 3562.6], "revpar": [1867.8, 2034.2, 2136.5, 1960.9, 1864.0, 1993.0, 2174.5, 2187.1, 1873.5, 1859.6, 2302.8, 2601.8, 2232.7, 2692.8, 2267.3, 2195.5, 2155.3, 2286.2, 2528.9, 2640.8, 2050.6, 2075.9, 2896.4, 3062.6, 2744.0, 2654.5, 2171.4, 2018.3, 1941.9, 1978.1, 2212.3, 2334.2, 1952.6, 2063.0, 2631.0, 2893.8]}, "Upper Midscale": {"occ": [69.81, 74.95, 74.15, 68.75, 66.67, 67.95, 73.0, 75.0, 70.61, 67.67, 76.36, 76.03, 76.55, 79.95, 73.69, 70.56, 71.32, 73.77, 79.7, 81.28, 71.95, 71.49, 84.05, 82.1, 80.94, 82.71, 74.21, 67.99, 70.37, 70.09, 76.69, 79.09, 70.32, 74.28, 84.03, 80.6], "adr": [2469.1, 2395.0, 2443.8, 2485.3, 2357.7, 2434.9, 2560.8, 2612.6, 2515.1, 2482.2, 2682.9, 3038.4, 2695.3, 2876.6, 2661.8, 2684.7, 2589.5, 2667.6, 2803.4, 2908.9, 2673.8, 2709.8, 3097.4, 3466.7, 3216.1, 3048.3, 2806.0, 2694.6, 2573.3, 2576.2, 2707.9, 2758.5, 2519.2, 2628.4, 2849.1, 3247.0], "revpar": [1723.6, 1795.2, 1812.0, 1708.7, 1571.8, 1654.5, 1869.4, 1959.4, 1776.0, 1679.7, 2048.7, 2309.9, 2063.4, 2299.8, 1961.4, 1894.2, 1846.8, 1968.0, 2234.2, 2364.4, 1923.8, 1937.2, 2603.4, 2846.3, 2602.9, 2521.2, 2082.2, 1832.0, 1810.7, 1805.8, 2076.6, 2181.6, 1771.5, 1952.5, 2394.0, 2617.0]}}, "totals": {"Luxury": {"2023": [68.71, 6684.56, 4593.04], "2024": [73.43, 6983.85, 5128.57], "2025": [67.03, 6998.09, 4690.53]}, "Upper Upscale": {"2023": [72.17, 4258.49, 3073.26], "2024": [75.79, 4492.12, 3404.56], "2025": [69.62, 4391.47, 3057.14]}, "Upscale": {"2023": [71.35, 2906.18, 2073.48], "2024": [76.97, 3147.93, 2422.98], "2025": [74.16, 3098.79, 2298.18]}, "Upper Midscale": {"2023": [71.73, 2547.57, 1827.47], "2024": [76.34, 2830.88, 2161.11], "2025": [75.9, 2812.51, 2134.71]}}};
+const SEGS = D.segments;
+const CVAR = {"Luxury":"--s1","Upper Upscale":"--s2","Upscale":"--s3","Upper Midscale":"--s4"};
+const cssv = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmt = (n,d=0)=>n.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const MON = D.months;
+
+// ---- KPI tiles: 2025 yearly average ----
+function tiles(){
+  const el=document.getElementById("tiles"); el.innerHTML="";
+  SEGS.forEach(s=>{
+    const t=D.totals[s]["2025"];
+    const d=document.createElement("div"); d.className="tile";
+    d.innerHTML=`<div class="seg"><span class="dot" style="background:var(${CVAR[s]})"></span>${s}</div>
+      <div class="kv"><span>Occ 2025</span><b>${fmt(t[0],1)}%</b></div>
+      <div class="kv"><span>ADR</span><b>${fmt(t[1])}</b></div>
+      <div class="kv"><span>RevPAR</span><b>${fmt(t[2])}</b></div>`;
+    el.appendChild(d);
+  });
+}
+// ---- legend (shared) ----
+function legend(){
+  const el=document.getElementById("lg"); el.innerHTML="";
+  SEGS.forEach(s=>{
+    const sp=document.createElement("span");
+    sp.innerHTML=`<span class="dot" style="background:var(${CVAR[s]})"></span>${s}`;
+    el.appendChild(sp);
+  });
+}
+// ---- yearly tables ----
+function ytables(){
+  const host=document.getElementById("ytables");
+  const metrics=[["Occupancy (%)",0,1],["ADR (THB)",1,0],["RevPAR (THB)",2,0]];
+  let html="";
+  metrics.forEach(([name,mi,dec])=>{
+    html+=`<details ${mi===0?"open":""}><summary>${name}</summary><table><tr><th>Market class</th><th>2023</th><th>2024</th><th>2025</th></tr>`;
+    SEGS.forEach(s=>{
+      html+=`<tr><td class="seg"><span class="dot" style="display:inline-block;background:var(${CVAR[s]})"></span> ${s}</td>`;
+      ["2023","2024","2025"].forEach(y=>{ html+=`<td>${fmt(D.totals[s][y][mi],dec)}</td>`; });
+      html+="</tr>";
+    });
+    html+="</table></details>";
+  });
+  host.innerHTML=html;
+}
+
+// ---- line chart ----
+function chart(hostId, key, decimals, unit){
+  const host=document.getElementById(hostId);
+  const W=980,H=340,mL=58,mR=118,mT=14,mB=42;
+  const iw=W-mL-mR, ih=H-mT-mB;
+  const series=SEGS.map(s=>({name:s,vals:D.data[s][key]}));
+  let lo=Infinity,hi=-Infinity;
+  series.forEach(se=>se.vals.forEach(v=>{lo=Math.min(lo,v);hi=Math.max(hi,v);}));
+  const pad=(hi-lo)*0.08||1; lo-=pad; hi+=pad;
+  if(key==="occ"){lo=Math.max(0,Math.floor(lo/10)*10);hi=Math.min(100,Math.ceil(hi/10)*10);}
+  const n=MON.length;
+  const X=i=>mL+(n<=1?iw/2:iw*i/(n-1));
+  const Y=v=>mT+ih-(v-lo)/(hi-lo)*ih;
+  const NS="http://www.w3.org/2000/svg";
+  const svg=document.createElementNS(NS,"svg");
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  svg.setAttribute("role","img");
+  const add=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);svg.appendChild(e);return e;};
+  // y grid + ticks
+  const steps=5;
+  for(let i=0;i<=steps;i++){
+    const v=lo+(hi-lo)*i/steps, y=Y(v);
+    add("line",{class:"gl",x1:mL,x2:mL+iw,y1:y,y2:y});
+    const tk=add("text",{class:"tk",x:mL-8,y:y+4,"text-anchor":"end"});
+    tk.textContent = unit==="%"?fmt(v,0)+"%":fmt(v,0);
+  }
+  // x axis ticks: every 3rd month + year marks
+  add("line",{class:"ax",x1:mL,x2:mL+iw,y1:mT+ih,y2:mT+ih});
+  MON.forEach((m,i)=>{
+    if(i%3!==0 && i!==n-1) return;
+    const x=X(i);
+    add("line",{class:"ax",x1:x,x2:x,y1:mT+ih,y2:mT+ih+4});
+    const tk=add("text",{class:"tk",x:x,y:mT+ih+17,"text-anchor":"middle"});
+    tk.textContent=m.replace(" 20","'").replace("Jan'","Jan '").split(" ")[0]+ (m.startsWith("Jan")? " "+m.split(" ")[1] : "");
+    // compact: show "Mon\nYYYY" only for Jan
+    tk.textContent=m.split(" ")[0];
+    if(m.startsWith("Jan")||i===0){
+      const yr=add("text",{class:"tk",x:x,y:mT+ih+30,"text-anchor":"middle"});
+      yr.setAttribute("font-weight","700"); yr.textContent=m.split(" ")[1];
+    }
+  });
+  // crosshair
+  const cross=add("line",{class:"cross",y1:mT,y2:mT+ih,x1:mL,x2:mL});
+  // lines
+  series.forEach(se=>{
+    const col=cssv(CVAR[se.name]);
+    let d="";
+    se.vals.forEach((v,i)=>{ d+=(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)+" "; });
+    add("path",{class:"ln",d,stroke:col});
+  });
+  // end direct labels — de-collided vertically (min 13px apart)
+  const li=n-1;
+  let ends=series.map(se=>({name:se.name,col:cssv(CVAR[se.name]),y:Y(se.vals[li])}))
+                 .sort((a,b)=>a.y-b.y);
+  const GAP=13;
+  for(let i=1;i<ends.length;i++)
+    if(ends[i].y-ends[i-1].y<GAP) ends[i].y=ends[i-1].y+GAP;
+  // keep within plot vertically
+  const overflow=ends[ends.length-1].y-(mT+ih);
+  if(overflow>0) ends.forEach(e=>e.y-=overflow);
+  ends.forEach(e=>{
+    const lab=add("text",{class:"lbl",x:X(li)+8,y:e.y+4,fill:e.col});
+    lab.textContent=e.name;
+  });
+  // hover markers layer (per point, all series) via invisible hit columns
+  const tip=document.getElementById("tip");
+  const dots=[];
+  series.forEach(se=>{
+    const col=cssv(CVAR[se.name]);
+    se.vals.forEach((v,i)=>{
+      const c=add("circle",{cx:X(i),cy:Y(v),r:0,fill:col,class:"mk"});
+      dots.push({i,c});
+    });
+  });
+  const hit=add("rect",{x:mL,y:mT,width:iw,height:ih,fill:"transparent"});
+  hit.style.cursor="crosshair";
+  function show(i,px,py){
+    cross.setAttribute("x1",X(i));cross.setAttribute("x2",X(i));cross.style.opacity=1;
+    dots.forEach(d=>d.c.setAttribute("r",d.i===i?4.5:0));
+    let rows=`<div class="tt">${MON[i]}</div>`;
+    series.forEach(se=>{
+      const val=se.vals[i], u=unit==="%"?"%":"";
+      rows+=`<div class="row"><span><span class="dot" style="background:${cssv(CVAR[se.name])}"></span>${se.name}</span><b>${fmt(val,decimals)}${u}</b></div>`;
+    });
+    tip.innerHTML=rows; tip.style.opacity=1;
+    let tx=px+16, ty=py-10;
+    if(tx+180>window.innerWidth) tx=px-190;
+    tip.style.left=tx+"px"; tip.style.top=ty+"px";
+  }
+  function hide(){cross.style.opacity=0;dots.forEach(d=>d.c.setAttribute("r",0));tip.style.opacity=0;}
+  function locate(ev){
+    const r=svg.getBoundingClientRect();
+    const sx=(ev.clientX-r.left)/r.width*W;
+    let i=Math.round((sx-mL)/(iw/(n-1)));
+    i=Math.max(0,Math.min(n-1,i));
+    show(i,ev.clientX,ev.clientY);
+  }
+  hit.addEventListener("mousemove",locate);
+  hit.addEventListener("mouseleave",hide);
+  svg.addEventListener("touchmove",e=>{if(e.touches[0]){locate(e.touches[0]);e.preventDefault();}},{passive:false});
+  svg.addEventListener("touchend",hide);
+  host.innerHTML=""; host.appendChild(svg);
+}
+
+function draw(){
+  tiles(); legend(); ytables();
+  chart("c_occ","occ",1,"%");
+  chart("c_adr","adr",0,"THB");
+  chart("c_rev","revpar",0,"THB");
+}
+draw();
+
+// theme toggle
+document.getElementById("tg").addEventListener("click",()=>{
+  const cur=document.documentElement.getAttribute("data-theme");
+  const next=cur==="dark"?"light":(cur==="light"?"dark":
+    (matchMedia("(prefers-color-scheme: dark)").matches?"light":"dark"));
+  document.documentElement.setAttribute("data-theme",next);
+  draw();
+});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",draw);
+</script>
+</body>
+</html>

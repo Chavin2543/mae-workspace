@@ -7,6 +7,17 @@ language.
 
 ---
 
+## 2026-08-03 — STR by-segment summary + graphs (Bangkok market classes)
+- Combined the four uploaded Bangkok STR "Monthly Performance Data" reports
+  (Luxury, Upper Upscale, Upscale, Upper Midscale) into one summary.
+- New scripts: scripts/str_segment_summary.py (reads the 4 .xls, builds an Excel
+  workbook — Overview + Occupancy/ADR/RevPAR sheets, each with a native line
+  chart) and scripts/str_report.py (bilingual HTML report, 3 interactive line
+  charts, light+dark).
+- Deliverables: output/STR_Bangkok_by_segment_2023-2025.xlsx and
+  ..._report.html. Sources filed in data/source/. Data verified vs the source
+  Total rows.
+
 ## 2026-07-30 — Compset sheet: H1 (Jan-Jun) column with live formulas
 Per Mae: column N of the Compset sheet now carries an "H1 (Jan-Jun)" column —
 180 formulas across every block (Bangkok, Rachada, Sathorn, Nana, SP, Pattaya).
