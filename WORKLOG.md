@@ -7,6 +7,12 @@ language.
 
 ---
 
+## 2026-08-03 — Deck v11 adopted; performance pages get MF Projection + 2025 rows
+Mae's v11 pptx (51 slides) is the new master. Performance tables (Portfolio,
+SR9, AES, LYF, SP) rebuilt: each metric now shows actual 2026 / MF Projection /
+actual 2025 side by side, monthly + weighted YTD, from result FY26/FY25.
+Restructure plan + ADR narrative proposed to Mae (task still open).
+
 ## 2026-08-03 — STR summary: added "Change 2023-2025" view
 - Mae re-uploaded the same four STR files (md5-identical) asking to see the
   change over 2023-2025 with line graphs.
