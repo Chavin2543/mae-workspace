@@ -22,15 +22,18 @@ TEMPLATE = r"""<!doctype html>
     --plane:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e;
     --muted:#898781; --grid:#e1e0d9; --axis:#c3c2b7; --ring:rgba(11,11,11,.10);
     --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
+    --good:#006300; --bad:#d03b3b;
   }
   @media (prefers-color-scheme: dark){ :root:where(:not([data-theme="light"])){
     --plane:#0d0d0d; --surface:#1a1a19; --ink:#fff; --ink2:#c3c2b7;
     --muted:#898781; --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
-    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; }}
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+    --good:#0ca30c; --bad:#e66767; }}
   :root[data-theme="dark"]{
     --plane:#0d0d0d; --surface:#1a1a19; --ink:#fff; --ink2:#c3c2b7;
     --muted:#898781; --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
-    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; }
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+    --good:#0ca30c; --bad:#e66767; }
   *{box-sizing:border-box}
   body{margin:0;background:var(--plane);color:var(--ink);
     font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5}
@@ -81,6 +84,14 @@ TEMPLATE = r"""<!doctype html>
   th{background:var(--surface);color:var(--ink2)}
   td.seg{text-align:left;font-weight:600}
   details{margin-top:6px}summary{cursor:pointer;color:var(--ink2);font-size:.82rem}
+  .ygrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:6px}
+  .ypanel h3{font-size:.92rem;margin:4px 0 2px}
+  .ypanel .u{color:var(--muted);font-size:.75rem;margin:0 0 4px}
+  .delta{display:flex;justify-content:space-between;align-items:center;
+    font-size:.79rem;padding:2.5px 0;color:var(--ink2)}
+  .delta span{display:flex;align-items:center;gap:6px}
+  .delta b{font-variant-numeric:tabular-nums}
+  .delta b.up{color:var(--good)} .delta b.dn{color:var(--bad)}
 </style>
 </head>
 <body>
@@ -93,6 +104,13 @@ TEMPLATE = r"""<!doctype html>
   </header>
 
   <div class="tiles" id="tiles"></div>
+
+  <div class="card">
+    <h2>Change 2023 → 2025</h2>
+    <p class="sub">ค่าเฉลี่ยรายปีของแต่ละระดับ และ % เปลี่ยนแปลงปี 2025 เทียบปี 2023</p>
+    <div class="legend" id="ylg"></div>
+    <div class="ygrid" id="ygrid"></div>
+  </div>
 
   <div class="card">
     <h2>Occupancy</h2>
@@ -147,12 +165,87 @@ function tiles(){
   });
 }
 // ---- legend (shared) ----
-function legend(){
-  const el=document.getElementById("lg"); el.innerHTML="";
+function legend(id){
+  const el=document.getElementById(id); el.innerHTML="";
   SEGS.forEach(s=>{
     const sp=document.createElement("span");
     sp.innerHTML=`<span class="dot" style="background:var(${CVAR[s]})"></span>${s}`;
     el.appendChild(sp);
+  });
+}
+
+// ---- change section: yearly mini line charts + 25 vs 23 arrows ----
+const YEARS=["2023","2024","2025"];
+function ychart(host, mi, decimals, unit){
+  const W=320,H=190,mL=46,mR=16,mT=12,mB=26;
+  const iw=W-mL-mR, ih=H-mT-mB;
+  const series=SEGS.map(s=>({name:s,vals:YEARS.map(y=>D.totals[s][y][mi])}));
+  let lo=Infinity,hi=-Infinity;
+  series.forEach(se=>se.vals.forEach(v=>{lo=Math.min(lo,v);hi=Math.max(hi,v);}));
+  const pad=(hi-lo)*0.12||1; lo-=pad; hi+=pad;
+  const X=i=>mL+iw*i/(YEARS.length-1);
+  const Y=v=>mT+ih-(v-lo)/(hi-lo)*ih;
+  const NS="http://www.w3.org/2000/svg";
+  const svg=document.createElementNS(NS,"svg");
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  const add=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);svg.appendChild(e);return e;};
+  for(let i=0;i<=3;i++){
+    const v=lo+(hi-lo)*i/3, y=Y(v);
+    add("line",{class:"gl",x1:mL,x2:mL+iw,y1:y,y2:y});
+    const tk=add("text",{class:"tk",x:mL-7,y:y+4,"text-anchor":"end"});
+    tk.textContent=unit==="%"?fmt(v,0)+"%":fmt(v,0);
+  }
+  add("line",{class:"ax",x1:mL,x2:mL+iw,y1:mT+ih,y2:mT+ih});
+  YEARS.forEach((y,i)=>{
+    const tk=add("text",{class:"tk",x:X(i),y:mT+ih+17,"text-anchor":"middle"});
+    tk.setAttribute("font-weight","700"); tk.textContent=y;
+  });
+  const dots=[];
+  series.forEach(se=>{
+    const col=cssv(CVAR[se.name]);
+    let d="";
+    se.vals.forEach((v,i)=>{ d+=(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)+" "; });
+    add("path",{class:"ln",d,stroke:col});
+    se.vals.forEach((v,i)=>{
+      add("circle",{cx:X(i),cy:Y(v),r:3.4,fill:col,class:"mk"});
+    });
+  });
+  const tip=document.getElementById("tip");
+  const hit=add("rect",{x:mL,y:mT,width:iw,height:ih,fill:"transparent"});
+  hit.addEventListener("mousemove",ev=>{
+    const r=svg.getBoundingClientRect();
+    const sx=(ev.clientX-r.left)/r.width*W;
+    let i=Math.round((sx-mL)/(iw/(YEARS.length-1)));
+    i=Math.max(0,Math.min(YEARS.length-1,i));
+    let rows=`<div class="tt">${YEARS[i]}</div>`;
+    series.forEach(se=>{
+      rows+=`<div class="row"><span><span class="dot" style="background:${cssv(CVAR[se.name])}"></span>${se.name}</span><b>${fmt(se.vals[i],decimals)}${unit==="%"?"%":""}</b></div>`;
+    });
+    tip.innerHTML=rows; tip.style.opacity=1;
+    let tx=ev.clientX+16; if(tx+180>window.innerWidth) tx=ev.clientX-190;
+    tip.style.left=tx+"px"; tip.style.top=(ev.clientY-10)+"px";
+  });
+  hit.addEventListener("mouseleave",()=>{tip.style.opacity=0;});
+  host.appendChild(svg);
+}
+function changeSection(){
+  const grid=document.getElementById("ygrid"); grid.innerHTML="";
+  const metrics=[["Occupancy","อัตราการเข้าพัก",0,1,"%"],
+                 ["ADR","ราคาห้องเฉลี่ย (THB)",1,0,"THB"],
+                 ["RevPAR","รายได้ต่อห้อง (THB)",2,0,"THB"]];
+  metrics.forEach(([en,th,mi,dec,unit])=>{
+    const p=document.createElement("div"); p.className="ypanel";
+    p.innerHTML=`<h3>${en}</h3><p class="u">${th}</p>`;
+    ychart(p,mi,dec,unit);
+    SEGS.forEach(s=>{
+      const v23=D.totals[s]["2023"][mi], v25=D.totals[s]["2025"][mi];
+      const pct=(v25/v23-1)*100, up=pct>=0;
+      const d=document.createElement("div"); d.className="delta";
+      d.innerHTML=`<span><span class="dot" style="background:var(${CVAR[s]})"></span>${s}</span>
+        <b class="${up?"up":"dn"}">${up?"▲":"▼"} ${fmt(Math.abs(pct),1)}%</b>`;
+      p.appendChild(d);
+    });
+    grid.appendChild(p);
   });
 }
 // ---- yearly tables ----
@@ -277,7 +370,7 @@ function chart(hostId, key, decimals, unit){
 }
 
 function draw(){
-  tiles(); legend(); ytables();
+  tiles(); legend("lg"); legend("ylg"); ytables(); changeSection();
   chart("c_occ","occ",1,"%");
   chart("c_adr","adr",0,"THB");
   chart("c_rev","revpar",0,"THB");

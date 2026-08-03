@@ -7,6 +7,14 @@ language.
 
 ---
 
+## 2026-08-03 — STR summary: added "Change 2023-2025" view
+- Mae re-uploaded the same four STR files (md5-identical) asking to see the
+  change over 2023-2025 with line graphs.
+- Overview tab now: yearly averages + STR's own YoY %Chg (24v23, 25v24) +
+  computed 25v23, colored, with a yearly line chart per metric.
+- HTML report: new "Change 2023 → 2025" section — three yearly mini line
+  charts with hover + up/down arrows per market class. Same output filenames.
+
 ## 2026-08-03 — STR by-segment summary + graphs (Bangkok market classes)
 - Combined the four uploaded Bangkok STR "Monthly Performance Data" reports
   (Luxury, Upper Upscale, Upscale, Upper Midscale) into one summary.

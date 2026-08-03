@@ -39,9 +39,12 @@ MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
 
 
 def read_segment(path):
-    """Return {'monthly': [(label, occ, adr, revpar), ...], 'totals': {year:(occ,adr,revpar)}}"""
+    """Return {'monthly': [(label, occ, adr, revpar), ...],
+               'totals': {year: (occ, adr, revpar)},
+               'totals_chg': {year: (occ_chg, adr_chg, revpar_chg)}}
+    totals_chg is STR's own "% Chg" (vs prior year) from the Total rows."""
     sh = xlrd.open_workbook(path).sheet_by_index(0)
-    monthly, totals = [], {}
+    monthly, totals, totals_chg = [], {}, {}
     for r in range(ROW0, min(ROW1, sh.nrows)):
         label = str(sh.cell_value(r, C_DATE)).strip()
         if not label:
@@ -54,9 +57,12 @@ def read_segment(path):
         if label.lower().startswith("total"):
             year = label.split()[-1]
             totals[year] = (occ, adr, rev)
+            totals_chg[year] = (sh.cell_value(r, C_OCC + 1),
+                                sh.cell_value(r, C_ADR + 1),
+                                sh.cell_value(r, C_REVPAR + 1))
         else:
             monthly.append((label, occ, adr, rev))
-    return {"monthly": monthly, "totals": totals}
+    return {"monthly": monthly, "totals": totals, "totals_chg": totals_chg}
 
 
 def load_all():
@@ -141,44 +147,77 @@ def write_metric_sheet(wb, title, metric_idx, months, data, numfmt, is_pct):
     return ws
 
 
+PCT_FMT = '+0.0"%";-0.0"%";0.0"%"'
+
+
 def write_overview(wb, data):
     ws = wb.create_sheet("Overview", 0)
     ws.sheet_view.showGridLines = False
-    ws["A1"] = "Bangkok STR — market class comparison"
+    ws["A1"] = "Bangkok STR — market class comparison: change 2023–2025"
     ws["A1"].font = Font(bold=True, size=15, color="1F3864")
-    ws["A2"] = "Yearly averages by market class (STR 'Total' rows). Occupancy = %, ADR & RevPAR = THB."
+    ws["A2"] = ("Yearly averages by market class (STR 'Total' rows) with % change. "
+                "Occupancy = %, ADR & RevPAR = THB. '24 vs 23' / '25 vs 24' are STR's own % Chg.")
     ws["A2"].font = Font(italic=True, size=9, color="808080")
 
     years = ["2023", "2024", "2025"]
+    chg_heads = ["24 vs 23", "25 vs 24", "25 vs 23"]
     metrics = [("Occupancy (%)", 0, "0.0"), ("ADR (THB)", 1, "#,##0"),
                ("RevPAR (THB)", 2, "#,##0")]
-    row = 4
-    for mtitle, midx, nf in metrics:
-        ws.cell(row, 1, mtitle).font = Font(bold=True, size=12, color="1F3864")
-        row += 1
-        ws.cell(row, 1, "Market class").font = HDR_FONT
-        ws.cell(row, 1).fill = HDR_FILL
-        for k, y in enumerate(years):
-            c = ws.cell(row, 2 + k, y); c.font = HDR_FONT; c.fill = HDR_FILL; c.alignment = CENTER
-        row += 1
-        for seg, _ in SEGMENTS:
-            ws.cell(row, 1, seg).font = SEG_FONTS[seg]
-            ws.cell(row, 1).border = BORDER
+    BLOCK = 16  # rows per metric block, leaves room for the chart at the right
+    for i, (mtitle, midx, nf) in enumerate(metrics):
+        base = 4 + i * BLOCK
+        ws.cell(base, 1, mtitle).font = Font(bold=True, size=12, color="1F3864")
+        hr = base + 1
+        ws.cell(hr, 1, "Market class").font = HDR_FONT
+        ws.cell(hr, 1).fill = HDR_FILL
+        for k, head in enumerate(years + chg_heads):
+            c = ws.cell(hr, 2 + k, head)
+            c.font = HDR_FONT; c.fill = HDR_FILL; c.alignment = CENTER
+        for j, (seg, _) in enumerate(SEGMENTS):
+            r = hr + 1 + j
+            ws.cell(r, 1, seg).font = SEG_FONTS[seg]
+            ws.cell(r, 1).border = BORDER
             for k, y in enumerate(years):
                 v = data[seg]["totals"][y][midx]
-                c = ws.cell(row, 2 + k, round(v, 1 if midx == 0 else 0))
+                c = ws.cell(r, 2 + k, round(v, 1 if midx == 0 else 0))
                 c.number_format = nf; c.border = BORDER; c.alignment = CENTER
-            row += 1
-        row += 1
+            # STR's own YoY % Chg for 2024 and 2025, plus computed 2025 vs 2023
+            chg24 = data[seg]["totals_chg"]["2024"][midx]
+            chg25 = data[seg]["totals_chg"]["2025"][midx]
+            v23, v25 = data[seg]["totals"]["2023"][midx], data[seg]["totals"]["2025"][midx]
+            chg2523 = (v25 / v23 - 1) * 100
+            for k, v in enumerate((chg24, chg25, chg2523)):
+                c = ws.cell(r, 5 + k, round(v, 1))
+                c.number_format = PCT_FMT; c.border = BORDER; c.alignment = CENTER
+                c.font = Font(color="006300" if v >= 0 else "C00000")
+
+        # yearly line chart: series = segments (table rows), categories = years
+        chart = LineChart()
+        chart.title = f"{mtitle} — yearly average"
+        chart.height = 7.2
+        chart.width = 13.5
+        chart.x_axis.delete = False
+        chart.y_axis.delete = False
+        data_ref = Reference(ws, min_col=1, max_col=4, min_row=hr, max_row=hr + len(SEGMENTS))
+        cats = Reference(ws, min_col=2, max_col=4, min_row=hr)
+        chart.add_data(data_ref, from_rows=True, titles_from_data=True)
+        chart.set_categories(cats)
+        for idx, (seg, _) in enumerate(SEGMENTS):
+            s = chart.series[idx]
+            s.smooth = False
+            s.graphicalProperties.line.solidFill = COLORS[seg]
+            s.graphicalProperties.line.width = 28000
+        ws.add_chart(chart, f"I{base}")
+
     ws.column_dimensions["A"].width = 18
-    for k in range(len(years)):
-        ws.column_dimensions[get_column_letter(2 + k)].width = 12
+    for k in range(6):
+        ws.column_dimensions[get_column_letter(2 + k)].width = 11
     return ws
 
 
 def make_payload(data, months):
     payload = {"months": months, "segments": [s for s, _ in SEGMENTS],
-               "colors": COLORS, "data": {}, "totals": {}}
+               "colors": COLORS, "data": {}, "totals": {}, "totals_chg": {}}
     for seg, _ in SEGMENTS:
         payload["data"][seg] = {
             "occ": [round(m[1], 2) for m in data[seg]["monthly"]],
@@ -187,6 +226,8 @@ def make_payload(data, months):
         }
         payload["totals"][seg] = {y: [round(v, 2) for v in t]
                                   for y, t in data[seg]["totals"].items()}
+        payload["totals_chg"][seg] = {y: [round(v, 2) for v in t]
+                                      for y, t in data[seg]["totals_chg"].items()}
     return payload
 
 
