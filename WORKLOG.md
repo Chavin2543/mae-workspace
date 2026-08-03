@@ -18,6 +18,12 @@ language.
   ..._report.html. Sources filed in data/source/. Data verified vs the source
   Total rows.
 
+## 2026-08-03 — Mae's Shared workbook adopted as master (H1 column re-added)
+Mae uploaded her "Shared" copy as the new latest file. Diff showed it identical
+to the previous master except the Compset H1 column was missing (edited from a
+pre-H1 copy) — adopted her file, carried the H1 column (223 cells) back on,
+restored caches, verified values. Snapshot in data/source/, master in output/.
+
 ## 2026-07-30 — Compset sheet: H1 (Jan-Jun) column with live formulas
 Per Mae: column N of the Compset sheet now carries an "H1 (Jan-Jun)" column —
 180 formulas across every block (Bangkok, Rachada, Sathorn, Nana, SP, Pattaya).
