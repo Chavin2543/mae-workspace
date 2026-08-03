@@ -20,13 +20,20 @@ from openpyxl.utils import get_column_letter
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(REPO, "data", "source")
-# display order = STR quality tiers, high to low
+# display order = STR quality tiers, high to low; each class: 2023-25 file + 2026 YTD file
 SEGMENTS = [
-    ("Luxury",         "STR Bangkok Luxury monthly 2023-2025.xls"),
-    ("Upper Upscale",  "STR Bangkok Upper Upscale monthly 2023-2025.xls"),
-    ("Upscale",        "STR Bangkok Upscale monthly 2023-2025.xls"),
-    ("Upper Midscale", "STR Bangkok Upper Midscale monthly 2023-2025.xls"),
+    ("Luxury",         ["STR Bangkok Luxury monthly 2023-2025.xls",
+                        "STR Bangkok Luxury YTD Jun 2026.xls"]),
+    ("Upper Upscale",  ["STR Bangkok Upper Upscale monthly 2023-2025.xls",
+                        "STR Bangkok Upper Upscale YTD Jun 2026.xls"]),
+    ("Upscale",        ["STR Bangkok Upscale monthly 2023-2025.xls",
+                        "STR Bangkok Upscale YTD Jun 2026.xls"]),
+    ("Upper Midscale", ["STR Bangkok Upper Midscale monthly 2023-2025.xls",
+                        "STR Bangkok Upper Midscale YTD Jun 2026.xls"]),
 ]
+# whole-market reference (2026 YTD only) — used in the YTD comparison, not the class charts
+BANGKOK_FILE = "STR Bangkok market YTD Jun 2026.xls"
+YTD_KEY = "YTD2026"   # totals/totals_chg key for the "YTD 2026" row (Jan-Jun vs same period 2025)
 # validated dataviz categorical slots 1-4 (light)
 COLORS = {"Luxury": "2A78D6", "Upper Upscale": "EB6834",
           "Upscale": "1BAF7A", "Upper Midscale": "EDA100"}
@@ -54,12 +61,13 @@ def read_segment(path):
         rev = sh.cell_value(r, C_REVPAR)
         if not isinstance(occ, (int, float)):
             continue
-        if label.lower().startswith("total"):
-            year = label.split()[-1]
-            totals[year] = (occ, adr, rev)
-            totals_chg[year] = (sh.cell_value(r, C_OCC + 1),
-                                sh.cell_value(r, C_ADR + 1),
-                                sh.cell_value(r, C_REVPAR + 1))
+        low = label.lower()
+        if low.startswith("total") or low.startswith("ytd"):
+            key = YTD_KEY if low.startswith("ytd") else label.split()[-1]
+            totals[key] = (occ, adr, rev)
+            totals_chg[key] = (sh.cell_value(r, C_OCC + 1),
+                               sh.cell_value(r, C_ADR + 1),
+                               sh.cell_value(r, C_REVPAR + 1))
         else:
             monthly.append((label, occ, adr, rev))
     return {"monthly": monthly, "totals": totals, "totals_chg": totals_chg}
@@ -67,15 +75,28 @@ def read_segment(path):
 
 def load_all():
     data = {}
-    for name, fn in SEGMENTS:
-        p = os.path.join(SRC, fn)
-        data[name] = read_segment(p)
+    for name, files in SEGMENTS:
+        merged = None
+        for fn in files:
+            part = read_segment(os.path.join(SRC, fn))
+            if merged is None:
+                merged = part
+            else:
+                merged["monthly"] += part["monthly"]
+                merged["totals"].update(part["totals"])
+                merged["totals_chg"].update(part["totals_chg"])
+        data[name] = merged
     # sanity: same month axis across all segments
     axes = {name: [m[0] for m in d["monthly"]] for name, d in data.items()}
     ref = axes[SEGMENTS[0][0]]
     for name, ax in axes.items():
         assert ax == ref, f"month axis mismatch for {name}"
     return data, ref
+
+
+def load_bangkok():
+    """Whole Bangkok market (all classes) — YTD 2026 reference."""
+    return read_segment(os.path.join(SRC, BANGKOK_FILE))
 
 
 # ---------- styling helpers ----------
@@ -94,7 +115,8 @@ def write_metric_sheet(wb, title, metric_idx, months, data, numfmt, is_pct):
     # header
     ws["A1"] = f"Bangkok STR — {title} by market class (monthly, This Year)"
     ws["A1"].font = Font(bold=True, size=13, color="1F3864")
-    ws["A2"] = "Source: STR Monthly Performance Data, Jan 2023 – Dec 2025. Figures are 'This Year' actuals."
+    ws["A2"] = (f"Source: STR Monthly Performance Data, {months[0]} – {months[-1]}. "
+                "Figures are 'This Year' actuals.")
     ws["A2"].font = Font(italic=True, size=9, color="808080")
 
     hrow = 4
@@ -215,9 +237,41 @@ def write_overview(wb, data):
     return ws
 
 
-def make_payload(data, months):
+def write_ytd_block(ws, data, bkk, base):
+    """'YTD 2026 (Jan-Jun)' comparison table: Bangkok overall + the 4 classes.
+    % Chg columns are STR's own (vs same period 2025)."""
+    ws.cell(base, 1, "YTD 2026 (Jan–Jun) vs same period 2025").font = \
+        Font(bold=True, size=12, color="1F3864")
+    hr = base + 1
+    heads = ["Market", "Occ YTD", "% Chg", "ADR YTD", "% Chg", "RevPAR YTD", "% Chg"]
+    for k, head in enumerate(heads):
+        c = ws.cell(hr, 1 + k, head)
+        c.font = HDR_FONT; c.fill = HDR_FILL; c.alignment = CENTER
+    rows = [("Bangkok overall", bkk, Font(bold=True, color="595959"))] + \
+           [(seg, data[seg], SEG_FONTS[seg]) for seg, _ in SEGMENTS]
+    fmts = ["0.0", "#,##0", "#,##0"]
+    for j, (label, d, font) in enumerate(rows):
+        r = hr + 1 + j
+        ws.cell(r, 1, label).font = font
+        ws.cell(r, 1).border = BORDER
+        vals = d["totals"][YTD_KEY]
+        chgs = d["totals_chg"][YTD_KEY]
+        for m in range(3):
+            c = ws.cell(r, 2 + m * 2, round(vals[m], 1 if m == 0 else 0))
+            c.number_format = fmts[m]; c.border = BORDER; c.alignment = CENTER
+            c2 = ws.cell(r, 3 + m * 2, round(chgs[m], 1))
+            c2.number_format = PCT_FMT; c2.border = BORDER; c2.alignment = CENTER
+            c2.font = Font(color="006300" if chgs[m] >= 0 else "C00000")
+
+
+def make_payload(data, months, bkk=None):
     payload = {"months": months, "segments": [s for s, _ in SEGMENTS],
                "colors": COLORS, "data": {}, "totals": {}, "totals_chg": {}}
+    if bkk is not None:
+        payload["bangkok"] = {
+            "totals": {y: [round(v, 2) for v in t] for y, t in bkk["totals"].items()},
+            "totals_chg": {y: [round(v, 2) for v in t] for y, t in bkk["totals_chg"].items()},
+        }
     for seg, _ in SEGMENTS:
         payload["data"][seg] = {
             "occ": [round(m[1], 2) for m in data[seg]["monthly"]],
@@ -233,20 +287,22 @@ def make_payload(data, months):
 
 def build(out):
     data, months = load_all()
+    bkk = load_bangkok()
     wb = Workbook()
     wb.remove(wb.active)
-    write_overview(wb, data)
+    ov = write_overview(wb, data)
+    write_ytd_block(ov, data, bkk, base=4 + 3 * 16)
     write_metric_sheet(wb, "Occupancy", 0, months, data, "0.0", True)
     write_metric_sheet(wb, "ADR", 1, months, data, "#,##0", False)
     write_metric_sheet(wb, "RevPAR", 2, months, data, "#,##0", False)
     os.makedirs(os.path.dirname(out), exist_ok=True)
     wb.save(out)
-    return out, make_payload(data, months)
+    return out, make_payload(data, months, bkk)
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default="output/STR_Bangkok_by_segment_2023-2025.xlsx")
+    ap.add_argument("--out", default="output/STR_Bangkok_by_segment_2023-2026.xlsx")
     ap.add_argument("--json", default="")
     a = ap.parse_args()
     out, payload = build(a.out)

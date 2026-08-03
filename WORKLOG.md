@@ -7,6 +7,15 @@ language.
 
 ---
 
+## 2026-08-03 — STR summary extended with 2026 YTD (Jan-Jun) + Bangkok overall
+- Mae uploaded five YTD 2026 STR files: the four classes + a new whole-market
+  "Bangkok" file. Filed as data/source/STR Bangkok * YTD Jun 2026.xls.
+- Monthly series now runs Jan 2023 - Jun 2026 (42 months) in both outputs.
+- Overview tab + report tiles: "YTD 2026 vs same period 2025" comparison with
+  STR's own %Chg, incl. Bangkok overall as reference. Yearly table gets a YTD
+  column. Outputs renamed to STR_Bangkok_by_segment_2023-2026.* (old
+  ..._2023-2025.* removed).
+
 ## 2026-08-03 — Payment approval tables (AMH Sathorn + AMH Ratchada)
 Ran payment-approval-table on 2 vouchers: AMH Sathorn KP 2600000032 (land &
 building tax 2026, 3,262,250.00 THB to T C Sathorn Condo) and AMH Ratchada

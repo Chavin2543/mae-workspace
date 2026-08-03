@@ -91,7 +91,8 @@ TEMPLATE = r"""<!doctype html>
     font-size:.79rem;padding:2.5px 0;color:var(--ink2)}
   .delta span{display:flex;align-items:center;gap:6px}
   .delta b{font-variant-numeric:tabular-nums}
-  .delta b.up{color:var(--good)} .delta b.dn{color:var(--bad)}
+  b.up{color:var(--good)} b.dn{color:var(--bad)}
+  .tiles-note{color:var(--muted);font-size:.75rem;margin:-14px 0 18px}
 </style>
 </head>
 <body>
@@ -99,11 +100,12 @@ TEMPLATE = r"""<!doctype html>
   <button class="toggle" id="tg">◐ theme</button>
   <header>
     <h1>Bangkok STR — market class comparison</h1>
-    <p>Occupancy, ADR and RevPAR by market class · monthly, Jan 2023 – Dec 2025</p>
+    <p>Occupancy, ADR and RevPAR by market class · monthly, Jan 2023 – Jun 2026 (2026 = Jan–Jun YTD)</p>
     <p class="th">เปรียบเทียบตลาดโรงแรมกรุงเทพฯ ตามระดับ (Luxury / Upper Upscale / Upscale / Upper Midscale)</p>
   </header>
 
   <div class="tiles" id="tiles"></div>
+  <p class="tiles-note">YTD 2026 = Jan–Jun · arrows compare with the same period of 2025 (STR % Chg) · ปี 2026 นับ ม.ค.–มิ.ย. เทียบช่วงเดียวกันของปีก่อน</p>
 
   <div class="card">
     <h2>Change 2023 → 2025</h2>
@@ -137,8 +139,9 @@ TEMPLATE = r"""<!doctype html>
 
   <footer>
     Source: STR Monthly Performance Data (CoStar), Bangkok market classes,
-    Jan 2023 – Dec 2025. Figures are &ldquo;This Year&rdquo; actuals as reported by STR.
-    Built from the four uploaded .xls reports · generated 2026-08-03.
+    Jan 2023 – Jun 2026. Figures are &ldquo;This Year&rdquo; actuals as reported by STR;
+    YTD 2026 % Chg compares Jan–Jun 2026 with Jan–Jun 2025. &ldquo;Bangkok overall&rdquo;
+    is STR's whole Bangkok market (all classes). Generated 2026-08-03.
   </footer>
 </div>
 <div class="tip" id="tip"></div>
@@ -151,16 +154,26 @@ const cssv = v => getComputedStyle(document.documentElement).getPropertyValue(v)
 const fmt = (n,d=0)=>n.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
 const MON = D.months;
 
-// ---- KPI tiles: 2025 yearly average ----
+// ---- KPI tiles: YTD 2026 (Jan-Jun) with STR's % chg vs same period 2025 ----
+const YTD="YTD2026";
+function tileHtml(label, dotCss, t, g){
+  const arrow=(v)=>`<b class="${v>=0?"up":"dn"}" style="font-size:.72rem">${v>=0?"▲":"▼"}${fmt(Math.abs(v),1)}%</b>`;
+  return `<div class="seg"><span class="dot" style="background:${dotCss}"></span>${label}</div>
+    <div class="kv"><span>Occ YTD</span><span><b>${fmt(t[0],1)}%</b> ${arrow(g[0])}</span></div>
+    <div class="kv"><span>ADR</span><span><b>${fmt(t[1])}</b> ${arrow(g[1])}</span></div>
+    <div class="kv"><span>RevPAR</span><span><b>${fmt(t[2])}</b> ${arrow(g[2])}</span></div>`;
+}
 function tiles(){
   const el=document.getElementById("tiles"); el.innerHTML="";
-  SEGS.forEach(s=>{
-    const t=D.totals[s]["2025"];
+  if(D.bangkok){
     const d=document.createElement("div"); d.className="tile";
-    d.innerHTML=`<div class="seg"><span class="dot" style="background:var(${CVAR[s]})"></span>${s}</div>
-      <div class="kv"><span>Occ 2025</span><b>${fmt(t[0],1)}%</b></div>
-      <div class="kv"><span>ADR</span><b>${fmt(t[1])}</b></div>
-      <div class="kv"><span>RevPAR</span><b>${fmt(t[2])}</b></div>`;
+    d.innerHTML=tileHtml("Bangkok overall","var(--muted)",
+      D.bangkok.totals[YTD], D.bangkok.totals_chg[YTD]);
+    el.appendChild(d);
+  }
+  SEGS.forEach(s=>{
+    const d=document.createElement("div"); d.className="tile";
+    d.innerHTML=tileHtml(s,`var(${CVAR[s]})`,D.totals[s][YTD],D.totals_chg[s][YTD]);
     el.appendChild(d);
   });
 }
@@ -254,10 +267,10 @@ function ytables(){
   const metrics=[["Occupancy (%)",0,1],["ADR (THB)",1,0],["RevPAR (THB)",2,0]];
   let html="";
   metrics.forEach(([name,mi,dec])=>{
-    html+=`<details ${mi===0?"open":""}><summary>${name}</summary><table><tr><th>Market class</th><th>2023</th><th>2024</th><th>2025</th></tr>`;
+    html+=`<details ${mi===0?"open":""}><summary>${name}</summary><table><tr><th>Market class</th><th>2023</th><th>2024</th><th>2025</th><th>YTD 2026 (Jan–Jun)</th></tr>`;
     SEGS.forEach(s=>{
       html+=`<tr><td class="seg"><span class="dot" style="display:inline-block;background:var(${CVAR[s]})"></span> ${s}</td>`;
-      ["2023","2024","2025"].forEach(y=>{ html+=`<td>${fmt(D.totals[s][y][mi],dec)}</td>`; });
+      ["2023","2024","2025",YTD].forEach(y=>{ html+=`<td>${fmt(D.totals[s][y][mi],dec)}</td>`; });
       html+="</tr>";
     });
     html+="</table></details>";
@@ -396,14 +409,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--json", default="",
                     help="payload JSON; if omitted, built in-process from data/source")
-    ap.add_argument("--out", default="output/STR_Bangkok_by_segment_2023-2025_report.html")
+    ap.add_argument("--out", default="output/STR_Bangkok_by_segment_2023-2026_report.html")
     a = ap.parse_args()
     if a.json:
         payload = json.load(open(a.json))
     else:
-        from str_segment_summary import load_all, make_payload
+        from str_segment_summary import load_all, load_bangkok, make_payload
         data, months = load_all()
-        payload = make_payload(data, months)
+        payload = make_payload(data, months, load_bangkok())
     html = TEMPLATE.replace("__PAYLOAD__", json.dumps(payload))
     with open(a.out, "w") as f:
         f.write(html)
