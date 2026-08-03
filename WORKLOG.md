@@ -7,6 +7,15 @@ language.
 
 ---
 
+## 2026-08-03 — Deck v11 reshaped with Mae (ADR story + slimmer slides)
+Adopted Mae's v11 as master, then per her comments: performance pages show
+actual/MF Projection/actual-2025 side by side; new ADR-by-segment slides
+(portfolio H1 + per-property monthly 26 vs 25); nationality pairs merged;
+segmentation tables show 26 vs 25 with change; P&L tables swap 2024 rows for
+Budget rows; property sections reordered (performance -> nationality ->
+segments -> ADR -> P&L). 48 slides. Data checks: Chinese demand UP +14.8%,
+mix effect negligible — ADR drop = in-segment price cuts, deepest in Online.
+
 ## 2026-08-03 — Deck v11 adopted; performance pages get MF Projection + 2025 rows
 Mae's v11 pptx (51 slides) is the new master. Performance tables (Portfolio,
 SR9, AES, LYF, SP) rebuilt: each metric now shows actual 2026 / MF Projection /
