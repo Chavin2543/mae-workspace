@@ -7,6 +7,13 @@ language.
 
 ---
 
+## 2026-08-03 — Pattaya STR summary (H1 2025 vs H1 2026), like the Bangkok one
+- New sources: STR Pattaya market + Upscale&UpperMid YTD Jun 2026 (both carry
+  This Year 2026 AND Last Year 2025 monthly Jan-Jun).
+- New scripts str_pattaya_summary.py / str_pattaya_report.py; outputs
+  STR_Pattaya_by_market_2025-2026.xlsx + _report.html. All H1 figures
+  calculated from raw months per the standing YTD decision.
+
 ## 2026-08-03 — STR summary: Bangkok overall now a full series (2024-2026)
 - Mae uploaded Bangkok whole-market monthly data 2024-2025; filed as
   data/source/STR Bangkok market monthly 2024-2025.xls (no 2023 data exists).
