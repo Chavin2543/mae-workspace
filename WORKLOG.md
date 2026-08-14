@@ -7,6 +7,13 @@ language.
 
 ---
 
+## 2026-08-14 — LS8 payment approval tables (4 payments)
+- Read 4 uploaded payment documents for lyf Sukhumvit 8 / AMH Sukhumvit 8 Co., Ltd:
+  2 Ananda PVs (PV-009 remittance to owner 1.5M THB, PV-010 Ascott fees
+  684,677.08 THB) + 2 SCB international transfer applications (Adria Scan USD 584,
+  Day Use HK HKD 5,434.78). All amounts cross-checked against their invoices.
+- Filed the PDFs in `data/pdf/` (PV_*.pdf); the approval tables live in chat only.
+
 ## 2026-08-03 — Pattaya STR summary (H1 2025 vs H1 2026), like the Bangkok one
 - New sources: STR Pattaya market + Upscale&UpperMid YTD Jun 2026 (both carry
   This Year 2026 AND Last Year 2025 monthly Jan-Jun).
