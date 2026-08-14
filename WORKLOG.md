@@ -14,6 +14,13 @@ language.
   Day Use HK HKD 5,434.78). All amounts cross-checked against their invoices.
 - Filed the PDFs in `data/pdf/` (PV_*.pdf); the approval tables live in chat only.
 
+## 2026-08-14 — AES payment approval table (5 PVs)
+- Read 5 Ananda PVs for Ascott Embassy Sathorn / AMH Sathorn Co., Ltd.:
+  PV-072 Expedia 684,449.48, PV-073 Booking.com 1,611,752.05, PV-075 AIMT
+  professional fees 807,240.13, PV-076 AIMT central fee 997,021.75, PV-084
+  DK Wow F&B 918,755.50 — total 5,019,218.91 THB, all cross-checked to invoices.
+- PDFs filed in `data/pdf/`; the approval table lives in chat only.
+
 ## 2026-08-03 — Pattaya STR summary (H1 2025 vs H1 2026), like the Bangkok one
 - New sources: STR Pattaya market + Upscale&UpperMid YTD Jun 2026 (both carry
   This Year 2026 AND Last Year 2025 monthly Jan-Jun).
