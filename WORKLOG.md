@@ -21,6 +21,13 @@ language.
   DK Wow F&B 918,755.50 — total 5,019,218.91 THB, all cross-checked to invoices.
 - PDFs filed in `data/pdf/`; the approval table lives in chat only.
 
+## 2026-08-14 — SP payment approval table (5 PVs)
+- Read 5 PVs for Somerset Pattaya / AMH Pattaya Company Limited: PV-005 AIMT
+  central + professional fees 1,800,324.66, PV-012 PEA electricity 1,447,431.37,
+  PV-013 DK Wow F&B 1,161,117.00, PV-014 Booking.com 1,329,971.58, PV-015
+  Laundry Pattaya 531,243.44 — total 6,270,088.05 THB, all cross-checked.
+- PDFs filed in `data/pdf/`; the approval table lives in chat only.
+
 ## 2026-08-03 — Pattaya STR summary (H1 2025 vs H1 2026), like the Bangkok one
 - New sources: STR Pattaya market + Upscale&UpperMid YTD Jun 2026 (both carry
   This Year 2026 AND Last Year 2025 monthly Jan-Jun).
