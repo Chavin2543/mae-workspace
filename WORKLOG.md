@@ -19,6 +19,9 @@ language.
   PV-072 Expedia 684,449.48, PV-073 Booking.com 1,611,752.05, PV-075 AIMT
   professional fees 807,240.13, PV-076 AIMT central fee 997,021.75, PV-084
   DK Wow F&B 918,755.50 — total 5,019,218.91 THB, all cross-checked to invoices.
+- Second batch added PV-034 I Klean Laundry 559,222.31 and PV-074 AIMT
+  management fee June'26 967,468.24 (PV-072/073/075 re-uploads, byte-identical).
+  AES full total 6,545,909.46 THB across 7 vouchers.
 - PDFs filed in `data/pdf/`; the approval table lives in chat only.
 
 ## 2026-08-14 — SR9 payment approval table (6 PVs + audit confirmation)
