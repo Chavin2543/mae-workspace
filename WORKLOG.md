@@ -26,6 +26,10 @@ language.
   central + professional fees 1,800,324.66, PV-012 PEA electricity 1,447,431.37,
   PV-013 DK Wow F&B 1,161,117.00, PV-014 Booking.com 1,329,971.58, PV-015
   Laundry Pattaya 531,243.44 — total 6,270,088.05 THB, all cross-checked.
+- Second batch: PV-016 Expedia compensation 516,472.75, PV-017 returning excess
+  fund to owner 19,500,000.00, plus Travelscape LLC USD 1,500 international
+  transfer and cover Memo SP26-08-001 (memo confirms PV-005 number is 2608).
+  SP grand total 26,286,560.80 THB + 1,500.00 USD.
 - PDFs filed in `data/pdf/`; the approval table lives in chat only.
 
 ## 2026-08-03 — Pattaya STR summary (H1 2025 vs H1 2026), like the Bangkok one
