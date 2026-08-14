@@ -21,6 +21,15 @@ language.
   DK Wow F&B 918,755.50 — total 5,019,218.91 THB, all cross-checked to invoices.
 - PDFs filed in `data/pdf/`; the approval table lives in chat only.
 
+## 2026-08-14 — SR9 payment approval table (6 PVs + audit confirmation)
+- Read the "PV 08.26 over 500k due 15.08.26" bundle for Somerset Rama 9 / AMH
+  Ratchada Co., Ltd.: PV-028 remittance to owner 18,700,000, PV-029 AIMT fees
+  2,951,556.90, PV-030 DK Wow 1,228,618.00, PV-031 Asset World Wex laundry
+  681,784.22, PV-032 Expedia 778,203.80, PV-033 Booking.com 683,966.56 —
+  total 25,024,129.48 THB, matching Mae's cheque summary exactly.
+- Also a BJC audit balance confirmation (94,352.60 THB as at 30 Jun 2026) —
+  stamp/sign only, not a payment. PDFs filed in `data/pdf/`.
+
 ## 2026-08-14 — SP payment approval table (5 PVs)
 - Read 5 PVs for Somerset Pattaya / AMH Pattaya Company Limited: PV-005 AIMT
   central + professional fees 1,800,324.66, PV-012 PEA electricity 1,447,431.37,
