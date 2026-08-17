@@ -24,6 +24,11 @@ language.
   AES full total 6,545,909.46 THB across 7 vouchers.
 - PDFs filed in `data/pdf/`; the approval table lives in chat only.
 
+## 2026-08-14 — SR9 VAT return P.P.30 for July 2026
+- PV KP 2600000042 (AMH Ratchada Co., Ltd.): VAT return P.P.30 for July 2026,
+  1,805,734.60 THB to the Revenue Department, e-filing pay-in due 24 Aug 2026.
+  Debit = credit = pay-in slip amount. PDF filed in `data/pdf/`.
+
 ## 2026-08-14 — SR9 payment approval table (6 PVs + audit confirmation)
 - Read the "PV 08.26 over 500k due 15.08.26" bundle for Somerset Rama 9 / AMH
   Ratchada Co., Ltd.: PV-028 remittance to owner 18,700,000, PV-029 AIMT fees
