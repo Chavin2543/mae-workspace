@@ -7,6 +7,20 @@ language.
 
 ---
 
+## 2026-08-20 — Licence tracker: split by renewal responsibility (Owner / Property)
+- Mae's request: separate the documents by who must renew them. Added a
+  `Renew by` column (Owner / Property dropdown) to the Register, seeded all 222
+  rows (112 Owner / 110 Property), sorted the Owner block above the Property
+  block inside each hotel, and colour-coded them blue / purple.
+- Dashboard is now an OWNER table and a PROPERTY table, plus a NOT ASSIGNED
+  table so no row can hide between them, and an ALL total that must equal the
+  register. `Renew by` added to the expiring-next list.
+- Verified by evaluating the sheet's real COUNTIFS formulas in Python:
+  Owner + Property + Not assigned = 222 = every register row, including two
+  rows deliberately blanked to prove the safety net catches them.
+- The Owner/Property defaults are conventional practice, not read from the
+  agreements — Mae to review the column once.
+
 ## 2026-08-20 — Licence & contract tracker for the 4 properties (structure)
 - New recurring deliverable: `output/License_Contract_Tracker_4properties.xlsx`
   — Guide / Dashboard / Register / Lists tabs. One master Register holds every

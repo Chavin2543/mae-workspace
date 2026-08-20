@@ -23,6 +23,11 @@ next 30/60/90 days.
 - [x] Build `scripts/build_license_tracker.py` (register + dashboard + guide)
 - [x] Generate the empty tracker with a seeded checklist of standard Thai hotel
       licences + known contracts per property
+- [x] Split every row by renewal responsibility: Owner vs Property
+      (Mae's request 2026-08-20) — new `Renew by` column, Owner block
+      sorted above Property in each hotel, colour-coded, dashboard split
+      into an Owner table and a Property table + a NOT ASSIGNED safety net
+- [ ] Mae reviews the Owner/Property defaults and corrects any
 - [ ] Mae uploads her licence/contract documents
 - [ ] Load real reference numbers, issue/expiry dates, fees into the register
 - [ ] Verify: every uploaded document appears as a row; dates parse; dashboard

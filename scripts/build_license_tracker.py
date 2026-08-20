@@ -5,9 +5,11 @@ properties (SR9, AES, LYF, SP).
 Structure of the workbook it writes:
 
   Guide / วิธีใช้   plain EN/TH instructions for Mae
-  Dashboard        counts per property x status + "expiring next 90 days" list
+  Dashboard        Owner block + Property block, each property x status,
+                   then a combined total and the "expiring next" list
   Register         the one master table — every licence/permit/tax/insurance/
-                   contract for all four properties, one row each
+                   contract for all four properties, one row each, each
+                   tagged Renew by = Owner or Property
   Lists            dropdown source lists (hidden-ish reference tab)
 
 Everything downstream (days left, status, action-by date, the dashboard) is an
@@ -53,6 +55,79 @@ CATEGORIES = [
     "Contract - Utility",
     "Contract - Lease / Finance",
 ]
+
+RENEW_BY = ["Owner", "Property"]
+
+# Who is responsible for renewing each item.
+#   Owner    = the asset company (AMH ... Co., Ltd.) — the building, the legal
+#              entity, the asset-level insurances, taxes and head agreements.
+#   Property = the hotel operation (managed by Ascott) — anything about running
+#              the hotel day to day: guest-facing licences, staff, suppliers,
+#              OTAs, operating services.
+# These are sensible defaults, not gospel — Mae reviews and flips any of them
+# with the dropdown in the "Renew by" column.
+RESPONSIBILITY = {
+    # --- Owner: the asset, the entity, the building -----------------------
+    "Hotel operating licence": "Owner",
+    "Building construction permit (อ.1)": "Owner",
+    "Certificate of building use (อ.6)": "Owner",
+    "Annual building inspection report (ร.1)": "Owner",
+    "Fire protection system inspection": "Owner",
+    "Lift / elevator inspection certificate": "Owner",
+    "Electrical system inspection": "Owner",
+    "Generator / fuel storage permit": "Owner",
+    "Boiler / pressure vessel inspection": "Owner",
+    "EIA environmental monitoring report": "Owner",
+    "Signage tax (billboard)": "Owner",
+    "Land & building tax": "Owner",
+    "VAT registration (ภ.พ.20)": "Owner",
+    "Company registration / affidavit": "Owner",
+    "Social security registration": "Owner",
+    "Property all-risk insurance": "Owner",
+    "Public liability insurance": "Owner",
+    "Business interruption insurance": "Owner",
+    "Hotel management agreement": "Owner",
+    "Technical services / central fee agreement": "Owner",
+    "Lift maintenance": "Owner",
+    "HVAC / chiller maintenance": "Owner",
+    "Fire system maintenance": "Owner",
+    "External audit & tax agent": "Owner",
+    "Electricity supply": "Owner",
+    "Water supply": "Owner",
+    "Land / building lease": "Owner",
+    "Bank facility / loan agreement": "Owner",
+    # --- Property: running the hotel --------------------------------------
+    "Hotel manager licence": "Property",
+    "Food establishment licence": "Property",
+    "Alcohol sale licence": "Property",
+    "Tobacco sale licence": "Property",
+    "Swimming pool / public place licence": "Property",
+    "Swimming pool water quality test": "Property",
+    "Drinking / potable water quality test": "Property",
+    "Wastewater treatment monitoring report": "Property",
+    "Waste / refuse disposal permit": "Property",
+    "Radio / walkie-talkie frequency licence": "Property",
+    "Music / copyright public performance licence": "Property",
+    "Work permits / visas — foreign staff": "Property",
+    "Food handler health certificates": "Property",
+    "Pest control service certificate": "Property",
+    "Hotel guest / hotel-act compulsory insurance": "Property",
+    "Booking.com accommodation agreement": "Property",
+    "Expedia lodging agreement": "Property",
+    "Agoda accommodation agreement": "Property",
+    "Laundry & linen services": "Property",
+    "F&B outlet / catering operator": "Property",
+    "Security services": "Property",
+    "Cleaning / housekeeping outsource": "Property",
+    "Pest control": "Property",
+    "Landscaping / plant care": "Property",
+    "Waste collection": "Property",
+    "PMS / property management system licence": "Property",
+    "Internet / IPTV / telephone": "Property",
+    "DayUse day-booking agreement": "Property",
+    "Adria Scan document services": "Property",
+}
+
 
 STATUSES = ["Expired", "Urgent", "Due soon", "OK", "No date"]
 
@@ -214,6 +289,7 @@ COLUMNS = [
     ("Property", 11),
     ("Legal entity", 24),
     ("Category", 22),
+    ("Renew by", 11),
     ("Item (EN)", 40),
     ("รายการ (TH)", 34),
     ("Authority / Counterparty", 34),
@@ -256,6 +332,11 @@ FILL_SOON = PatternFill("solid", fgColor="FFE699")      # amber
 FILL_OK = PatternFill("solid", fgColor="C6EFCE")        # green
 FILL_NODATE = PatternFill("solid", fgColor="EDEDED")    # grey
 
+FILL_OWNER = PatternFill("solid", fgColor="DDEBF7")     # light blue
+FILL_PROPERTY = PatternFill("solid", fgColor="E4DFEC")  # light purple
+FONT_OWNER = Font(color="1F3864", bold=True)
+FONT_PROPERTY = Font(color="5B3A8E", bold=True)
+
 FONT_EXPIRED = Font(color="833C00", bold=True)
 FONT_URGENT = Font(color="9C0006", bold=True)
 FONT_SOON = Font(color="7F6000")
@@ -290,6 +371,7 @@ def build_lists(wb):
         ("E", "Renewal cycle", RENEW_CYCLES),
         ("G", "Auto-renew", ["Yes", "No"]),
         ("I", "Status (reference)", STATUSES),
+        ("O", "Renew by", RENEW_BY),
     ]
     for col, head, values in blocks:
         ws[f"{col}3"] = head
@@ -318,24 +400,46 @@ def build_lists(wb):
 
 
 def seed_rows(blank=False):
-    """Build the seeded checklist rows: one block per property."""
+    """Build the seeded checklist rows.
+
+    One block per property, and inside each property the Owner-renewed items
+    come first, then the Property-renewed ones — so the two responsibilities
+    read as two separate blocks even before Mae touches the filter.
+    """
     if blank:
         return []
+
+    missing = set()
     rows = []
     for code, _full, entity in PROPERTIES:
         items = list(COMMON_LICENCES) + list(COMMON_CONTRACTS) + \
             list(EXTRA_ROWS.get(code, []))
         known = KNOWN_COUNTERPARTIES.get(code, {})
+        block = []
         for category, item_en, item_th, authority, cycle in items:
-            rows.append({
+            who = RESPONSIBILITY.get(item_en)
+            if who is None:
+                missing.add(item_en)
+            block.append({
                 "Property": code,
                 "Legal entity": entity,
                 "Category": category,
+                "Renew by": who or "",
                 "Item (EN)": item_en,
                 "รายการ (TH)": item_th,
                 "Authority / Counterparty": known.get(item_en, authority),
                 "Renewal cycle": cycle,
             })
+        # Owner block first, then Property; inside each, keep category order
+        order = {w: i for i, w in enumerate(RENEW_BY)}
+        block.sort(key=lambda x: (order.get(x["Renew by"], 99),
+                                  CATEGORIES.index(x["Category"])))
+        rows.extend(block)
+
+    if missing:
+        raise SystemExit(
+            "RESPONSIBILITY is missing an Owner/Property answer for:\n  - "
+            + "\n  - ".join(sorted(missing)))
     return rows
 
 
@@ -424,6 +528,7 @@ def build_register(wb, rows):
     validations = [
         ("Property", f"Lists!$A$4:$A${3 + len(PROPERTIES)}"),
         ("Category", f"Lists!$C$4:$C${3 + len(CATEGORIES)}"),
+        ("Renew by", f"Lists!$O$4:$O${3 + len(RENEW_BY)}"),
         ("Renewal cycle", f"Lists!$E$4:$E${3 + len(RENEW_CYCLES)}"),
         ("Auto-renew", "Lists!$G$4:$G$5"),
     ]
@@ -435,6 +540,19 @@ def build_register(wb, rows):
 
     # --- colour the whole row by status ---------------------------------
     visible_last = C["Notes"]   # helper SortKey column sits after this
+
+    # Renew by gets its own colour, added FIRST so it outranks the status
+    # colour on that one cell — Owner and Property stay readable in every row.
+    who_range = f"{C['Renew by']}{FIRST_DATA_ROW}:{C['Renew by']}{last_row}"
+    who_abs = f"${C['Renew by']}{FIRST_DATA_ROW}"
+    for label, fill, font in (("Owner", FILL_OWNER, FONT_OWNER),
+                              ("Property", FILL_PROPERTY, FONT_PROPERTY)):
+        ws.conditional_formatting.add(
+            who_range,
+            FormulaRule(formula=[f'{who_abs}="{label}"'], fill=fill, font=font,
+                        stopIfTrue=True),
+        )
+
     body = f"A{FIRST_DATA_ROW}:{visible_last}{last_row}"
     status_abs = f"${C['Status']}{FIRST_DATA_ROW}"
     rules = [
@@ -459,96 +577,136 @@ def build_register(wb, rows):
 
 
 def build_dashboard(wb, last_row):
+    """Dashboard split by renewal responsibility.
+
+    Two separate blocks — Owner first, then Property — each a
+    property x status matrix, then a combined total and the
+    soonest-expiring list across both.
+    """
     ws = wb.create_sheet("Dashboard", 0)
     title_block(
         ws,
         "Licence & Contract Dashboard — 4 properties",
-        "Everything below reads the Register tab. Reopen the file to refresh. "
-        "ตัวเลขทั้งหมดดึงจากแท็บ Register อัตโนมัติ",
-        9,
+        "Split by who renews it: OWNER (asset company) vs PROPERTY (hotel "
+        "operation). Everything reads the Register tab. "
+        "แยกตามผู้รับผิดชอบต่ออายุ: เจ้าของ / โรงแรม",
+        10,
     )
-    ws["A2"].font = SUB_FONT
 
-    reg_status = f"Register!${C['Status']}${FIRST_DATA_ROW}:${C['Status']}${last_row}"
-    reg_prop = f"Register!${C['Property']}${FIRST_DATA_ROW}:${C['Property']}${last_row}"
-    reg_item = f"Register!${C['Item (EN)']}${FIRST_DATA_ROW}:${C['Item (EN)']}${last_row}"
+    reg = lambda key: (f"Register!${C[key]}${FIRST_DATA_ROW}:"
+                       f"${C[key]}${last_row}")
+    reg_status, reg_prop = reg("Status"), reg("Property")
+    reg_item, reg_who = reg("Item (EN)"), reg("Renew by")
 
     ws["A4"] = "As at"
     ws["A4"].font = Font(bold=True)
     ws["B4"] = "=TODAY()"
     ws["B4"].number_format = "DD-MMM-YYYY"
 
-    # --- status matrix ---------------------------------------------------
-    head_row = 6
-    headers = ["Property", "Expired", "Urgent (≤30 d)", "Due soon (≤90 d)",
-               "OK", "No date", "Total items"]
-    for i, h in enumerate(headers, start=1):
-        c = ws.cell(row=head_row, column=i, value=h)
-        c.fill = HEAD_FILL
-        c.font = HEAD_FONT
-        c.alignment = Alignment(horizontal="center", vertical="center",
-                                wrap_text=True)
-        c.border = BOX
-    ws.row_dimensions[head_row].height = 30
+    MATRIX_HEAD = ["Property", "Expired", "Urgent (≤30 d)", "Due soon (≤90 d)",
+                   "OK", "No date", "Total"]
+    STATUS_OF = {1: "Expired", 2: "Urgent", 3: "Due soon", 4: "OK",
+                 5: "No date"}
 
-    status_cols = {"Expired": 2, "Urgent (≤30 d)": 3, "Due soon (≤90 d)": 4,
-                   "OK": 5, "No date": 6}
-    status_lookup = {"Expired": "Expired", "Urgent (≤30 d)": "Urgent",
-                     "Due soon (≤90 d)": "Due soon", "OK": "OK",
-                     "No date": "No date"}
+    def matrix(top, who, heading, accent):
+        """Write one property x status block filtered to `who`.
 
-    first = head_row + 1
-    for i, (code, full, _entity) in enumerate(PROPERTIES):
-        r = first + i
-        # column A holds the bare code so COUNTIFS can match the Register
-        ws.cell(row=r, column=1, value=code).font = Font(bold=True)
-        ws.cell(row=r, column=9, value=full).font = Font(color="595959")
-        for label, col in status_cols.items():
-            ws.cell(
-                row=r, column=col,
-                value=(f'=COUNTIFS({reg_prop},$A{r},{reg_status},'
-                       f'"{status_lookup[label]}")'),
-            )
-        ws.cell(row=r, column=7,
-                value=f'=COUNTIFS({reg_prop},$A{r},{reg_item},"?*")')
+        who=None means 'Renew by not filled in' — the safety net so no row
+        can quietly disappear between the two blocks.
+        """
+        ws.cell(row=top, column=1, value=heading).font = Font(
+            bold=True, size=12, color=accent)
+        hr = top + 1
+        for i, h in enumerate(MATRIX_HEAD, start=1):
+            c = ws.cell(row=hr, column=i, value=h)
+            c.fill = PatternFill("solid", fgColor=accent)
+            c.font = HEAD_FONT
+            c.alignment = Alignment(horizontal="center", vertical="center",
+                                    wrap_text=True)
+            c.border = BOX
+        ws.row_dimensions[hr].height = 30
 
-    total_row = first + len(PROPERTIES)
-    ws.cell(row=total_row, column=1, value="TOTAL").font = Font(bold=True)
+        # the Renew-by criterion: a real value, or "" to catch unassigned rows
+        who_crit = f'{reg_who},"{who}"' if who else f'{reg_who},""'
+
+        first = hr + 1
+        for i, (code, full, _entity) in enumerate(PROPERTIES):
+            r = first + i
+            ws.cell(row=r, column=1, value=code).font = Font(bold=True)
+            ws.cell(row=r, column=9, value=full).font = Font(color="595959")
+            for col, status in STATUS_OF.items():
+                ws.cell(row=r, column=col + 1,
+                        value=(f'=COUNTIFS({reg_prop},$A{r},{who_crit},'
+                               f'{reg_status},"{status}")'))
+            ws.cell(row=r, column=7,
+                    value=(f'=COUNTIFS({reg_prop},$A{r},{who_crit},'
+                           f'{reg_item},"?*")'))
+
+        sub = first + len(PROPERTIES)
+        ws.cell(row=sub, column=1, value="Subtotal").font = Font(bold=True)
+        for col in range(2, 8):
+            L = get_column_letter(col)
+            c = ws.cell(row=sub, column=col,
+                        value=f"=SUM({L}{first}:{L}{sub - 1})")
+            c.font = Font(bold=True)
+            c.fill = PatternFill("solid", fgColor="F2F2F2")
+
+        for r in range(first, sub + 1):
+            for col in range(1, 8):
+                c = ws.cell(row=r, column=col)
+                c.border = BOX
+                if col > 1:
+                    c.alignment = Alignment(horizontal="center")
+
+        for col, fill, font in ((2, FILL_EXPIRED, FONT_EXPIRED),
+                                (3, FILL_URGENT, FONT_URGENT),
+                                (4, FILL_SOON, FONT_SOON),
+                                (5, FILL_OK, FONT_OK)):
+            L = get_column_letter(col)
+            ws.conditional_formatting.add(
+                f"{L}{first}:{L}{sub}",
+                FormulaRule(formula=[f"{L}{first}>0"], fill=fill, font=font))
+        return sub
+
+    owner_sub = matrix(
+        6, "Owner",
+        "OWNER — renewed by the asset company (AMH …) / เจ้าของอาคาร",
+        "1F3864")
+    prop_sub = matrix(
+        owner_sub + 3, "Property",
+        "PROPERTY — renewed by the hotel operation / ฝ่ายโรงแรม",
+        "5B3A8E")
+    none_sub = matrix(
+        prop_sub + 3, None,
+        "NOT ASSIGNED — no Renew by chosen yet / ยังไม่ได้ระบุผู้รับผิดชอบ",
+        "808080")
+
+    # combined total, so the two blocks are provably the whole register
+    gt = none_sub + 2
+    ws.cell(row=gt, column=1, value="ALL").font = Font(bold=True, color="FFFFFF")
+    ws.cell(row=gt, column=1).fill = HEAD_FILL
     for col in range(2, 8):
         L = get_column_letter(col)
-        ws.cell(row=total_row, column=col,
-                value=f"=SUM({L}{first}:{L}{total_row - 1})").font = Font(bold=True)
+        c = ws.cell(row=gt, column=col,
+                    value=f"={L}{owner_sub}+{L}{prop_sub}+{L}{none_sub}")
+        c.font = Font(bold=True, color="FFFFFF")
+        c.fill = HEAD_FILL
+        c.alignment = Alignment(horizontal="center")
+        c.border = BOX
+    ws.cell(row=gt, column=1).border = BOX
+    ws.cell(row=gt, column=9,
+            value="Owner + Property + Not assigned = every row in the Register"
+            ).font = SUB_FONT
 
-    for r in range(first, total_row + 1):
-        for col in range(1, 8):
-            c = ws.cell(row=r, column=col)
-            c.border = BOX
-            if col > 1:
-                c.alignment = Alignment(horizontal="center")
-
-    # colour the matrix count cells
-    ws.conditional_formatting.add(f"B{first}:B{total_row}",
-                                  FormulaRule(formula=[f"B{first}>0"],
-                                              fill=FILL_EXPIRED, font=FONT_EXPIRED))
-    ws.conditional_formatting.add(f"C{first}:C{total_row}",
-                                  FormulaRule(formula=[f"C{first}>0"],
-                                              fill=FILL_URGENT, font=FONT_URGENT))
-    ws.conditional_formatting.add(f"D{first}:D{total_row}",
-                                  FormulaRule(formula=[f"D{first}>0"],
-                                              fill=FILL_SOON, font=FONT_SOON))
-    ws.conditional_formatting.add(f"E{first}:E{total_row}",
-                                  FormulaRule(formula=[f"E{first}>0"],
-                                              fill=FILL_OK, font=FONT_OK))
-
-    # --- next 90 days list ----------------------------------------------
-    lst_head = total_row + 3
+    # --- soonest-expiring list, both responsibilities together -----------
+    lst_head = gt + 3
     ws.cell(row=lst_head - 1, column=1,
-            value="Expiring next — soonest first (already expired items included)"
+            value="Expiring next — soonest first, both responsibilities"
             ).font = Font(bold=True, size=12, color=NAVY)
-    ws.cell(row=lst_head - 1, column=1).alignment = Alignment(vertical="center")
 
-    list_headers = ["Rank", "Property", "Category", "Item", "Counterparty",
-                    "Expiry date", "Days left", "Status", "Responsible"]
+    list_headers = ["Rank", "Property", "Renew by", "Category", "Item",
+                    "Counterparty", "Expiry date", "Days left", "Status",
+                    "Responsible"]
     for i, h in enumerate(list_headers, start=1):
         c = ws.cell(row=lst_head, column=i, value=h)
         c.fill = HEAD_FILL
@@ -556,72 +714,99 @@ def build_dashboard(wb, last_row):
         c.alignment = Alignment(horizontal="center")
         c.border = BOX
 
-    reg_sort = (f"Register!${C['SortKey']}${FIRST_DATA_ROW}:"
-                f"${C['SortKey']}${last_row}")
+    reg_sort = reg("SortKey")
     n_list = 30
     pull_cols = [
         (2, C["Property"]),
-        (3, C["Category"]),
-        (4, C["Item (EN)"]),
-        (5, C["Authority / Counterparty"]),
-        (6, C["Expiry date"]),
-        (7, C["Days left"]),
-        (8, C["Status"]),
-        (9, C["Responsible"]),
+        (3, C["Renew by"]),
+        (4, C["Category"]),
+        (5, C["Item (EN)"]),
+        (6, C["Authority / Counterparty"]),
+        (7, C["Expiry date"]),
+        (8, C["Days left"]),
+        (9, C["Status"]),
+        (10, C["Responsible"]),
     ]
     for k in range(1, n_list + 1):
         r = lst_head + k
-        ws.cell(row=r, column=1, value=k).alignment = Alignment(horizontal="center")
+        ws.cell(row=r, column=1, value=k).alignment = Alignment(
+            horizontal="center")
         key = f"SMALL({reg_sort},$A{r})"
         for col, letter in pull_cols:
             src = f"Register!${letter}${FIRST_DATA_ROW}:${letter}${last_row}"
-            ws.cell(
-                row=r, column=col,
-                value=(f'=IFERROR(INDEX({src},MATCH({key},{reg_sort},0)),"")'),
-            )
-        ws.cell(row=r, column=6).number_format = "DD-MMM-YYYY"
-        for col in range(1, 10):
+            ws.cell(row=r, column=col,
+                    value=f'=IFERROR(INDEX({src},MATCH({key},{reg_sort},0)),"")')
+        ws.cell(row=r, column=7).number_format = "DD-MMM-YYYY"
+        for col in range(1, 11):
             c = ws.cell(row=r, column=col)
             c.border = BOX
-            if col in (1, 6, 7, 8):
+            if col in (1, 3, 7, 8, 9):
                 c.alignment = Alignment(horizontal="center")
 
-    list_body = f"A{lst_head + 1}:I{lst_head + n_list}"
-    for label, fill, font in [("Expired", FILL_EXPIRED, FONT_EXPIRED),
+    list_body = f"A{lst_head + 1}:J{lst_head + n_list}"
+    # Renew by colour first so it wins on its own cell
+    who_col = f"C{lst_head + 1}:C{lst_head + n_list}"
+    for label, fill, font in (("Owner", FILL_OWNER, FONT_OWNER),
+                              ("Property", FILL_PROPERTY, FONT_PROPERTY)):
+        ws.conditional_formatting.add(
+            who_col,
+            FormulaRule(formula=[f'$C{lst_head + 1}="{label}"'], fill=fill,
+                        font=font, stopIfTrue=True))
+    for label, fill, font in (("Expired", FILL_EXPIRED, FONT_EXPIRED),
                               ("Urgent", FILL_URGENT, FONT_URGENT),
                               ("Due soon", FILL_SOON, FONT_SOON),
-                              ("OK", FILL_OK, FONT_OK)]:
+                              ("OK", FILL_OK, FONT_OK)):
         ws.conditional_formatting.add(
             list_body,
-            FormulaRule(formula=[f'$H{lst_head + 1}="{label}"'], fill=fill,
-                        font=font),
-        )
+            FormulaRule(formula=[f'$I{lst_head + 1}="{label}"'], fill=fill,
+                        font=font))
 
-    widths = [10, 11, 22, 42, 32, 14, 11, 12, 16]
+    widths = [10, 11, 12, 22, 42, 30, 14, 11, 12, 16]
     for i, w in enumerate(widths, start=1):
         ws.column_dimensions[get_column_letter(i)].width = w
 
     # --- legend ----------------------------------------------------------
     leg = lst_head + n_list + 3
-    ws.cell(row=leg, column=1, value="Colours / สีบอกสถานะ").font = Font(
+    ws.cell(row=leg, column=1, value="Who renews it / ใครต่ออายุ").font = Font(
+        bold=True, color=NAVY)
+    who_legend = [
+        ("Owner", "the asset company (AMH …): building, entity, taxes, "
+                  "asset insurance, head agreements — เจ้าของอาคาร",
+         FILL_OWNER, FONT_OWNER),
+        ("Property", "the hotel operation: guest-facing licences, staff, "
+                     "suppliers, OTAs — ฝ่ายโรงแรม",
+         FILL_PROPERTY, FONT_PROPERTY),
+    ]
+    r = leg
+    for label, meaning, fill, font in who_legend:
+        r += 1
+        c = ws.cell(row=r, column=1, value=label)
+        c.fill, c.font, c.border = fill, font, BOX
+        c.alignment = Alignment(horizontal="center")
+        ws.cell(row=r, column=2, value=meaning).font = SUB_FONT
+        ws.merge_cells(start_row=r, start_column=2, end_row=r, end_column=8)
+
+    r += 2
+    ws.cell(row=r, column=1, value="Colours / สีบอกสถานะ").font = Font(
         bold=True, color=NAVY)
     legend = [
-        ("Expired", "past the expiry date — เลยกำหนดแล้ว", FILL_EXPIRED, FONT_EXPIRED),
-        ("Urgent", "expires within 30 days — ครบกำหนดใน 30 วัน", FILL_URGENT, FONT_URGENT),
-        ("Due soon", "expires within 90 days — ครบกำหนดใน 90 วัน", FILL_SOON, FONT_SOON),
+        ("Expired", "past the expiry date — เลยกำหนดแล้ว", FILL_EXPIRED,
+         FONT_EXPIRED),
+        ("Urgent", "expires within 30 days — ครบกำหนดใน 30 วัน", FILL_URGENT,
+         FONT_URGENT),
+        ("Due soon", "expires within 90 days — ครบกำหนดใน 90 วัน", FILL_SOON,
+         FONT_SOON),
         ("OK", "more than 90 days left — ยังมีเวลา", FILL_OK, FONT_OK),
         ("No date", "expiry date not filled in yet — ยังไม่ได้ใส่วันหมดอายุ",
          FILL_NODATE, FONT_NODATE),
     ]
-    for i, (label, meaning, fill, font) in enumerate(legend, start=1):
-        c = ws.cell(row=leg + i, column=1, value=label)
-        c.fill = fill
-        c.font = font
+    for label, meaning, fill, font in legend:
+        r += 1
+        c = ws.cell(row=r, column=1, value=label)
+        c.fill, c.font, c.border = fill, font, BOX
         c.alignment = Alignment(horizontal="center")
-        c.border = BOX
-        ws.cell(row=leg + i, column=2, value=meaning).font = SUB_FONT
-        ws.merge_cells(start_row=leg + i, start_column=2, end_row=leg + i,
-                       end_column=5)
+        ws.cell(row=r, column=2, value=meaning).font = SUB_FONT
+        ws.merge_cells(start_row=r, start_column=2, end_row=r, end_column=8)
 
     ws.sheet_view.showGridLines = False
     ws.freeze_panes = "A5"
@@ -649,6 +834,24 @@ def build_guide(wb):
                    "tax, insurance policy or contract."),
         ("Step 2", "Fill in: Reference / Licence no., Issue date, Expiry date, "
                    "Responsible person, Fee, and where the document is kept."),
+        ("", ""),
+        ("Renew by", "The important split: OWNER or PROPERTY — who has to renew "
+                     "it. Pick from the dropdown. Owner rows are blue, Property "
+                     "rows are purple, and the Dashboard shows the two as two "
+                     "separate tables."),
+        ("Renew by = Owner", "The asset company (AMH … Co., Ltd.): the building "
+                             "and its inspections, the company registrations and "
+                             "taxes, asset insurance, the management agreement, "
+                             "lease and bank facilities."),
+        ("Renew by = Property", "The hotel operation: guest-facing licences "
+                                "(food, alcohol, pool), staff permits and health "
+                                "certificates, OTA agreements, and operating "
+                                "suppliers such as laundry, security, cleaning."),
+        ("ผู้ต่ออายุ", "Owner = เจ้าของอาคาร (บริษัท AMH) ดูแลตัวอาคาร ทะเบียนบริษัท "
+                      "ภาษี ประกันทรัพย์สิน สัญญาหลัก / Property = ฝ่ายโรงแรม "
+                      "ดูแลใบอนุญาตหน้างาน พนักงาน OTA และซัพพลายเออร์"),
+        ("See one side only", "On the Register click the filter arrow on "
+                              "'Renew by' and tick just Owner or just Property."),
         ("Step 3", "Leave the grey formula columns alone — Action by, Days left "
                    "and Status fill themselves in."),
         ("Step 4", "Open the Dashboard tab to see what is expiring."),
@@ -666,6 +869,11 @@ def build_guide(wb):
                     "within 90 days. Green = fine. Grey = no expiry date yet."),
         ("สี", "แดง = หมดอายุแล้ว, ชมพู = ครบกำหนดใน 30 วัน, เหลือง = ใน 90 วัน, "
                "เขียว = ยังมีเวลา, เทา = ยังไม่ได้ใส่วันหมดอายุ"),
+        ("", ""),
+        ("Check this first", "The Owner / Property split I filled in is my "
+                             "best guess from normal practice. Please read down "
+                             "the Renew by column once and change anything that "
+                             "is different in your agreements."),
         ("", ""),
         ("The seeded rows", "The rows already in the Register are a checklist of "
                             "the licences and contracts a Thai hotel normally "
