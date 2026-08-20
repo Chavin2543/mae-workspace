@@ -35,6 +35,10 @@ next 30/60/90 days.
 - [x] Mae's team handbook received (2510_SA list) — confirmed as the standard
       checklist for every hotel; tracker seed rebuilt from it (278 rows),
       Renew-by derived from the handbook's Kept-by column
+- [x] Split the register into one tab per hotel (SR9/AES/LYF/SP) — Mae's
+      request 20 Aug; dashboard restructured Owner > hotel > category,
+      same for Property (Mae's sketch), with hidden Feed tab for the
+      all-hotels expiring list
 - [ ] WAITING ON MAE: reference numbers, issue/expiry dates, fees per hotel
 - [ ] Mae reviews the Owner/Property defaults and corrects any
 - [ ] Mae uploads her licence/contract documents

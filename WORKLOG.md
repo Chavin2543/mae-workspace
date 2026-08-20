@@ -7,6 +7,20 @@ language.
 
 ---
 
+## 2026-08-20 — Licence tracker: one register tab per hotel + Mae's dashboard layout
+- Mae's requests: (1) separate Register sheet per property; (2) the dashboard's
+  Owner section laid out as Owner > 1.SR9 > categories, 2.AES > categories, ...
+  and the same for Property.
+- Rebuilt: tabs are now Guide / Dashboard / SR9 / AES / LYF / SP / Feed(hidden)
+  / Lists. Each hotel tab is its own register (formulas to row 124, Owner block
+  first). Dashboard = OWNER then PROPERTY, each hotel numbered with all 10
+  document categories under it, hotel totals with a ✓ integrity check,
+  NOT ASSIGNED safety net, ALL total, and an all-hotels expiring-next list fed
+  by a hidden Feed tab (globally unique sort keys, cross-hotel ties safe).
+- Verified by evaluating the sheet's real cross-sheet COUNTIFS in Python:
+  Owner 43 + Property 234 + NotAssigned 1 (deliberately blanked) = 278 = all
+  rows; same-day expiries on two different hotels rank separately.
+
 ## 2026-08-20 — Licence tracker rebuilt from the team's handbook
 - Mae confirmed the 2510_SA document list is the standard checklist for every
   hotel. Replaced the tracker's guessed seed with the handbook's renewable

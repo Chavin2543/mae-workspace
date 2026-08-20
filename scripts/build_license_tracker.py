@@ -5,13 +5,14 @@ properties (SR9, AES, LYF, SP).
 Structure of the workbook it writes:
 
   Guide / วิธีใช้   plain EN/TH instructions for Mae
-  Dashboard        Owner block + Property block; each block counted twice,
-                   by hotel and by document type, then a combined total
-                   and the "expiring next" list
-  Register         the one master table — every licence/permit/tax/insurance/
-                   contract for all four properties, one row each, each
-                   tagged Renew by = Owner or Property
-  Lists            dropdown source lists (hidden-ish reference tab)
+  Dashboard        OWNER then PROPERTY; inside each, one block per hotel
+                   (1. SR9 ... 4. SP) broken down by document category,
+                   then the all-hotels "expiring next" list
+  SR9/AES/LYF/SP   one register tab per hotel — where Mae types; Owner block
+                   first, then Property, categories in order
+  Feed (hidden)    stacks the 4 hotel tabs so the dashboard list can rank
+                   across all hotels
+  Lists            dropdown source lists
 
 Everything downstream (days left, status, action-by date, the dashboard) is an
 Excel formula on top of the Register, so Mae only ever types into the Register
@@ -319,13 +320,11 @@ EXTRA_ROWS = {
 }
 
 # --------------------------------------------------------------------------
-# Column layout of the Register sheet
+# Column layout of the per-hotel Register sheets (one tab per property)
 # --------------------------------------------------------------------------
 
 COLUMNS = [
     ("No.", 6),
-    ("Property", 11),
-    ("Legal entity", 24),
     ("Category", 22),
     ("Renew by", 11),
     ("Item (EN)", 40),
@@ -344,11 +343,11 @@ COLUMNS = [
     ("Auto-renew", 12),
     ("Document location", 26),
     ("Notes", 40),
-    ("SortKey", 10),   # hidden helper: days-left made unique per row
 ]
 HEADER_ROW = 4
 FIRST_DATA_ROW = 5
-N_ROWS = 400  # formulas run this far so Mae can add rows without extra work
+N_ROWS = 120          # formula depth per hotel tab (seed is ~70, room to grow)
+LAST_ROW = FIRST_DATA_ROW + N_ROWS - 1
 
 C = {name: get_column_letter(i + 1) for i, (name, _) in enumerate(COLUMNS)}
 
@@ -364,22 +363,21 @@ HEAD_FONT = Font(bold=True, color="FFFFFF", size=10)
 THIN = Side(style="thin", color="BFBFBF")
 BOX = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
 
-FILL_EXPIRED = PatternFill("solid", fgColor="F8CBAD")   # red-ish
-FILL_URGENT = PatternFill("solid", fgColor="FFC7CE")    # pink
-FILL_SOON = PatternFill("solid", fgColor="FFE699")      # amber
-FILL_OK = PatternFill("solid", fgColor="C6EFCE")        # green
-FILL_NODATE = PatternFill("solid", fgColor="EDEDED")    # grey
-
-FILL_OWNER = PatternFill("solid", fgColor="DDEBF7")     # light blue
-FILL_PROPERTY = PatternFill("solid", fgColor="E4DFEC")  # light purple
-FONT_OWNER = Font(color="1F3864", bold=True)
-FONT_PROPERTY = Font(color="5B3A8E", bold=True)
+FILL_EXPIRED = PatternFill("solid", fgColor="F8CBAD")
+FILL_URGENT = PatternFill("solid", fgColor="FFC7CE")
+FILL_SOON = PatternFill("solid", fgColor="FFE699")
+FILL_OK = PatternFill("solid", fgColor="C6EFCE")
+FILL_NODATE = PatternFill("solid", fgColor="EDEDED")
+FILL_OWNER = PatternFill("solid", fgColor="DDEBF7")
+FILL_PROPERTY = PatternFill("solid", fgColor="E4DFEC")
 
 FONT_EXPIRED = Font(color="833C00", bold=True)
 FONT_URGENT = Font(color="9C0006", bold=True)
 FONT_SOON = Font(color="7F6000")
 FONT_OK = Font(color="375623")
 FONT_NODATE = Font(color="808080")
+FONT_OWNER = Font(color="1F3864", bold=True)
+FONT_PROPERTY = Font(color="5B3A8E", bold=True)
 
 
 def title_block(ws, title, subtitle, width_cols):
@@ -400,7 +398,7 @@ def title_block(ws, title, subtitle, width_cols):
 def build_lists(wb):
     """Reference tab holding the dropdown source lists."""
     ws = wb.create_sheet("Lists")
-    ws["A1"] = "Dropdown lists — used by the Register. Edit here to change the choices."
+    ws["A1"] = "Dropdown lists — used by every hotel tab. Edit here to change the choices."
     ws["A1"].font = Font(bold=True, color=NAVY)
 
     blocks = [
@@ -412,15 +410,14 @@ def build_lists(wb):
         ("O", "Renew by", RENEW_BY),
     ]
     for col, head, values in blocks:
-        ws[f"{col}3"] = head
-        ws[f"{col}3"].font = Font(bold=True)
-        ws[f"{col}3"].fill = HEAD_FILL
-        ws[f"{col}3"].font = HEAD_FONT
+        c = ws[f"{col}3"]
+        c.value = head
+        c.fill = HEAD_FILL
+        c.font = HEAD_FONT
         for i, v in enumerate(values):
             ws[f"{col}{4 + i}"] = v
         ws.column_dimensions[col].width = 22
 
-    # Property reference (code -> full name -> legal entity)
     ws["K3"] = "Property"
     ws["L3"] = "Full name"
     ws["M3"] = "Legal entity"
@@ -438,18 +435,18 @@ def build_lists(wb):
 
 
 def seed_rows(blank=False):
-    """Build the seeded checklist rows.
+    """Checklist rows per property: {code: [row dicts]}.
 
-    One block per property, and inside each property the Owner-renewed items
-    come first, then the Property-renewed ones — so the two responsibilities
-    read as two separate blocks even before Mae touches the filter.
+    Owner-renewed items come first on each tab, then Property-renewed ones,
+    so the two responsibilities read as two blocks.
     """
     if blank:
-        return []
+        return {code: [] for code, _f, _e in PROPERTIES}
 
     missing = set()
-    rows = []
-    for code, _full, entity in PROPERTIES:
+    out = {}
+    order = {w: i for i, w in enumerate(RENEW_BY)}
+    for code, _full, _entity in PROPERTIES:
         items = list(COMMON_LICENCES) + list(COMMON_CONTRACTS) + \
             list(EXTRA_ROWS.get(code, []))
         known = KNOWN_COUNTERPARTIES.get(code, {})
@@ -459,8 +456,6 @@ def seed_rows(blank=False):
             if who is None:
                 missing.add(item_en)
             block.append({
-                "Property": code,
-                "Legal entity": entity,
                 "Category": category,
                 "Renew by": who or "",
                 "Item (EN)": item_en,
@@ -468,27 +463,26 @@ def seed_rows(blank=False):
                 "Authority / Counterparty": known.get(item_en, authority),
                 "Renewal cycle": cycle,
             })
-        # Owner block first, then Property; inside each, keep category order
-        order = {w: i for i, w in enumerate(RENEW_BY)}
         block.sort(key=lambda x: (order.get(x["Renew by"], 99),
                                   CATEGORIES.index(x["Category"])))
-        rows.extend(block)
+        out[code] = block
 
     if missing:
         raise SystemExit(
             "RESPONSIBILITY is missing an Owner/Property answer for:\n  - "
             + "\n  - ".join(sorted(missing)))
-    return rows
+    return out
 
 
-def build_register(wb, rows):
-    ws = wb.create_sheet("Register")
+def build_register(wb, code, full, entity, rows):
+    """One Register tab for one hotel."""
+    ws = wb.create_sheet(code)
     ncols = len(COLUMNS)
     title_block(
         ws,
-        "Licence & Contract Register — Mitsui Thailand portfolio",
-        "Type into the white columns only. Days left / Action by / Status "
-        "calculate themselves. ใส่ข้อมูลเฉพาะช่องสีขาว ช่องสูตรจะคำนวณเอง",
+        f"{code} — {full}",
+        f"{entity}. Type into the white columns; Action by / Days left / "
+        "Status calculate themselves. ใส่ข้อมูลเฉพาะช่องสีขาว",
         ncols,
     )
 
@@ -502,38 +496,28 @@ def build_register(wb, rows):
         ws.column_dimensions[get_column_letter(i)].width = width
     ws.row_dimensions[HEADER_ROW].height = 30
 
-    last_row = FIRST_DATA_ROW + N_ROWS - 1
-
     for offset in range(N_ROWS):
         r = FIRST_DATA_ROW + offset
         data = rows[offset] if offset < len(rows) else None
 
-        # running number, only shown when the row has an item
         ws[f"{C['No.']}{r}"] = (
             f'=IF({C["Item (EN)"]}{r}="","",'
             f'COUNTA(${C["Item (EN)"]}${FIRST_DATA_ROW}:{C["Item (EN)"]}{r}))'
         )
-
         if data:
             for key, value in data.items():
                 if value:
                     ws[f"{C[key]}{r}"] = value
-
-        # notice period default: 60 days before expiry
-        if data:
             ws[f"{C['Notice (days)']}{r}"] = 60
 
-        # Action by = expiry - notice days
         ws[f"{C['Action by']}{r}"] = (
             f'=IF({C["Expiry date"]}{r}="","",'
             f'{C["Expiry date"]}{r}-IF({C["Notice (days)"]}{r}="",0,'
             f'{C["Notice (days)"]}{r}))'
         )
-        # Days left = expiry - today
         ws[f"{C['Days left']}{r}"] = (
             f'=IF({C["Expiry date"]}{r}="","",{C["Expiry date"]}{r}-TODAY())'
         )
-        # Status
         ws[f"{C['Status']}{r}"] = (
             f'=IF({C["Item (EN)"]}{r}="","",'
             f'IF({C["Expiry date"]}{r}="","No date",'
@@ -541,18 +525,15 @@ def build_register(wb, rows):
             f'IF({C["Days left"]}{r}<=30,"Urgent",'
             f'IF({C["Days left"]}{r}<=90,"Due soon","OK")))))'
         )
-        # hidden sort key: days left nudged by the row number so two items
-        # expiring on the same day still get two distinct ranks on the Dashboard
-        ws[f"{C['SortKey']}{r}"] = (
-            f'=IF({C["Item (EN)"]}{r}="","",'
-            f'IF({C["Expiry date"]}{r}="","",'
-            f'{C["Days left"]}{r}+ROW()/100000))'
-        )
 
         for i in range(1, ncols + 1):
             c = ws.cell(row=r, column=i)
             c.border = BOX
-            c.alignment = Alignment(vertical="top", wrap_text=(i in (5, 6, 7, 20)))
+            c.alignment = Alignment(vertical="top",
+                                    wrap_text=(COLUMNS[i-1][0] in
+                                               ("Item (EN)", "รายการ (TH)",
+                                                "Authority / Counterparty",
+                                                "Notes")))
         for key in ("Issue date", "Expiry date", "Action by"):
             ws[f"{C[key]}{r}"].number_format = "DD-MMM-YYYY"
             ws[f"{C[key]}{r}"].alignment = Alignment(horizontal="center")
@@ -561,10 +542,9 @@ def build_register(wb, rows):
         ws[f"{C['Fee / Value (THB)']}{r}"].number_format = "#,##0.00"
         ws[f"{C['No.']}{r}"].alignment = Alignment(horizontal="center")
         ws[f"{C['Status']}{r}"].alignment = Alignment(horizontal="center")
+        ws[f"{C['Renew by']}{r}"].alignment = Alignment(horizontal="center")
 
-    # --- dropdowns -------------------------------------------------------
     validations = [
-        ("Property", f"Lists!$A$4:$A${3 + len(PROPERTIES)}"),
         ("Category", f"Lists!$C$4:$C${3 + len(CATEGORIES)}"),
         ("Renew by", f"Lists!$O$4:$O${3 + len(RENEW_BY)}"),
         ("Renewal cycle", f"Lists!$E$4:$E${3 + len(RENEW_CYCLES)}"),
@@ -574,89 +554,97 @@ def build_register(wb, rows):
         dv = DataValidation(type="list", formula1=formula, allow_blank=True)
         dv.error = "Pick a value from the list / เลือกจากรายการ"
         ws.add_data_validation(dv)
-        dv.add(f"{C[key]}{FIRST_DATA_ROW}:{C[key]}{last_row}")
+        dv.add(f"{C[key]}{FIRST_DATA_ROW}:{C[key]}{LAST_ROW}")
 
-    # --- colour the whole row by status ---------------------------------
-    visible_last = C["Notes"]   # helper SortKey column sits after this
-
-    # Renew by gets its own colour, added FIRST so it outranks the status
-    # colour on that one cell — Owner and Property stay readable in every row.
-    who_range = f"{C['Renew by']}{FIRST_DATA_ROW}:{C['Renew by']}{last_row}"
+    # Renew-by colour first (wins on its own cell), then status row colour
+    who_range = f"{C['Renew by']}{FIRST_DATA_ROW}:{C['Renew by']}{LAST_ROW}"
     who_abs = f"${C['Renew by']}{FIRST_DATA_ROW}"
     for label, fill, font in (("Owner", FILL_OWNER, FONT_OWNER),
                               ("Property", FILL_PROPERTY, FONT_PROPERTY)):
         ws.conditional_formatting.add(
             who_range,
             FormulaRule(formula=[f'{who_abs}="{label}"'], fill=fill, font=font,
-                        stopIfTrue=True),
-        )
-
-    body = f"A{FIRST_DATA_ROW}:{visible_last}{last_row}"
+                        stopIfTrue=True))
+    body = f"A{FIRST_DATA_ROW}:{C['Notes']}{LAST_ROW}"
     status_abs = f"${C['Status']}{FIRST_DATA_ROW}"
-    rules = [
-        ("Expired", FILL_EXPIRED, FONT_EXPIRED),
-        ("Urgent", FILL_URGENT, FONT_URGENT),
-        ("Due soon", FILL_SOON, FONT_SOON),
-        ("OK", FILL_OK, FONT_OK),
-        ("No date", FILL_NODATE, FONT_NODATE),
-    ]
-    for label, fill, font in rules:
+    for label, fill, font in (("Expired", FILL_EXPIRED, FONT_EXPIRED),
+                              ("Urgent", FILL_URGENT, FONT_URGENT),
+                              ("Due soon", FILL_SOON, FONT_SOON),
+                              ("OK", FILL_OK, FONT_OK),
+                              ("No date", FILL_NODATE, FONT_NODATE)):
         ws.conditional_formatting.add(
             body,
             FormulaRule(formula=[f'{status_abs}="{label}"'], fill=fill,
-                        font=font, stopIfTrue=False),
-        )
+                        font=font, stopIfTrue=False))
 
-    # Freeze through Item (EN) so a row still says what it is once you scroll
-    # right to the dates. Derived from C, not hardcoded, so inserting another
-    # column never silently strips the item name out of the frozen pane again.
     first_scrolling_col = get_column_letter(
-        COLUMNS.index(("Item (EN)", 40)) + 2)
+        [n for n, _ in COLUMNS].index("Item (EN)") + 2)
     ws.freeze_panes = f"{first_scrolling_col}{FIRST_DATA_ROW}"
-    ws.auto_filter.ref = f"A{HEADER_ROW}:{visible_last}{last_row}"
-    ws.column_dimensions[C["SortKey"]].hidden = True
+    ws.auto_filter.ref = f"A{HEADER_ROW}:{C['Notes']}{LAST_ROW}"
     ws.sheet_view.zoomScale = 90
-    return ws, last_row
+    return ws
 
 
-def build_dashboard(wb, last_row):
-    """Dashboard split two ways: who renews it, and what type of document.
+def build_feed(wb):
+    """Hidden sheet stacking the four hotel tabs into one block, so the
+    Dashboard's expiring-next list can rank across all hotels with one
+    SMALL/INDEX/MATCH. Column J is a globally unique sort key."""
+    ws = wb.create_sheet("Feed")
+    heads = ["Hotel", "Renew by", "Category", "Item", "Counterparty",
+             "Expiry date", "Days left", "Status", "Responsible", "SortKey"]
+    for i, h in enumerate(heads, start=1):
+        ws.cell(row=1, column=i, value=h).font = Font(bold=True)
 
-    For each responsibility (Owner, Property) there are two tables reading the
-    same rows — one **by hotel**, one **by document type** — so a red number
-    can be traced to both "which hotel" and "what kind of document". The two
-    tables of a pair must show the same Total; a check cell says so out loud.
-    """
+    src = {"Renew by": C["Renew by"], "Category": C["Category"],
+           "Item": C["Item (EN)"], "Counterparty": C["Authority / Counterparty"],
+           "Expiry date": C["Expiry date"], "Days left": C["Days left"],
+           "Status": C["Status"], "Responsible": C["Responsible"]}
+    r = 1
+    for code, _full, _entity in PROPERTIES:
+        for i in range(FIRST_DATA_ROW, LAST_ROW + 1):
+            r += 1
+            ws.cell(row=r, column=1,
+                    value=f"=IF({code}!{C['Item (EN)']}{i}=\"\",\"\",\"{code}\")")
+            for col, (head) in enumerate(heads[1:9], start=2):
+                ref = f"{code}!{src[head]}{i}"
+                ws.cell(row=r, column=col, value=f'=IF({ref}="","",{ref})')
+            ws.cell(row=r, column=10,
+                    value=f'=IF(D{r}="","",IF(F{r}="","",G{r}+ROW()/100000))')
+    ws.sheet_state = "hidden"
+    return ws, r  # last feed row
+
+
+def build_dashboard(wb, feed_last):
+    """Mae's layout (Aug 2026): OWNER section -> one block per hotel
+    (1. SR9, 2. AES, ...) -> a row per document category; then the same for
+    PROPERTY. NOT ASSIGNED is a compact safety net, ALL ties it to the tabs,
+    and the expiring-next list ranks all hotels together."""
     ws = wb.create_sheet("Dashboard", 0)
     title_block(
         ws,
         "Licence & Contract Dashboard — 4 properties",
-        "Split by who renews it (OWNER / PROPERTY), then by hotel and by "
-        "document type. All of it reads the Register tab. "
-        "แยกตามผู้รับผิดชอบ แล้วแยกตามโรงแรมและประเภทเอกสาร",
+        "OWNER then PROPERTY; inside each, every hotel with its categories. "
+        "Reads the four hotel tabs — reopen the file to refresh. "
+        "แยกตามผู้รับผิดชอบ > โรงแรม > ประเภทเอกสาร",
         9,
     )
-
-    reg = lambda key: (f"Register!${C[key]}${FIRST_DATA_ROW}:"
-                       f"${C[key]}${last_row}")
-    reg_status, reg_item, reg_who = reg("Status"), reg("Item (EN)"), reg("Renew by")
-
     ws["A4"] = "As at"
     ws["A4"].font = Font(bold=True)
     ws["B4"] = "=TODAY()"
     ws["B4"].number_format = "DD-MMM-YYYY"
 
+    def rng(code, key):
+        return f"{code}!${C[key]}${FIRST_DATA_ROW}:${C[key]}${LAST_ROW}"
+
     STATUS_ORDER = ["Expired", "Urgent", "Due soon", "OK", "No date"]
     STATUS_HEAD = ["Expired", "Urgent (≤30 d)", "Due soon (≤90 d)", "OK",
                    "No date"]
-    COUNT_FILLS = [(2, FILL_EXPIRED, FONT_EXPIRED), (3, FILL_URGENT, FONT_URGENT),
-                   (4, FILL_SOON, FONT_SOON), (5, FILL_OK, FONT_OK)]
 
-    HOTEL_ROWS = [(code, code, full) for code, full, _e in PROPERTIES]
-    TYPE_ROWS = [(cat, cat, "") for cat in CATEGORIES]
+    def who_crit(code, who):
+        w = f'"{who}"' if who else '""'
+        return f"{rng(code, 'Renew by')},{w}"
 
-    def matrix(top, corner, dim_key, rows_def, who, accent):
-        """One count table. `who` filters Renew by; None means 'not filled in'."""
+    def header_row(top, corner, accent):
         for i, h in enumerate([corner] + STATUS_HEAD + ["Total"], start=1):
             c = ws.cell(row=top, column=i, value=h)
             c.fill = PatternFill("solid", fgColor=accent)
@@ -666,132 +654,173 @@ def build_dashboard(wb, last_row):
             c.border = BOX
         ws.row_dimensions[top].height = 30
 
-        who_crit = f'{reg_who},"{who}"' if who else f'{reg_who},""'
-        first = top + 1
-        for i, (value, label, note) in enumerate(rows_def):
-            r = first + i
-            ws.cell(row=r, column=1, value=label)
-            if note:
-                ws.cell(row=r, column=9, value=note).font = Font(color="595959")
-            dim_crit = f'{reg(dim_key)},"{value}"'
-            for j, status in enumerate(STATUS_ORDER):
-                ws.cell(row=r, column=2 + j,
-                        value=(f'=COUNTIFS({dim_crit},{who_crit},'
-                               f'{reg_status},"{status}")'))
-            ws.cell(row=r, column=7,
-                    value=f'=COUNTIFS({dim_crit},{who_crit},{reg_item},"?*")')
-
-        sub = first + len(rows_def)
-        ws.cell(row=sub, column=1, value="Subtotal").font = Font(bold=True)
-        for col in range(2, 8):
-            L = get_column_letter(col)
-            c = ws.cell(row=sub, column=col,
-                        value=f"=SUM({L}{first}:{L}{sub - 1})")
-            c.font = Font(bold=True)
-            c.fill = PatternFill("solid", fgColor="F2F2F2")
-
-        for r in range(first, sub + 1):
-            for col in range(1, 8):
-                c = ws.cell(row=r, column=col)
-                c.border = BOX
-                if col > 1:
-                    c.alignment = Alignment(horizontal="center")
-
-        for col, fill, font in COUNT_FILLS:
+    def colour_counts(first, last):
+        for col, fill, font in ((2, FILL_EXPIRED, FONT_EXPIRED),
+                                (3, FILL_URGENT, FONT_URGENT),
+                                (4, FILL_SOON, FONT_SOON),
+                                (5, FILL_OK, FONT_OK)):
             L = get_column_letter(col)
             ws.conditional_formatting.add(
-                f"{L}{first}:{L}{sub}",
+                f"{L}{first}:{L}{last}",
                 FormulaRule(formula=[f"{L}{first}>0"], fill=fill, font=font))
-        return sub
 
-    def section(top, who, banner, accent, with_types=True):
-        """Banner + the by-hotel table and (optionally) the by-type table."""
+    def section(top, who, banner, accent):
+        """One responsibility: hotel blocks, each with a category breakdown."""
         ws.cell(row=top, column=1, value=banner).font = Font(
             bold=True, size=12, color=accent)
-        hotel_sub = matrix(top + 1, "Hotel", "Property", HOTEL_ROWS, who, accent)
-        if not with_types:
-            return hotel_sub, hotel_sub + 2
-        type_sub = matrix(hotel_sub + 2, "Document type", "Category",
-                          TYPE_ROWS, who, accent)
-        # the two tables count the same rows, so their totals must agree
-        chk = ws.cell(row=type_sub, column=9,
-                      value=(f'=IF(G{type_sub}=G{hotel_sub},'
-                             f'"✓ same total as by hotel",'
-                             f'"CHECK — does not match by hotel")'))
-        chk.font = Font(color="595959", italic=True)
-        return hotel_sub, type_sub + 2
+        header_row(top + 1, "Hotel / Document type", accent)
+        r = top + 1
+        hotel_subs = []
+        light = PatternFill("solid", fgColor="F2F2F2")
+        for n, (code, full, _entity) in enumerate(PROPERTIES, start=1):
+            # hotel header line
+            r += 1
+            hc = ws.cell(row=r, column=1, value=f"{n}. {code} — {full}")
+            hc.font = Font(bold=True, color=accent)
+            hc.fill = PatternFill("solid", fgColor="EDF1F8")
+            for col in range(1, 8):
+                ws.cell(row=r, column=col).border = BOX
+                if col > 1:
+                    ws.cell(row=r, column=col).fill = PatternFill(
+                        "solid", fgColor="EDF1F8")
+            first_cat = r + 1
+            for cat in CATEGORIES:
+                r += 1
+                ws.cell(row=r, column=1, value=f"      {cat}")
+                for j, status in enumerate(STATUS_ORDER):
+                    ws.cell(row=r, column=2 + j,
+                            value=(f'=COUNTIFS({rng(code, "Category")},"{cat}",'
+                                   f'{who_crit(code, who)},'
+                                   f'{rng(code, "Status")},"{status}")'))
+                ws.cell(row=r, column=7,
+                        value=(f'=COUNTIFS({rng(code, "Category")},"{cat}",'
+                               f'{who_crit(code, who)},'
+                               f'{rng(code, "Item (EN)")},"?*")'))
+            # hotel subtotal + integrity check against a direct count
+            r += 1
+            ws.cell(row=r, column=1, value=f"{code} total").font = Font(bold=True)
+            for col in range(2, 8):
+                L = get_column_letter(col)
+                c = ws.cell(row=r, column=col,
+                            value=f"=SUM({L}{first_cat}:{L}{r - 1})")
+                c.font = Font(bold=True)
+                c.fill = light
+            direct = (f'COUNTIFS({who_crit(code, who)},'
+                      f'{rng(code, "Item (EN)")},"?*")')
+            ws.cell(row=r, column=9,
+                    value=f'=IF(G{r}={direct},"✓","CHECK — categories ≠ tab")'
+                    ).font = Font(color="595959", italic=True)
+            hotel_subs.append(r)
+        # responsibility total
+        r += 1
+        ws.cell(row=r, column=1, value=f"{(who or 'NOT ASSIGNED').upper()} TOTAL"
+                ).font = Font(bold=True, color="FFFFFF")
+        ws.cell(row=r, column=1).fill = PatternFill("solid", fgColor=accent)
+        for col in range(2, 8):
+            L = get_column_letter(col)
+            c = ws.cell(row=r, column=col,
+                        value="=" + "+".join(f"{L}{sr}" for sr in hotel_subs))
+            c.font = Font(bold=True, color="FFFFFF")
+            c.fill = PatternFill("solid", fgColor=accent)
+            c.alignment = Alignment(horizontal="center")
+        for row in range(top + 2, r + 1):
+            for col in range(1, 8):
+                ws.cell(row=row, column=col).border = BOX
+                if col > 1:
+                    ws.cell(row=row, column=col).alignment = Alignment(
+                        horizontal="center")
+        colour_counts(top + 2, r - 1)
+        return r  # total row
 
-    owner_sub, nxt = section(
+    owner_total = section(
         6, "Owner",
         "OWNER — renewed by the asset company (AMH …) / เจ้าของอาคาร", "1F3864")
-    prop_sub, nxt = section(
-        nxt, "Property",
+    prop_total = section(
+        owner_total + 2, "Property",
         "PROPERTY — renewed by the hotel operation / ฝ่ายโรงแรม", "5B3A8E")
-    none_sub, nxt = section(
-        nxt, None,
-        "NOT ASSIGNED — no Renew by chosen yet / ยังไม่ได้ระบุผู้รับผิดชอบ",
-        "808080", with_types=False)
 
-    # combined total, proving the blocks are the whole register
-    gt = nxt
+    # NOT ASSIGNED — compact: one row per hotel
+    na_top = prop_total + 2
+    ws.cell(row=na_top, column=1,
+            value="NOT ASSIGNED — no Renew by chosen yet / ยังไม่ได้ระบุผู้รับผิดชอบ"
+            ).font = Font(bold=True, size=12, color="808080")
+    header_row(na_top + 1, "Hotel", "808080")
+    r = na_top + 1
+    for code, full, _entity in PROPERTIES:
+        r += 1
+        ws.cell(row=r, column=1, value=code).font = Font(bold=True)
+        ws.cell(row=r, column=9, value=full).font = Font(color="595959")
+        for j, status in enumerate(STATUS_ORDER):
+            ws.cell(row=r, column=2 + j,
+                    value=(f'=COUNTIFS({who_crit(code, None)},'
+                           f'{rng(code, "Status")},"{status}")'))
+        ws.cell(row=r, column=7,
+                value=(f'=COUNTIFS({who_crit(code, None)},'
+                       f'{rng(code, "Item (EN)")},"?*")'))
+    na_total = r + 1
+    ws.cell(row=na_total, column=1, value="NOT ASSIGNED TOTAL").font = Font(bold=True)
+    for col in range(2, 8):
+        L = get_column_letter(col)
+        c = ws.cell(row=na_total, column=col,
+                    value=f"=SUM({L}{na_top + 2}:{L}{na_total - 1})")
+        c.font = Font(bold=True)
+        c.fill = PatternFill("solid", fgColor="F2F2F2")
+    for row in range(na_top + 2, na_total + 1):
+        for col in range(1, 8):
+            ws.cell(row=row, column=col).border = BOX
+            if col > 1:
+                ws.cell(row=row, column=col).alignment = Alignment(
+                    horizontal="center")
+    colour_counts(na_top + 2, na_total - 1)
+
+    gt = na_total + 2
     ws.cell(row=gt, column=1, value="ALL").font = Font(bold=True, color="FFFFFF")
     ws.cell(row=gt, column=1).fill = HEAD_FILL
     ws.cell(row=gt, column=1).border = BOX
     for col in range(2, 8):
         L = get_column_letter(col)
         c = ws.cell(row=gt, column=col,
-                    value=f"={L}{owner_sub}+{L}{prop_sub}+{L}{none_sub}")
+                    value=f"={L}{owner_total}+{L}{prop_total}+{L}{na_total}")
         c.font = Font(bold=True, color="FFFFFF")
         c.fill = HEAD_FILL
         c.alignment = Alignment(horizontal="center")
         c.border = BOX
     ws.cell(row=gt, column=9,
-            value="Owner + Property + Not assigned = every row in the Register"
+            value="Owner + Property + Not assigned = every row on the 4 hotel tabs"
             ).font = SUB_FONT
 
-    # --- soonest-expiring list, both responsibilities together -----------
+    # --- expiring next, all hotels together (via hidden Feed) --------------
     lst_head = gt + 3
     ws.cell(row=lst_head - 1, column=1,
-            value="Expiring next — soonest first, both responsibilities"
+            value="Expiring next — soonest first, all hotels together"
             ).font = Font(bold=True, size=12, color=NAVY)
-
-    list_cols = [
-        ("Hotel", C["Property"], 1),
-        ("Renew by", C["Renew by"], 2),
-        ("Document type", C["Category"], 3),
-        ("Item", C["Item (EN)"], 4),
-        ("Counterparty", C["Authority / Counterparty"], 5),
-        ("Expiry date", C["Expiry date"], 6),
-        ("Days left", C["Days left"], 7),
-        ("Status", C["Status"], 8),
-        ("Responsible", C["Responsible"], 9),
-    ]
-    for head, _letter, col in list_cols:
-        c = ws.cell(row=lst_head, column=col, value=head)
+    list_heads = ["Hotel", "Renew by", "Document type", "Item", "Counterparty",
+                  "Expiry date", "Days left", "Status", "Responsible"]
+    for i, h in enumerate(list_heads, start=1):
+        c = ws.cell(row=lst_head, column=i, value=h)
         c.fill = HEAD_FILL
         c.font = HEAD_FONT
         c.alignment = Alignment(horizontal="center", wrap_text=True)
         c.border = BOX
 
-    reg_sort = reg("SortKey")
+    key_rng = f"Feed!$J$2:$J${feed_last}"
     n_list = 30
     for k in range(1, n_list + 1):
         r = lst_head + k
-        # rank comes from the row position, so no Rank column is needed
-        key = f"SMALL({reg_sort},ROW()-{lst_head})"
-        for _head, letter, col in list_cols:
-            src = f"Register!${letter}${FIRST_DATA_ROW}:${letter}${last_row}"
+        key = f"SMALL({key_rng},ROW()-{lst_head})"
+        for col in range(1, 10):
+            L = get_column_letter(col)
+            src = f"Feed!${L}$2:${L}${feed_last}"
             ws.cell(row=r, column=col,
-                    value=f'=IFERROR(INDEX({src},MATCH({key},{reg_sort},0)),"")')
+                    value=f'=IFERROR(INDEX({src},MATCH({key},{key_rng},0)),"")')
         ws.cell(row=r, column=6).number_format = "DD-MMM-YYYY"
-        for _head, _letter, col in list_cols:
+        for col in range(1, 10):
             c = ws.cell(row=r, column=col)
             c.border = BOX
-            c.alignment = Alignment(horizontal="center" if col in (1, 2, 6, 7, 8)
-                                    else "left", wrap_text=col in (3, 4, 5),
-                                    vertical="center")
+            c.alignment = Alignment(
+                horizontal="center" if col in (1, 2, 6, 7, 8) else "left",
+                wrap_text=col in (3, 4, 5), vertical="center")
 
-    # Renew by colour first so it wins on its own cell
     for label, fill, font in (("Owner", FILL_OWNER, FONT_OWNER),
                               ("Property", FILL_PROPERTY, FONT_PROPERTY)):
         ws.conditional_formatting.add(
@@ -807,21 +836,19 @@ def build_dashboard(wb, last_row):
             FormulaRule(formula=[f'$H{lst_head + 1}="{label}"'], fill=fill,
                         font=font))
 
-    # column A carries the row labels of the matrices (longest text on the
-    # sheet), so it sets the width; the rest serve both the tables and the list
-    widths = [27, 13, 17, 26, 21, 14, 12, 12, 17]
+    widths = [38, 13, 17, 26, 21, 14, 12, 12, 22]
     for i, w in enumerate(widths, start=1):
         ws.column_dimensions[get_column_letter(i)].width = w
 
-    # --- legend ----------------------------------------------------------
+    # --- legend ------------------------------------------------------------
     r = lst_head + n_list + 3
     ws.cell(row=r, column=1, value="Who renews it / ใครต่ออายุ").font = Font(
         bold=True, color=NAVY)
     for label, meaning, fill, font in (
-        ("Owner", "the asset company (AMH …): building, entity, taxes, asset "
+        ("Owner", "the asset company (AMH …): building, taxes, asset "
                   "insurance, head agreements — เจ้าของอาคาร",
          FILL_OWNER, FONT_OWNER),
-        ("Property", "the hotel operation: guest-facing licences, staff, "
+        ("Property", "the hotel operation: operating licences, staff, "
                      "suppliers, OTAs — ฝ่ายโรงแรม",
          FILL_PROPERTY, FONT_PROPERTY),
     ):
@@ -831,17 +858,13 @@ def build_dashboard(wb, last_row):
         c.alignment = Alignment(horizontal="center")
         ws.cell(row=r, column=2, value=meaning).font = SUB_FONT
         ws.merge_cells(start_row=r, start_column=2, end_row=r, end_column=8)
-
     r += 2
     ws.cell(row=r, column=1, value="Colours / สีบอกสถานะ").font = Font(
         bold=True, color=NAVY)
     for label, meaning, fill, font in (
-        ("Expired", "past the expiry date — เลยกำหนดแล้ว", FILL_EXPIRED,
-         FONT_EXPIRED),
-        ("Urgent", "expires within 30 days — ครบกำหนดใน 30 วัน", FILL_URGENT,
-         FONT_URGENT),
-        ("Due soon", "expires within 90 days — ครบกำหนดใน 90 วัน", FILL_SOON,
-         FONT_SOON),
+        ("Expired", "past the expiry date — เลยกำหนดแล้ว", FILL_EXPIRED, FONT_EXPIRED),
+        ("Urgent", "expires within 30 days — ครบกำหนดใน 30 วัน", FILL_URGENT, FONT_URGENT),
+        ("Due soon", "expires within 90 days — ครบกำหนดใน 90 วัน", FILL_SOON, FONT_SOON),
         ("OK", "more than 90 days left — ยังมีเวลา", FILL_OK, FONT_OK),
         ("No date", "expiry date not filled in yet — ยังไม่ได้ใส่วันหมดอายุ",
          FILL_NODATE, FONT_NODATE),
@@ -870,78 +893,55 @@ def build_guide(wb):
     ws.row_dimensions[1].height = 26
 
     lines = [
-        ("Three tabs", "Dashboard = the overview. Register = where you type. "
-                       "Lists = the dropdown choices."),
-        ("แท็บ 3 อัน", "Dashboard คือภาพรวม, Register คือที่กรอกข้อมูล, "
-                       "Lists คือรายการตัวเลือก"),
+        ("The tabs", "Dashboard = the overview of all 4 hotels. SR9 / AES / "
+                     "LYF / SP = one register per hotel, where you type. "
+                     "Lists = the dropdown choices."),
+        ("แท็บ", "Dashboard คือภาพรวม 4 โรงแรม, SR9 / AES / LYF / SP คือทะเบียน"
+                 "ของแต่ละโรงแรม (กรอกที่นี่), Lists คือตัวเลือก"),
         ("", ""),
-        ("Step 1", "Go to the Register tab. Each row is one licence, permit, "
-                   "tax, insurance policy or contract."),
+        ("Step 1", "Open the tab of the hotel you are working on. Each row is "
+                   "one licence, permit, tax, insurance policy or contract."),
         ("Step 2", "Fill in: Reference / Licence no., Issue date, Expiry date, "
                    "Responsible person, Fee, and where the document is kept."),
-        ("", ""),
-        ("Renew by", "The important split: OWNER or PROPERTY — who has to renew "
-                     "it. Pick from the dropdown. Owner rows are blue, Property "
-                     "rows are purple, and the Dashboard shows the two as two "
-                     "separate tables."),
-        ("Renew by = Owner", "The asset company (AMH … Co., Ltd.): the building "
-                             "and its inspections, the company registrations and "
-                             "taxes, asset insurance, the management agreement, "
-                             "lease and bank facilities."),
-        ("Renew by = Property", "The hotel operation: guest-facing licences "
-                                "(food, alcohol, pool), staff permits and health "
-                                "certificates, OTA agreements, and operating "
-                                "suppliers such as laundry, security, cleaning."),
-        ("ผู้ต่ออายุ", "Owner = เจ้าของอาคาร (บริษัท AMH) ดูแลตัวอาคาร ทะเบียนบริษัท "
-                      "ภาษี ประกันทรัพย์สิน สัญญาหลัก / Property = ฝ่ายโรงแรม "
-                      "ดูแลใบอนุญาตหน้างาน พนักงาน OTA และซัพพลายเออร์"),
-        ("See one side only", "On the Register click the filter arrow on "
-                              "'Renew by' and tick just Owner or just Property."),
         ("Step 3", "Leave the grey formula columns alone — Action by, Days left "
                    "and Status fill themselves in."),
-        ("Step 4", "Open the Dashboard tab to see what is expiring."),
+        ("Step 4", "Open the Dashboard tab to see what is expiring, all hotels "
+                   "together."),
         ("", ""),
-        ("The Dashboard", "Owner first, then Property. Each one is counted "
-                          "twice — once BY HOTEL and once BY DOCUMENT TYPE "
-                          "(licence, permit, certificate, tax, insurance, "
-                          "contract) — so a red number tells you which "
-                          "hotel and what kind of document."),
-        ("แดชบอร์ด", "นับ 2 แบบ: แยกตามโรงแรม และแยกตามประเภทเอกสาร"),
-        ("The ✓ mark", "Next to each by-type table: it confirms that table counts the same rows as the by-hotel table above it."),
+        ("Renew by", "The key split: OWNER or PROPERTY — who has to renew it. "
+                     "Owner rows are blue, Property rows purple; each hotel tab "
+                     "lists the Owner block first. The Dashboard counts the two "
+                     "separately, by hotel and by document type."),
+        ("ผู้ต่ออายุ", "Owner = เจ้าของอาคาร (บริษัท AMH) / Property = ฝ่ายโรงแรม "
+                      "แต่ละแท็บเรียง Owner ก่อน แล้วจึง Property"),
         ("", ""),
         ("Dates", "Type dates as a real date (e.g. 31/12/2026). If Excel shows "
                   "a number instead, format the cell as Date."),
         ("Notice (days)", "How many days before expiry you want to start the "
                           "renewal. Default 60. 'Action by' = expiry minus this."),
-        ("Rows", "Formulas already run to row 404. Just keep typing down — do "
-                 "not insert rows above 404 and you never need to copy formulas."),
-        ("Delete a row", "Clear the Item (EN) cell and the row drops out of the "
-                         "count and the dashboard."),
-        ("", ""),
-        ("Colours", "Red = expired. Pink = expires within 30 days. Amber = "
-                    "within 90 days. Green = fine. Grey = no expiry date yet."),
-        ("สี", "แดง = หมดอายุแล้ว, ชมพู = ครบกำหนดใน 30 วัน, เหลือง = ใน 90 วัน, "
-               "เขียว = ยังมีเวลา, เทา = ยังไม่ได้ใส่วันหมดอายุ"),
-        ("", ""),
-        ("Check this first", "The Owner / Property split I filled in is my "
-                             "best guess from normal practice. Please read down "
-                             "the Renew by column once and change anything that "
-                             "is different in your agreements."),
+        ("Rows", "Formulas run to row 124 on every hotel tab. Keep typing "
+                 "down — no need to copy formulas."),
+        ("Delete a row", "Clear the Item (EN) cell and the row drops out of "
+                         "the count and the Dashboard."),
         ("", ""),
         ("The seeded rows", "The checklist comes from your team's handbook "
                             "(the 2510_SA document list) — the renewable items, "
-                            "seeded for all four hotels. No dates yet. Delete "
-                            "anything a hotel does not have, add anything "
+                            "the same list on every hotel tab. No dates yet. "
+                            "Delete anything a hotel does not have, add anything "
                             "missing. Archive-only papers (BOD minutes, SPA, "
                             "CFA, construction contracts) are not here — they "
                             "do not expire."),
         ("รายการที่ใส่ไว้ให้", "มาจากคู่มือของทีม (ลิสต์ 2510_SA) เฉพาะรายการที่ต้อง"
-                              "ต่ออายุ ใส่ให้ครบทั้ง 4 โรงแรม ยังไม่มีวันที่ "
+                              "ต่ออายุ เหมือนกันทุกโรงแรม ยังไม่มีวันที่ "
                               "ลบอันที่ไม่มี เพิ่มอันที่ขาด"),
         ("", ""),
+        ("Colours", "Red = expired. Pink = expires within 30 days. Amber = "
+                    "within 90 days. Green = fine. Grey = no expiry date yet."),
+        ("Hidden tab 'Feed'", "A hidden helper that joins the 4 hotel tabs for "
+                              "the Dashboard's expiring-next list. Leave it be."),
         ("Rebuild", "scripts/build_license_tracker.py rebuilds this file's "
-                    "structure. Rebuilding starts from empty rows, so keep "
-                    "your filled-in copy — do not overwrite it."),
+                    "structure from empty rows — never overwrite a filled-in "
+                    "copy."),
     ]
     r = 3
     for label, text in lines:
@@ -972,24 +972,26 @@ def main():
 
     rows = seed_rows(blank=args.blank)
     build_lists(wb)
-    _, last_row = build_register(wb, rows)
-    build_dashboard(wb, last_row)
+    for code, full, entity in PROPERTIES:
+        build_register(wb, code, full, entity, rows[code])
+    _, feed_last = build_feed(wb)
+    build_dashboard(wb, feed_last)
     build_guide(wb)
 
-    # tab order: Guide, Dashboard, Register, Lists
-    wb._sheets = [wb["Guide"], wb["Dashboard"], wb["Register"], wb["Lists"]]
+    order = ["Guide", "Dashboard"] + [p[0] for p in PROPERTIES] + ["Feed", "Lists"]
+    wb._sheets = [wb[n] for n in order]
     wb.active = 1
 
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     wb.save(out)
+    total = sum(len(v) for v in rows.values())
     print(f"Wrote {out}")
-    print(f"  seeded rows: {len(rows)}  (formulas run to row {last_row})")
-    by_prop = {}
-    for row in rows:
-        by_prop[row["Property"]] = by_prop.get(row["Property"], 0) + 1
-    for code, n in by_prop.items():
-        print(f"    {code}: {n} rows")
+    print(f"  tabs: {', '.join(order)}")
+    print(f"  seeded rows: {total} (formulas to row {LAST_ROW} per hotel tab)")
+    for code, v in rows.items():
+        n_owner = sum(1 for x in v if x["Renew by"] == "Owner")
+        print(f"    {code}: {len(v)} rows ({n_owner} Owner / {len(v)-n_owner} Property)")
 
 
 if __name__ == "__main__":
