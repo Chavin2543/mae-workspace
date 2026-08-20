@@ -569,7 +569,12 @@ def build_register(wb, rows):
                         font=font, stopIfTrue=False),
         )
 
-    ws.freeze_panes = f"E{FIRST_DATA_ROW}"
+    # Freeze through Item (EN) so a row still says what it is once you scroll
+    # right to the dates. Derived from C, not hardcoded, so inserting another
+    # column never silently strips the item name out of the frozen pane again.
+    first_scrolling_col = get_column_letter(
+        COLUMNS.index(("Item (EN)", 40)) + 2)
+    ws.freeze_panes = f"{first_scrolling_col}{FIRST_DATA_ROW}"
     ws.auto_filter.ref = f"A{HEADER_ROW}:{visible_last}{last_row}"
     ws.column_dimensions[C["SortKey"]].hidden = True
     ws.sheet_view.zoomScale = 90
