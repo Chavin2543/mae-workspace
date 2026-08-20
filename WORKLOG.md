@@ -7,6 +7,18 @@ language.
 
 ---
 
+## 2026-08-20 — Recheck of the team's handover-documents list (2510_SA)
+- Mae uploaded the team's `2510_SA_List_of_Handover_Docs_number_checked_2.xlsx`
+  (Handover Docs + All Doc Lists) and asked for a recheck. Read both tabs in
+  full; verified numbering and cross-tab consistency by script.
+- 17 findings, delivered as a new "Recheck 2026-08-20" tab in
+  `output/SA_List_of_Handover_Docs_rechecked_2026-08-20.xlsx` (original tabs
+  untouched, verified identical). Biggest: #6 skipped and #44-47 double-used
+  (real count 204, not 201); CFA package on the Handover tab still dated
+  2017-06-21 although All Doc Lists corrected it to 2021-06-21; JVA on the
+  handover list despite its "exclude from handover" memo.
+- Source filed: `data/source/SA_List_of_Handover_Docs_number_checked_2.xlsx`.
+
 ## 2026-08-20 — Licence tracker dashboard: add a by-document-type view
 - Mae asked the dashboard to show what category each number is. Each of the
   OWNER and PROPERTY blocks is now counted twice over the same rows: BY HOTEL
