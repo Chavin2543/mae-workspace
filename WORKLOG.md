@@ -7,6 +7,18 @@ language.
 
 ---
 
+## 2026-08-20 — Licence & contract tracker for the 4 properties (structure)
+- New recurring deliverable: `output/License_Contract_Tracker_4properties.xlsx`
+  — Guide / Dashboard / Register / Lists tabs. One master Register holds every
+  licence, permit, tax, insurance and contract for SR9, AES, LYF, SP; Days left,
+  Action by and Status are formulas, colours + dashboard counts follow.
+- Built by `scripts/build_license_tracker.py` (rebuildable, `--blank` for no seed).
+  Seeded 222 checklist rows (55/55/57/55) of standard Thai hotel licences and
+  known contracts — no dates yet; Mae is uploading her documents next.
+- Verified in Python (LibreOffice is broken in this container): status logic,
+  dashboard totals, and the hidden tiebreaker that stops two same-day expiries
+  showing twice on the dashboard.
+
 ## 2026-08-14 — LS8 payment approval tables (4 payments)
 - Read 4 uploaded payment documents for lyf Sukhumvit 8 / AMH Sukhumvit 8 Co., Ltd:
   2 Ananda PVs (PV-009 remittance to owner 1.5M THB, PV-010 Ascott fees
