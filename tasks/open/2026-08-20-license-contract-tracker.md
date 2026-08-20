@@ -32,7 +32,10 @@ next 30/60/90 days.
       her files — see docs/decisions/2026-08-20-licence-tracker-shape.md
 - [x] Dashboard: added a by-document-type view under each of Owner and
       Property, with a check cell tying it to the by-hotel view
-- [ ] WAITING ON MAE: upload the licence/contract documents
+- [x] Mae's team handbook received (2510_SA list) — confirmed as the standard
+      checklist for every hotel; tracker seed rebuilt from it (278 rows),
+      Renew-by derived from the handbook's Kept-by column
+- [ ] WAITING ON MAE: reference numbers, issue/expiry dates, fees per hotel
 - [ ] Mae reviews the Owner/Property defaults and corrects any
 - [ ] Mae uploads her licence/contract documents
 - [ ] Load real reference numbers, issue/expiry dates, fees into the register

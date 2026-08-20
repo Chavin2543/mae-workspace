@@ -7,6 +7,16 @@ language.
 
 ---
 
+## 2026-08-20 — Licence tracker rebuilt from the team's handbook
+- Mae confirmed the 2510_SA document list is the standard checklist for every
+  hotel. Replaced the tracker's guessed seed with the handbook's renewable
+  items: 278 rows (69 per hotel, 71 at LYF), Owner 44 / Property 234.
+- Renew-by defaults now derive from the handbook's "Kept by" column (ATB →
+  Property, Mitsui/Ananda → Owner); added Semi-annual cycle for EIA monitoring;
+  archival papers (BOD, SPA, CFA, construction, FS) deliberately excluded.
+- Decision: docs/decisions/2026-08-20-tracker-seed-from-handbook.md. Verified:
+  split adds up, Owner block sorted first per hotel, key handbook items present.
+
 ## 2026-08-20 — Recheck of the team's handover-documents list (2510_SA)
 - Mae uploaded the team's `2510_SA_List_of_Handover_Docs_number_checked_2.xlsx`
   (Handover Docs + All Doc Lists) and asked for a recheck. Read both tabs in
