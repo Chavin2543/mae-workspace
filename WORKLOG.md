@@ -7,6 +7,14 @@ language.
 
 ---
 
+## 2026-08-20 — Licence tracker: corporate deadlines added (Mae's choice)
+- Mae asked whether corporate documents belong in the tracker. Decision:
+  static corp papers (share books, BOD minutes, bank books) stay out — the
+  handover list is their record — but the recurring corporate deadlines go in:
+  AGM, audited-FS filing to DBD, PND.50, PND.51, company-affidavit refresh.
+- New "Corporate" category, 5 rows per company under Owner → 298 rows total
+  (74/74/76/74). Dashboard hotel blocks show the Corporate line automatically.
+
 ## 2026-08-20 — Licence tracker: one register tab per hotel + Mae's dashboard layout
 - Mae's requests: (1) separate Register sheet per property; (2) the dashboard's
   Owner section laid out as Owner > 1.SR9 > categories, 2.AES > categories, ...
