@@ -39,7 +39,12 @@ next 30/60/90 days.
       request 20 Aug; dashboard restructured Owner > hotel > category,
       same for Property (Mae's sketch), with hidden Feed tab for the
       all-hotels expiring list
-- [ ] WAITING ON MAE: reference numbers, issue/expiry dates, fees per hotel
+- [x] Corporate deadlines added (AGM, FS filing, PND.50/51, affidavit) —
+      5 rows/company under Owner; static corp papers stay out (Mae's choice)
+- [x] "Collect" tab added: recurring docs x years per hotel — where kept /
+      Missing / N/A, per Mae's request (completeness question, e.g. EIA)
+- [ ] WAITING ON MAE: reference numbers, issue/expiry dates, fees per hotel;
+      team fills the Collect grid from the files they hold
 - [ ] Mae reviews the Owner/Property defaults and corrects any
 - [ ] Mae uploads her licence/contract documents
 - [ ] Load real reference numbers, issue/expiry dates, fees into the register

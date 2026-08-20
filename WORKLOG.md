@@ -7,6 +7,17 @@ language.
 
 ---
 
+## 2026-08-20 — Licence tracker: "Collect" tab for document completeness
+- Mae (in Thai): the sheet only answers "what expires when" and is hard to
+  read; she also needs to know whether recurring documents were COLLECTED for
+  every period and where each copy is kept (e.g. EIA monitoring, done every
+  half year).
+- Added a Collect tab: per hotel, 15 recurring documents x years 2019-2027.
+  The team types WHERE that year's copy is kept (green); "Missing" = red,
+  "N/A" = grey, blank = not checked (amber); Have/Missing counters per row.
+- Verified: header/blocks/formulas correct, counting rule reproduced in
+  Python (ATB + Data room + Missing + N/A -> Have 2 / Missing 1).
+
 ## 2026-08-20 — Licence tracker: corporate deadlines added (Mae's choice)
 - Mae asked whether corporate documents belong in the tracker. Decision:
   static corp papers (share books, BOD minutes, bank books) stay out — the

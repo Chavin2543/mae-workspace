@@ -148,6 +148,29 @@ RESPONSIBILITY = {
 }
 
 
+# Recurring documents whose past copies must be COLLECTED (Mae, Aug 2026):
+# the Collect tab asks, per hotel x per year, "do we have it, and where is it
+# kept?" — a separate question from renewal expiry. (item EN, item TH)
+COLLECT_YEARS = list(range(2019, 2028))
+COLLECT_ITEMS = [
+    ("EIA monitoring report — 1H", "รายงานติดตาม EIA — ครึ่งปีแรก"),
+    ("EIA monitoring report — 2H", "รายงานติดตาม EIA — ครึ่งปีหลัง"),
+    ("Annual building inspection (Ror.1)", "รายงานตรวจสอบอาคาร (ร.1)"),
+    ("Workplace environment assessment", "ผลตรวจวัดสภาพแวดล้อมในการทำงาน"),
+    ("Air / water / wastewater test reports", "ผลตรวจอากาศ น้ำ น้ำทิ้ง"),
+    ("Land & building tax receipt", "ใบเสร็จภาษีที่ดินและสิ่งปลูกสร้าง"),
+    ("Signage tax receipt", "ใบเสร็จภาษีป้าย"),
+    ("Audited FS (EN)", "งบการเงินตรวจสอบแล้ว (อังกฤษ)"),
+    ("Audited FS (TH)", "งบการเงินตรวจสอบแล้ว (ไทย)"),
+    ("PND.50 filing", "แบบ ภ.ง.ด.50"),
+    ("PND.51 filing", "แบบ ภ.ง.ด.51"),
+    ("Insurance policy set (IAR / BI / PV)", "กรมธรรม์ประกันทรัพย์สินชุดปี"),
+    ("Public liability policy", "กรมธรรม์ความรับผิดต่อบุคคลภายนอก"),
+    ("Alcohol licence (renewed copy)", "ใบอนุญาตขายสุราปีนั้น"),
+    ("Energy conservation audit report", "รายงานตรวจสอบการอนุรักษ์พลังงาน"),
+]
+
+
 STATUSES = ["Expired", "Urgent", "Due soon", "OK", "No date"]
 
 RENEW_CYCLES = ["Annual", "Semi-annual", "Every 2 years", "Every 3 years", "Every 5 years",
@@ -900,6 +923,107 @@ def build_dashboard(wb, feed_last):
     return ws
 
 
+
+def build_collect(wb):
+    """Mae's completeness grid: per hotel, rows = recurring documents,
+    columns = years. In each cell the team types WHERE that year's document
+    is kept (ATB / Mitsui / Data room ...) — that counts as "have" (green).
+    "Missing" = red, "N/A" = grey (not applicable, e.g. before opening),
+    blank = not checked yet (amber). Have / Missing counters per row."""
+    ws = wb.create_sheet("Collect")
+    ny = len(COLLECT_YEARS)
+    have_col = 3 + ny
+    miss_col = have_col + 1
+    ncols = miss_col
+
+    title_block(
+        ws,
+        "Document Collection Check — มีครบไหม เก็บที่ไหน",
+        "One line per recurring document, one column per year. In each box "
+        "type WHERE it is kept (ATB / Mitsui / Data room…) — green = have. "
+        "Type Missing = red, N/A = grey (e.g. before opening). Blank = not "
+        "checked yet. พิมพ์ที่เก็บเอกสารลงช่องปี ถ้าหาย พิมพ์ Missing",
+        ncols,
+    )
+
+    light = PatternFill("solid", fgColor="EDF1F8")
+    FILL_HAVE = PatternFill("solid", fgColor="C6EFCE")
+    FILL_MISS = PatternFill("solid", fgColor="FFC7CE")
+    FILL_NA = PatternFill("solid", fgColor="EDEDED")
+    FILL_BLANK = PatternFill("solid", fgColor="FFF2CC")
+
+    r = 4
+    for n, (code, full, _entity) in enumerate(PROPERTIES, start=1):
+        hc = ws.cell(row=r, column=1, value=f"{n}. {code} — {full}")
+        hc.font = Font(bold=True, size=12, color=NAVY)
+        for col in range(1, ncols + 1):
+            ws.cell(row=r, column=col).fill = light
+            ws.cell(row=r, column=col).border = BOX
+        r += 1
+        heads = (["Document", "เอกสาร"] + [str(y) for y in COLLECT_YEARS]
+                 + ["Have", "Missing"])
+        for i, h in enumerate(heads, start=1):
+            c = ws.cell(row=r, column=i, value=h)
+            c.fill = HEAD_FILL
+            c.font = HEAD_FONT
+            c.alignment = Alignment(horizontal="center", vertical="center")
+            c.border = BOX
+        first = r + 1
+        for item_en, item_th in COLLECT_ITEMS:
+            r += 1
+            ws.cell(row=r, column=1, value=item_en)
+            ws.cell(row=r, column=2, value=item_th).font = Font(
+                size=9, color="595959")
+            rng = f"C{r}:{get_column_letter(2 + ny)}{r}"
+            ws.cell(row=r, column=have_col,
+                    value=('=COUNTIF(' + rng + ',"?*")-COUNTIF(' + rng
+                           + ',"Missing")-COUNTIF(' + rng + ',"N/A")'))
+            ws.cell(row=r, column=miss_col,
+                    value='=COUNTIF(' + rng + ',"Missing")')
+            for col in range(1, ncols + 1):
+                c = ws.cell(row=r, column=col)
+                c.border = BOX
+                if col > 2:
+                    c.alignment = Alignment(horizontal="center")
+        last = r
+
+        grid = f"C{first}:{get_column_letter(2 + ny)}{last}"
+        anchor = f"C{first}"
+        ws.conditional_formatting.add(grid, FormulaRule(
+            formula=[anchor + '="Missing"'], fill=FILL_MISS,
+            font=Font(color="9C0006", bold=True), stopIfTrue=True))
+        ws.conditional_formatting.add(grid, FormulaRule(
+            formula=[anchor + '="N/A"'], fill=FILL_NA,
+            font=Font(color="808080"), stopIfTrue=True))
+        ws.conditional_formatting.add(grid, FormulaRule(
+            formula=[anchor + '<>""'], fill=FILL_HAVE,
+            font=Font(color="375623"), stopIfTrue=True))
+        ws.conditional_formatting.add(grid, FormulaRule(
+            formula=[anchor + '=""'], fill=FILL_BLANK, stopIfTrue=True))
+        mc = get_column_letter(miss_col)
+        ws.conditional_formatting.add(
+            f"{mc}{first}:{mc}{last}",
+            FormulaRule(formula=[f"{mc}{first}>0"], fill=FILL_MISS,
+                        font=Font(color="9C0006", bold=True)))
+        hc2 = get_column_letter(have_col)
+        ws.conditional_formatting.add(
+            f"{hc2}{first}:{hc2}{last}",
+            FormulaRule(formula=[f"{hc2}{first}>0"], fill=FILL_HAVE,
+                        font=Font(color="375623")))
+        r += 2
+
+    ws.column_dimensions["A"].width = 36
+    ws.column_dimensions["B"].width = 30
+    for i in range(3, 3 + ny):
+        ws.column_dimensions[get_column_letter(i)].width = 11
+    ws.column_dimensions[get_column_letter(have_col)].width = 8
+    ws.column_dimensions[get_column_letter(miss_col)].width = 9
+    ws.freeze_panes = "C6"
+    ws.sheet_view.showGridLines = False
+    ws.sheet_view.zoomScale = 90
+    return ws
+
+
 def build_guide(wb):
     ws = wb.create_sheet("Guide", 0)
     ws.sheet_view.showGridLines = False
@@ -956,6 +1080,14 @@ def build_guide(wb):
         ("", ""),
         ("Colours", "Red = expired. Pink = expires within 30 days. Amber = "
                     "within 90 days. Green = fine. Grey = no expiry date yet."),
+        ("Collect tab", "The completeness check: one line per recurring "
+                        "document, one column per year, per hotel. Type WHERE "
+                        "that year's copy is kept (ATB / Mitsui / Data room) — "
+                        "it turns green. Type 'Missing' if it cannot be found "
+                        "(red), 'N/A' if that year does not apply (grey). "
+                        "Blank = not checked yet (amber)."),
+        ("แท็บ Collect", "เช็คว่าเอกสารย้อนหลังครบไหม พิมพ์ที่เก็บลงช่องปี "
+                        "(เขียว=มี, Missing=หาย, N/A=ไม่เกี่ยว, ว่าง=ยังไม่เช็ค)"),
         ("Hidden tab 'Feed'", "A hidden helper that joins the 4 hotel tabs for "
                               "the Dashboard's expiring-next list. Leave it be."),
         ("Rebuild", "scripts/build_license_tracker.py rebuilds this file's "
@@ -993,11 +1125,13 @@ def main():
     build_lists(wb)
     for code, full, entity in PROPERTIES:
         build_register(wb, code, full, entity, rows[code])
+    build_collect(wb)
     _, feed_last = build_feed(wb)
     build_dashboard(wb, feed_last)
     build_guide(wb)
 
-    order = ["Guide", "Dashboard"] + [p[0] for p in PROPERTIES] + ["Feed", "Lists"]
+    order = (["Guide", "Dashboard"] + [p[0] for p in PROPERTIES]
+             + ["Collect", "Feed", "Lists"])
     wb._sheets = [wb[n] for n in order]
     wb.active = 1
 
