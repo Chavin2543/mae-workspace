@@ -7,6 +7,17 @@ language.
 
 ---
 
+## 2026-08-20 — Licence tracker dashboard: add a by-document-type view
+- Mae asked the dashboard to show what category each number is. Each of the
+  OWNER and PROPERTY blocks is now counted twice over the same rows: BY HOTEL
+  (4 rows) and BY DOCUMENT TYPE (the 10 categories), with a ✓ check cell that
+  confirms the two tables agree. NOT ASSIGNED and the ALL total unchanged.
+- The expiring-next list now leads with Hotel / Renew by / Document type; the
+  decorative Rank column is gone (rank comes from ROW() instead).
+- Verified by evaluating the sheet's real COUNTIFS in Python: by-hotel total ==
+  by-type total for both blocks, ALL = 222 = every register row, every category
+  used in the register has a dashboard row.
+
 ## 2026-08-20 — Licence tracker: frozen-pane fix + shape decision
 - Fixed a bug from the Owner/Property change: adding the `Renew by` column
   pushed Item (EN) from E to F but the frozen pane still stopped at E, so the

@@ -30,6 +30,8 @@ next 30/60/90 days.
 - [x] Fixed frozen pane (item name stayed visible when scrolling to dates)
 - [x] Asked Mae whether to simplify before uploads; she chose to wait for
       her files — see docs/decisions/2026-08-20-licence-tracker-shape.md
+- [x] Dashboard: added a by-document-type view under each of Owner and
+      Property, with a check cell tying it to the by-hotel view
 - [ ] WAITING ON MAE: upload the licence/contract documents
 - [ ] Mae reviews the Owner/Property defaults and corrects any
 - [ ] Mae uploads her licence/contract documents
