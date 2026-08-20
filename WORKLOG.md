@@ -7,6 +7,16 @@ language.
 
 ---
 
+## 2026-08-20 — Licence tracker: frozen-pane fix + shape decision
+- Fixed a bug from the Owner/Property change: adding the `Renew by` column
+  pushed Item (EN) from E to F but the frozen pane still stopped at E, so the
+  item name scrolled away when typing the dates. Now frozen at G, derived from
+  the column list so another insert cannot break it again.
+- Asked Mae whether the 222-row / 20-column sheet is too much to read. She
+  chose to leave it and slim it from her real documents instead —
+  docs/decisions/2026-08-20-licence-tracker-shape.md.
+- Next session: waiting on Mae's licence/contract uploads.
+
 ## 2026-08-20 — Licence tracker: split by renewal responsibility (Owner / Property)
 - Mae's request: separate the documents by who must renew them. Added a
   `Renew by` column (Owner / Property dropdown) to the Register, seeded all 222

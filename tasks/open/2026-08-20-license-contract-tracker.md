@@ -27,6 +27,10 @@ next 30/60/90 days.
       (Mae's request 2026-08-20) — new `Renew by` column, Owner block
       sorted above Property in each hotel, colour-coded, dashboard split
       into an Owner table and a Property table + a NOT ASSIGNED safety net
+- [x] Fixed frozen pane (item name stayed visible when scrolling to dates)
+- [x] Asked Mae whether to simplify before uploads; she chose to wait for
+      her files — see docs/decisions/2026-08-20-licence-tracker-shape.md
+- [ ] WAITING ON MAE: upload the licence/contract documents
 - [ ] Mae reviews the Owner/Property defaults and corrects any
 - [ ] Mae uploads her licence/contract documents
 - [ ] Load real reference numbers, issue/expiry dates, fees into the register
